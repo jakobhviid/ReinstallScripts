@@ -44,6 +44,9 @@ choco install visualstudiocode -y
 choco install sqlitebrowser -y
 choco install typescript -y
 choco install wudt -y
+
+REM Needed for LaTeX
+echo Installing tools for LaTeX
 choco install miktex -y
 choco install synctex -y
 choco install activeperl -y

@@ -44,17 +44,17 @@ choco install visualstudiocode -y
 choco install sqlitebrowser -y
 choco install typescript -y
 choco install wudt -y
-REM dont install cygwin and min gw, install http://win-builds.org instead!
-REM choco install cygwin -y
-REM choco install mingw -y
+choco install miktex -y
+choco install synctex -y
+choco install activeperl -y
 
 choco install nodejs.install -y
-choco install yarn -y
-call npm install -g yo
-call npm install -g bower
-call npm install -g grunt-cli
-REM call npm install -g yarn  - installed using choco instead
-call npm install -g webpack
+REM choco install yarn -y
+REM call npm install -g yo
+REM call npm install -g bower
+REM call npm install -g grunt-cli
+REM REM call npm install -g yarn  - installed using choco instead
+REM call npm install -g webpack
 
 
 echo Installing Large Developer Tools Packages

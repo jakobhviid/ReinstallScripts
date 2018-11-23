@@ -7,6 +7,6 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
 ## Instructions for VS Code Setup
 
 1. Install sync command
-2. Add "sync.gist": "dac237d22d72a0305708292b111c62c5", to the settings file.
-3. From the command palette write "sync download".
-4. Paste access token: "5a55b13e9a97d98f352409667d9514dcccc3a5b9".
+2. Run sync.download command from palete.
+3. Paste access token: "9d87c1263d8133c86a7acb6be4e8f0ebb4f5fa52".
+4. Paste Gist id: "dac237d22d72a0305708292b111c62c5"

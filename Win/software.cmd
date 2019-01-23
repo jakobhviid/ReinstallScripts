@@ -52,7 +52,7 @@ choco install activeperl -y
 choco install python -y
 refreshenv
 python -m pip install --upgrade pip
-pip install distribute (or use easy_install distribute)
+pip install distribute
 pip install pygments
 
 choco install nodejs.install -y

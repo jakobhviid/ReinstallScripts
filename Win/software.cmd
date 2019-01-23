@@ -35,7 +35,6 @@ choco install sudo -y
 echo Installing Developer Tools
 choco install golang -y
 choco install jdk8 -y
-REM choco install python -y
 choco install filezilla -y
 choco install putty.install -y
 choco install git.install -y
@@ -50,6 +49,11 @@ echo Installing tools for LaTeX
 choco install miktex -y
 choco install synctex -y
 choco install activeperl -y
+choco install python -y
+refreshenv
+python -m pip install --upgrade pip
+pip install distribute (or use easy_install distribute)
+pip install pygments
 
 choco install nodejs.install -y
 REM choco install yarn -y

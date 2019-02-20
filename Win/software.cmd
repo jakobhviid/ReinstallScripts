@@ -49,6 +49,11 @@ echo Installing tools for LaTeX
 choco install miktex -y
 choco install synctex -y
 choco install activeperl -y
+refreshenv
+cpan -f -i Unicode::GCString
+cpan -f -i YAML::Tiny
+cpan -f -i Log::Dispatch::File
+cpan -f -i Log::Log4perl
 choco install python -y
 refreshenv
 python -m pip install --upgrade pip

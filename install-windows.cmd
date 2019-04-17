@@ -15,7 +15,7 @@ choco install 7zip.install
 choco install vlc
 choco install paint.net
 choco install teamviewer
-choco install spotify
+REM choco install spotify
 choco install handbrake.install
 
 echo Installing hardware related helper tools

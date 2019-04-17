@@ -16,6 +16,7 @@ choco install vlc
 choco install paint.net
 choco install teamviewer
 choco install spotify
+choco install handbrake.install
 
 echo Installing hardware related helper tools
 choco install logitechgaming

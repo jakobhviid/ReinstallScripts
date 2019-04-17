@@ -28,7 +28,7 @@ choco install discord
 choco install steam
 choco install origin
 choco install uplay
-choco install epicgameslauncher
+REM choco install epicgameslauncher
 choco install geforce-experience
 
 echo Installing commandline tools

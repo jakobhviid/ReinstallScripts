@@ -1,7 +1,5 @@
 # Reinstall Scripts
 
-Win folder is for windows related scripts, and Mac folder for mac.
-
 Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](https://chocolatey.org/).
 
 ## Instructions for VS Code Setup

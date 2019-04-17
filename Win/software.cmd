@@ -39,6 +39,7 @@ echo Installing Developer Tools
 choco install vscode
 choco install git.install
 choco install gitkraken
+regedit /s FixGitKraken.reg
 choco install filezilla
 choco install golang
 choco install jdk8

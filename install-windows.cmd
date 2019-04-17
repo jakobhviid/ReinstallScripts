@@ -37,15 +37,15 @@ choco install nmap
 choco install sudo
 
 echo Installing Developer Tools
-choco install vscode
 choco install git.install
+choco install vscode
 choco install gitkraken
 regedit /s ./supportfiles/FixGitKraken.reg
 choco install filezilla
+choco install dotnetcore-sdk
 choco install golang
 choco install jdk8
 choco install putty.install
-choco install visualstudiocode
 choco install sqlitebrowser
 choco install typescript
 choco install wudt

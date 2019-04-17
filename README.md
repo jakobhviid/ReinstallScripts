@@ -2,6 +2,23 @@
 
 Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](https://chocolatey.org/).
 
+## Missing items from install script
+
+1. [Live Tex](https://www.tug.org/texlive/acquire-netinstall.html)
+2. [Office 365 Home](https://account.microsoft.com/services/office/install)
+3. [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/)
+4. [draw.io desktop application](https://about.draw.io/integrations/#integrations_offline)
+5. Windows Store Apps
+   1. Microsoft To-do
+   2. Wunderlist
+   3. Signal
+   4. OneNote
+   5. Ubuntu (for WSFL)
+   6. Remote Desktop
+   7. Termius
+   8. Plex
+   9. Netflix
+
 ## Instructions for VS Code Setup
 
 1. Install sync command.

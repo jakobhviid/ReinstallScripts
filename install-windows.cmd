@@ -48,13 +48,14 @@ choco install visualstudiocode
 choco install sqlitebrowser
 choco install typescript
 choco install wudt
+choco install mingw
 
 REM Needed for LaTeX
 echo Installing tools for LaTeX
 REM choco install miktex
 choco install synctex
-REM choco install activeperl
-choco install strawberryperl
+choco install activeperl
+REM choco install strawberryperl
 refreshenv
 cpan -f -i Unicode::GCString
 cpan -f -i YAML::Tiny

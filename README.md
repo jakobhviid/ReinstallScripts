@@ -9,16 +9,17 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
 3. [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/)
 4. [draw.io desktop application](https://about.draw.io/integrations/#integrations_offline)
 5. Windows Store Apps
-   1. Spotify
-   2. Microsoft To-do
-   3. Wunderlist
-   4. Signal
-   5. OneNote
-   6. Ubuntu (for WSFL)
-   7. Remote Desktop
-   8. Termius
-   9. Plex
-   10. Netflix
+   1. 1Password
+   2. Spotify
+   3. Microsoft To-do
+   4. Wunderlist
+   5. Signal
+   6. OneNote
+   7. Ubuntu (for WSFL)
+   8. Remote Desktop
+   9. Termius
+   10. Plex
+   11. Netflix
 
 ## Instructions for VS Code Setup
 

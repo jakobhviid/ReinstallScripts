@@ -30,11 +30,12 @@ iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 ```
 
 Nice packages include:
-- curl
-- grep
-- nano 
-- touch
-- vim
+1. aria2
+2. curl
+3. grep
+4. nano 
+5. touch
+6. vim
 
 ## Instructions for VS Code Setup
 

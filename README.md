@@ -29,13 +29,11 @@ Set-ExecutionPolicy RemoteSigned -scope CurrentUser
 iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 ```
 
-Nice packages include:
-1. aria2
-2. curl
-3. grep
-4. nano 
-5. touch
-6. vim
+Install my most common packages with these commands:
+```powershell
+scoop install aria2 
+scoop install curl grep nano touch vim
+```
 
 ## Instructions for VS Code Setup
 

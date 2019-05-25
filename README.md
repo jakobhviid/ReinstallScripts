@@ -20,6 +20,21 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
    9. Termius
    10. Plex
    11. Netflix
+   
+## Remember scoop!!!
+get scoop from [here](https://scoop.sh/), and install by using powershell:
+
+```powershell
+Set-ExecutionPolicy RemoteSigned -scope CurrentUser
+iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
+```
+
+Nice packages include:
+- curl
+- grep
+- nano 
+- touch
+- vim
 
 ## Instructions for VS Code Setup
 

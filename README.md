@@ -35,6 +35,8 @@ scoop install aria2
 scoop install curl grep nano touch vim make
 ```
 
+More packages can be found [here](https://github.com/ScoopInstaller/Main/tree/master/bucket).
+
 ## Instructions for VS Code Setup
 
 1. Install sync command.

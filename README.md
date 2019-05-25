@@ -32,7 +32,7 @@ iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 Install my most common packages with these commands:
 ```powershell
 scoop install aria2 
-scoop install curl grep nano touch vim
+scoop install curl grep nano touch vim make
 ```
 
 ## Instructions for VS Code Setup

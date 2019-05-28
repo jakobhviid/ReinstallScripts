@@ -32,7 +32,7 @@ iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 Install my most common packages with these commands:
 ```powershell
 scoop install aria2 
-scoop install curl grep nano touch vim make say tar sudo micro coreutils git
+scoop install curl grep nano vim make say tar sudo micro coreutils git
 ```
 
 More packages can be found [here](https://github.com/ScoopInstaller/Main/tree/master/bucket).

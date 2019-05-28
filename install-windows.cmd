@@ -38,7 +38,8 @@ choco install nmap
 choco install sudo
 
 echo Installing Developer Tools
-choco install git.install
+REM git now installed using scoop
+REM choco install git.install 
 choco install vscode
 choco install gitkraken
 regedit /s ./supportfiles/FixGitKraken.reg

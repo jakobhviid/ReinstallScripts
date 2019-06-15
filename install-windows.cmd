@@ -43,6 +43,7 @@ REM choco install git.install
 choco install vscode
 choco install gitkraken
 regedit /s ./supportfiles/FixGitKraken.reg
+regedit /s ./supportfiles/DisableNetworkDriveWarning.reg
 choco install filezilla
 choco install dotnetcore-sdk
 choco install golang

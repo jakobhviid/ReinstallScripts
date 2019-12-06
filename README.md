@@ -31,8 +31,12 @@ iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 
 Install my most common packages with these commands:
 ```powershell
-scoop install aria2 
-scoop install curl grep nano vim make say tar sudo micro coreutils git tidy
+scoop bucket add extras
+scoop bucket add java
+scoop install aria2 sudo
+scoop install curl grep nano vim make say tar sudo micro coreutils git tidy 7zip oraclejre8 vlc 7zip paint.net handbrake teamviewer discord vscode gitkraken filezilla sqlitebrowser putty dotnet-sdk anaconda3 nodejs python
+
+C:\Users\jakob\scoop\apps\vscode\current\vscode-install-context.reg
 ```
 
 More packages can be found [here](https://github.com/ScoopInstaller/Main/tree/master/bucket).

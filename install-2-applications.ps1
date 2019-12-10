@@ -13,5 +13,3 @@ choco install activeperl
 cd ~\Downloads\
 wget https://dl.appget.net/appget/appget.setup.exe -o appget.exe 
 ./appget.exe /sp- /silent /norestart
-
-

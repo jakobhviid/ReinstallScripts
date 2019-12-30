@@ -1,29 +1,24 @@
-############### Windows
-# Windows thumbnail cache files
-Thumbs.db
-ehthumbs.db
-ehthumbs_vista.db
+# File created using '.gitignore Generator' for Visual Studio Code: https://bit.ly/vscode-gig
 
-# Dump file
-*.stackdump
+# Created by https://www.gitignore.io/api/linux,macos,powershell,windows
+# Edit at https://www.gitignore.io/?templates=linux,macos,powershell,windows
 
-# Folder config file
-[Dd]esktop.ini
+### Linux ###
+*~
 
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
 
-# Windows Installer files
-*.cab
-*.msi
-*.msm
-*.msp
+# KDE directory preferences
+.directory
 
-# Windows shortcuts
-*.lnk
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
 
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
 
-############### MAC
+### macOS ###
 # General
 .DS_Store
 .AppleDouble
@@ -31,7 +26,6 @@ $RECYCLE.BIN/
 
 # Icon must end with two \r
 Icon
-
 
 # Thumbnails
 ._*
@@ -52,10 +46,40 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-############### VS Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/spellright.dict
+### PowerShell ###
+# Exclude packaged modules
+*.zip
+
+# Exclude .NET assemblies from source
+*.dll
+
+### Windows ###
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Dump file
+*.stackdump
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# End of https://www.gitignore.io/api/linux,macos,powershell,windows
+
+# Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
+

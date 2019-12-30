@@ -7,8 +7,7 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
 1. [Live Tex](https://www.tug.org/texlive/acquire-netinstall.html)
 2. [Office 365 Home](https://account.microsoft.com/services/office/install)
 3. [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/)
-4. [draw.io desktop application](https://about.draw.io/integrations/#integrations_offline)
-5. Windows Store Apps
+4. Windows Store Apps
    1. 1Password
    2. Spotify
    3. Microsoft To-do
@@ -20,16 +19,11 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
    9. Plex
    10. Netflix
    11. Terminal
-   
-## Remember scoop!!!
-get scoop from [here](https://scoop.sh/), and install by using powershell:
 
-```powershell
-Set-ExecutionPolicy RemoteSigned -scope CurrentUser
-iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
-```
+## Getting Started
 
-Install my most common packages with these commands:
+Begin installation using the following:
+
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
@@ -42,4 +36,4 @@ Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.
 C:\Users\jakob\scoop\apps\vscode\current\vscode-install-context.reg
 ```
 
-More packages can be found [here](https://github.com/ScoopInstaller/Main/tree/master/bucket).
+More packages can be found at [Scoop](https://github.com/ScoopInstaller/Main/tree/master/bucket), [AppGet](https://appget.net/packages), and [Chocolatey](https://chocolatey.org/packages).

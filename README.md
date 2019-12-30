@@ -1,6 +1,6 @@
 # Reinstall Scripts
 
-Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](https://chocolatey.org/).
+Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](https://chocolatey.org/), [Scoop](https://scoop.sh/) and [AppGet](https://appget.net/).
 
 ## Missing items from install script
 
@@ -12,14 +12,14 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
    1. 1Password
    2. Spotify
    3. Microsoft To-do
-   4. Wunderlist
-   5. Signal
-   6. OneNote
-   7. Ubuntu (for WSFL)
-   8. Remote Desktop
-   9. Termius
-   10. Plex
-   11. Netflix
+   4. Signal
+   5. OneNote
+   6. Ubuntu (for WSFL)
+   7. Remote Desktop
+   8. Termius
+   9. Plex
+   10. Netflix
+   11. Terminal
    
 ## Remember scoop!!!
 get scoop from [here](https://scoop.sh/), and install by using powershell:
@@ -31,19 +31,15 @@ iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 
 Install my most common packages with these commands:
 ```powershell
-scoop bucket add extras
-scoop bucket add java
-scoop install aria2 sudo
-scoop install curl grep nano vim make say tar sudo micro coreutils git tidy 7zip oraclejre8 vlc 7zip paint.net handbrake teamviewer discord vscode gitkraken filezilla sqlitebrowser putty dotnet-sdk anaconda3 nodejs python
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')
+Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+
+.\install-2-applications.ps1
+.\install-3-applications.ps1
 
 C:\Users\jakob\scoop\apps\vscode\current\vscode-install-context.reg
 ```
 
 More packages can be found [here](https://github.com/ScoopInstaller/Main/tree/master/bucket).
-
-## Instructions for VS Code Setup
-
-1. Install sync command.
-2. Run sync.download command from palete.
-3. Paste access token: "9d87c1263d8133c86a7acb6be4e8f0ebb4f5fa52".
-4. Paste Gist id: "dac237d22d72a0305708292b111c62c5".

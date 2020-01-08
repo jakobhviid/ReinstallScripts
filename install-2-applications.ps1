@@ -7,6 +7,9 @@ scoop bucket add extras
 scoop bucket add java
 scoop install curl grep nano vim make say tar sudo micro coreutils git tidy oraclejre8 vlc 7zip paint.net vscode gitkraken filezilla sqlitebrowser putty anaconda3 nodejs python go caprine sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player
 
+# Installing Visual Studio Code Sync Extension
+code --install-extension shan.code-settings-sync
+
 regedit /s ./supportfiles/FixGitKraken.reg
 regedit /s ./supportfiles/DisableNetworkDriveWarning.reg
 

@@ -9,16 +9,14 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
 3. [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/)
 4. Windows Store Apps
    1. 1Password
-   2. Spotify
-   3. Microsoft To-do
-   4. Signal
-   5. OneNote
-   6. Ubuntu (for WSFL)
-   7. Remote Desktop
-   8. Termius
-   9. Plex
-   10. Netflix
-   11. Terminal
+   2. Microsoft To-do
+   3. OneNote
+   4. Ubuntu (for WSFL)
+   5. Remote Desktop
+   6. Termius
+   7. Plex
+   8.  Netflix
+   9.  Terminal
 
 ## Getting Started
 

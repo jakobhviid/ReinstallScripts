@@ -5,7 +5,7 @@ git config --global user.email "jakobhviid1982@gmail.com"
 scoop install aria2 sudo
 scoop bucket add extras
 scoop bucket add java
-scoop install curl grep nano vim make say tar sudo micro coreutils git tidy oraclejre8 vlc 7zip paint.net vscode gitkraken filezilla sqlitebrowser putty anaconda3 nodejs python go caprine sharpkeys nssm draw.io ssh-copy-id perl
+scoop install curl grep nano vim make say tar sudo micro coreutils git tidy oraclejre8 vlc 7zip paint.net vscode gitkraken filezilla sqlitebrowser putty anaconda3 nodejs python go caprine sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player
 
 regedit /s ./supportfiles/FixGitKraken.reg
 regedit /s ./supportfiles/DisableNetworkDriveWarning.reg
@@ -20,3 +20,4 @@ Invoke-WebRequest https://dl.appget.net/appget/appget.setup.exe -o appget.exe
 appget install teams
 appget install handbrake
 appget install teamviewer
+appget install spotify

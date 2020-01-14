@@ -15,8 +15,8 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
    5. Remote Desktop
    6. Termius
    7. Plex
-   8.  Netflix
-   9.  Terminal
+   8. Netflix
+   9. Terminal
    10. Messenger (beta)
 
 ## Getting Started

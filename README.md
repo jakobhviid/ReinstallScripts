@@ -19,6 +19,7 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
    9. Plex
    10. Netflix
    11. Terminal
+   12. Messenger (beta)
 
 ## Getting Started
 

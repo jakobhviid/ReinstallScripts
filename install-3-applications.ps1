@@ -1,3 +1,11 @@
+appget install chrome
+appget install teams
+appget install handbrake
+appget install teamviewer
+appget install spotify
+appget install du-meter
+appget install slack
+
 python -m pip install --upgrade pip
 pip install distribute
 pip install pygments

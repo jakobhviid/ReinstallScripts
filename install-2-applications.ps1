@@ -12,7 +12,6 @@ code --install-extension shan.code-settings-sync
 code --install-extension pkief.material-icon-theme
 code --install-extension equinusocio.vsc-material-theme
 
-
 regedit /s ./supportfiles/FixGitKraken.reg
 regedit /s ./supportfiles/DisableNetworkDriveWarning.reg
 
@@ -23,8 +22,4 @@ Set-Location ~\Downloads\
 Invoke-WebRequest https://dl.appget.net/appget/appget.setup.exe -o appget.exe 
 ./appget.exe /sp- /silent /norestart
 
-appget install teams
-appget install handbrake
-appget install teamviewer
-appget install spotify
-appget install du-meter
+Write-Output 'Please quit this console for AppGet to register and run ".\install-3-applications.ps1"'

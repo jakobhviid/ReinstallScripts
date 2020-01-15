@@ -1,4 +1,5 @@
 appget install chrome
+appget install 1password
 appget install teams
 appget install handbrake
 appget install teamviewer

@@ -24,6 +24,7 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](htt
 Begin installation using the following:
 
 ```powershell
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')

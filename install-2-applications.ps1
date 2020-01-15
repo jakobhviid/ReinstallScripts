@@ -1,3 +1,13 @@
+appget install chrome
+appget install 1password
+appget install teams
+appget install handbrake
+appget install teamviewer
+appget install spotify
+appget install du-meter
+appget install slack
+appget install discord
+
 scoop install git
 git config --global user.name "Jakob Hviid"
 git config --global user.email "jakobhviid1982@gmail.com"
@@ -17,14 +27,3 @@ regedit /s ./supportfiles/DisableNetworkDriveWarning.reg
 
 choco feature enable -n=allowGlobalConfirmation
 choco install synctex
-
-appget install chrome
-appget install 1password
-appget install teams
-appget install handbrake
-appget install teamviewer
-appget install spotify
-appget install du-meter
-appget install slack
-appget install discord
-

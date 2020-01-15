@@ -27,9 +27,10 @@ Begin installation using the following:
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
-Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')
-Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+#run as admin
+.\install-1-managers.ps1
 
+#run as user
 .\install-2-applications.ps1
 .\install-3-applications.ps1
 

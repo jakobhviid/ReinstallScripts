@@ -6,6 +6,7 @@ appget install teamviewer
 appget install spotify
 appget install du-meter
 appget install slack
+appget install discord
 
 python -m pip install --upgrade pip
 pip install distribute

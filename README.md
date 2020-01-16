@@ -23,7 +23,6 @@ Begin installation using the following:
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 #run as admin
 .\install-1-managers.ps1

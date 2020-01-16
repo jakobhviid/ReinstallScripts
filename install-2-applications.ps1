@@ -7,6 +7,7 @@ appget install spotify
 appget install du-meter
 appget install slack
 appget install discord
+appget install 7zip
 
 scoop install git
 git config --global user.name "Jakob Hviid"

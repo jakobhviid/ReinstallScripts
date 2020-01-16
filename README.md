@@ -32,7 +32,6 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 #run as user
 .\install-2-applications.ps1
-.\install-3-applications.ps1
 
 C:\Users\jakob\scoop\apps\vscode\current\vscode-install-context.reg
 ```

@@ -22,8 +22,6 @@ code --install-extension shan.code-settings-sync
 code --install-extension pkief.material-icon-theme
 code --install-extension equinusocio.vsc-material-theme
 
+# Adding registry fixes
 regedit /s ./supportfiles/FixGitKraken.reg
 regedit /s ./supportfiles/DisableNetworkDriveWarning.reg
-
-# choco feature enable -n=allowGlobalConfirmation
-# choco install synctex

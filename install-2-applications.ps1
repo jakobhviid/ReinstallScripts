@@ -15,6 +15,7 @@ git config --global user.email "jakobhviid1982@gmail.com"
 scoop install aria2 sudo
 scoop bucket add extras
 scoop bucket add java
+scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized
 scoop install curl grep nano vim make say tar sudo micro coreutils git tidy oraclejre8 vlc 7zip paint.net vscode gitkraken filezilla sqlitebrowser putty anaconda3 nodejs python go sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex
 
 # Installing Visual Studio Code Sync Extension and the themes
@@ -35,3 +36,6 @@ cpan -f -i Unicode::GCString
 cpan -f -i YAML::Tiny
 cpan -f -i Log::Dispatch::File
 cpan -f -i Log::Log4perl
+
+# extra apps for scientific work
+scoop install protege

@@ -1,6 +1,6 @@
 # Reinstall Scripts
 
-Mac script use [Homebrew](https://brew.sh/), while Windows uses [Chocolatey](https://chocolatey.org/), [Scoop](https://scoop.sh/) and [AppGet](https://appget.net/).
+Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://scoop.sh/) and [AppGet](https://appget.net/).
 
 ## Missing items from install script
 
@@ -37,4 +37,4 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 C:\Users\jakob\scoop\apps\vscode\current\vscode-install-context.reg
 ```
 
-More packages can be found at [Scoop](https://github.com/ScoopInstaller/Main/tree/master/bucket), [AppGet](https://appget.net/packages), and [Chocolatey](https://chocolatey.org/packages).
+More packages can be found at [Scoop](https://github.com/ScoopInstaller/Main/tree/master/bucket), and [AppGet](https://appget.net/packages).

@@ -10,4 +10,3 @@ cpan -f -i Log::Log4perl
 # cd %userprofile%/.ssh
 # ssh-keygen -t rsa -b 4096 -C "jakob@hviidnet.com"
 
-powershell Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux

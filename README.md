@@ -8,16 +8,15 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://
 2. [Office 365 Home](https://account.microsoft.com/services/office/install)
 3. [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/)
 4. Windows Store Apps
-   1. 1Password
-   2. Microsoft To-do
-   3. OneNote
-   4. Ubuntu (for WSFL)
-   5. Remote Desktop
-   6. Termius
-   7. Plex
-   8. Netflix
-   9. Terminal
-   10. Messenger (beta)
+   1. Microsoft To-do
+   2. OneNote
+   3. Ubuntu (for WSFL)
+   4. Remote Desktop
+   5. Termius
+   6. Plex
+   7. Netflix
+   8. Terminal
+   9. Messenger (beta)
 
 ## Getting Started
 

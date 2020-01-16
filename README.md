@@ -2,12 +2,11 @@
 
 Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://scoop.sh/) and [AppGet](https://appget.net/).
 
-## Missing items from install script
+## Missing items from install script for Windows 10
 
-1. [Live Tex](https://www.tug.org/texlive/acquire-netinstall.html)
-2. [Office 365 Home](https://account.microsoft.com/services/office/install)
-3. [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/)
-4. Windows Store Apps
+1. [Office 365 Home](https://account.microsoft.com/services/office/install)
+2. [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/)
+3. Windows Store Apps
    1. Microsoft To-do
    2. OneNote
    3. Ubuntu (for WSFL)
@@ -18,7 +17,7 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://
    8. Terminal
    9. Messenger (beta)
 
-## Getting Started
+## Getting Started with Windows 10
 
 Begin installation using the following:
 

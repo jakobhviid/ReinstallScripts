@@ -1,6 +1,5 @@
 Write-Output "Installing hardware related helper tools"
 appget install logitech-g-hub
-appget install logitech-options  
 
 Write-Output "Installing Game Related Packages"
 appget install discord

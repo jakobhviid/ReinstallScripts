@@ -1,5 +1,7 @@
 appget install chrome
 appget install 1password
+appget install logitech-options
+appget install logitech-unifying-software
 appget install teams
 appget install handbrake
 appget install teamviewer

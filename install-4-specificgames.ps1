@@ -15,4 +15,4 @@ Invoke-WebRequest https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip 
 # Deleating steamcmd.zip
 Remove-Item -Force .\steamcmd.zip
 
-steamcmd +runscript steamcmd.txt 
+./steamcmd.exe +runscript steamcmd.txt 

@@ -1,0 +1,2 @@
+login user password
+app_update 908070 validate      

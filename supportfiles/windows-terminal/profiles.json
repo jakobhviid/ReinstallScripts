@@ -280,7 +280,7 @@
         {
             "closeOnExit": true,
             "colorScheme": "Hviid",
-            "commandline": "powershell.exe",
+            "commandline": "powershell.exe -nologo",
             "cursorColor": "#FFFFFF",
             "fontFace": "Delugia Nerd Font",
             "fontSize": 14,

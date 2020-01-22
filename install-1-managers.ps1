@@ -5,8 +5,8 @@ Invoke-WebRequest https://dl.appget.net/appget/appget.setup.exe -o appget.exe
 ./appget.exe /sp- /silent /norestart
 
 # Installing modules for a fancy powershell
-Install-Module -Name posh-git -Scope CurrentUser
-Install-Module -Name oh-my-posh -Scope CurrentUser
+Install-Module -Name posh-git
+Install-Module -Name oh-my-posh
 
 # install WSL features
 Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux

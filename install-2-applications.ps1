@@ -18,13 +18,23 @@ git config --global user.email "jakobhviid1982@gmail.com"
 scoop install aria2 sudo
 scoop bucket add extras
 scoop bucket add java
+scoop bucket add nerd-fonts
 scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized
-scoop install curl grep nano vim make say tar sudo micro coreutils git tidy oraclejre8 vlc 7zip paint.net vscode gitkraken filezilla sqlitebrowser putty anaconda3 nodejs python go sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli
+scoop install curl grep nano vim make say tar sudo micro coreutils git tidy oraclejre8 vlc 7zip paint.net vscode gitkraken filezilla sqlitebrowser putty anaconda3 nodejs python go sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli 
 
 # Installing Visual Studio Code Sync Extension and the themes
 code --install-extension shan.code-settings-sync
 code --install-extension pkief.material-icon-theme
 code --install-extension equinusocio.vsc-material-theme
+
+# Bling for powershell console
+Import-Module posh-git
+Import-Module oh-my-posh
+Set-Theme Paradox
+
+Add-Content $profile "Import-Module posh-git"
+Add-Content $profile "Import-Module oh-my-posh"
+Add-Content $profile "Set-Theme Paradox"
 
 # Adding registry fixes
 regedit /s ./supportfiles/FixGitKraken.reg
@@ -43,30 +53,4 @@ cpan -f -i Log::Log4perl
 # extra apps for scientific work
 scoop install protege
 
-# Installing cascadia code fonts (update them from https://github.com/microsoft/cascadia-code/releases)
-
-$SourceDir = ".\supportfiles\fonts"
-$Source = ".\supportfiles\fonts\*"
-$Destination = (New-Object -ComObject Shell.Application).Namespace(0x14)
-$TempFolder = "C:\Windows\Temp\Fonts"
-
-# Create the source directory if it doesn't already exist
-New-Item -ItemType Directory -Force -Path $SourceDir
-
-New-Item $TempFolder -Type Directory -Force | Out-Null
-
-Get-ChildItem -Path $Source -Include '*.ttf', '*.ttc', '*.otf' -Recurse | ForEach {
-    If (-not(Test-Path "C:\Windows\Fonts\$($_.Name)")) {
-
-        $Font = "$TempFolder\$($_.Name)"
-        
-        # Copy font to local temporary folder
-        Copy-Item $($_.FullName) -Destination $TempFolder
-        
-        # Install font
-        $Destination.CopyHere($Font, 0x10)
-
-        # Delete temporary copy of font
-        Remove-Item $Font -Force
-    }
-}
+./add-fonts.ps1

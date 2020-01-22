@@ -1,0 +1,358 @@
+{
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+    "globals": {
+        "alwaysShowTabs": true,
+        "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+        "initialCols": 120,
+        "initialRows": 30,
+        "keybindings": [
+            {
+                "command": "closeTab",
+                "keys": [
+                    "ctrl+w"
+                ]
+            },
+            {
+                "command": "newTab",
+                "keys": [
+                    "ctrl+t"
+                ]
+            },
+            {
+                "command": "newTabProfile0",
+                "keys": [
+                    "ctrl+shift+1"
+                ]
+            },
+            {
+                "command": "newTabProfile1",
+                "keys": [
+                    "ctrl+shift+2"
+                ]
+            },
+            {
+                "command": "newTabProfile2",
+                "keys": [
+                    "ctrl+shift+3"
+                ]
+            },
+            {
+                "command": "newTabProfile3",
+                "keys": [
+                    "ctrl+shift+4"
+                ]
+            },
+            {
+                "command": "newTabProfile4",
+                "keys": [
+                    "ctrl+shift+5"
+                ]
+            },
+            {
+                "command": "newTabProfile5",
+                "keys": [
+                    "ctrl+shift+6"
+                ]
+            },
+            {
+                "command": "newTabProfile6",
+                "keys": [
+                    "ctrl+shift+7"
+                ]
+            },
+            {
+                "command": "newTabProfile7",
+                "keys": [
+                    "ctrl+shift+8"
+                ]
+            },
+            {
+                "command": "newTabProfile8",
+                "keys": [
+                    "ctrl+shift+9"
+                ]
+            },
+            {
+                "command": "nextTab",
+                "keys": [
+                    "ctrl+tab"
+                ]
+            },
+            {
+                "command": "openSettings",
+                "keys": [
+                    "ctrl+,"
+                ]
+            },
+            {
+                "command": "prevTab",
+                "keys": [
+                    "ctrl+shift+tab"
+                ]
+            },
+            {
+                "command": "scrollDown",
+                "keys": [
+                    "ctrl+shift+down"
+                ]
+            },
+            {
+                "command": "scrollDownPage",
+                "keys": [
+                    "ctrl+shift+pgdn"
+                ]
+            },
+            {
+                "command": "scrollUp",
+                "keys": [
+                    "ctrl+shift+up"
+                ]
+            },
+            {
+                "command": "scrollUpPage",
+                "keys": [
+                    "ctrl+shift+pgup"
+                ]
+            },
+            {
+                "command": "switchToTab0",
+                "keys": [
+                    "alt+1"
+                ]
+            },
+            {
+                "command": "switchToTab1",
+                "keys": [
+                    "alt+2"
+                ]
+            },
+            {
+                "command": "switchToTab2",
+                "keys": [
+                    "alt+3"
+                ]
+            },
+            {
+                "command": "switchToTab3",
+                "keys": [
+                    "alt+4"
+                ]
+            },
+            {
+                "command": "switchToTab4",
+                "keys": [
+                    "alt+5"
+                ]
+            },
+            {
+                "command": "switchToTab5",
+                "keys": [
+                    "alt+6"
+                ]
+            },
+            {
+                "command": "switchToTab6",
+                "keys": [
+                    "alt+7"
+                ]
+            },
+            {
+                "command": "switchToTab7",
+                "keys": [
+                    "alt+8"
+                ]
+            },
+            {
+                "command": "switchToTab8",
+                "keys": [
+                    "alt+9"
+                ]
+            },
+            {
+                "command": "splitHorizontal",
+                "keys": [
+                    "alt+shift+-"
+                ]
+            },
+            {
+                "command": "splitVertical",
+                "keys": [
+                    "ctrl+shift+t"
+                ]
+            },
+            {
+                "command": "splitHorizontal",
+                "keys": [
+                    "alt+y"
+                ]
+            },
+            {
+                "command": "splitVertical",
+                "keys": [
+                    "alt+t"
+                ]
+            },
+            {
+                "command": "splitVertical",
+                "keys": [
+                    "alt+shift+t"
+                ]
+            },
+            {
+                "command": {
+                    "action": "moveFocus",
+                    "direction": "down"
+                },
+                "keys": [
+                    "alt+down"
+                ]
+            },
+            {
+                "command": {
+                    "action": "moveFocus",
+                    "direction": "left"
+                },
+                "keys": [
+                    "alt+left"
+                ]
+            },
+            {
+                "command": {
+                    "action": "moveFocus",
+                    "direction": "right"
+                },
+                "keys": [
+                    "alt+right"
+                ]
+            },
+            {
+                "command": {
+                    "action": "moveFocus",
+                    "direction": "up"
+                },
+                "keys": [
+                    "alt+up"
+                ]
+            },
+            {
+                "command": {
+                    "action": "resizePane",
+                    "direction": "down"
+                },
+                "keys": [
+                    "alt+shift+down"
+                ]
+            },
+            {
+                "command": {
+                    "action": "resizePane",
+                    "direction": "left"
+                },
+                "keys": [
+                    "alt+shift+left"
+                ]
+            },
+            {
+                "command": {
+                    "action": "resizePane",
+                    "direction": "right"
+                },
+                "keys": [
+                    "alt+shift+right"
+                ]
+            },
+            {
+                "command": {
+                    "action": "resizePane",
+                    "direction": "up"
+                },
+                "keys": [
+                    "alt+shift+up"
+                ]
+            }
+        ],
+        "requestedTheme": "system",
+        "showTabsInTitlebar": true,
+        "showTerminalTitleInTitlebar": true,
+        "wordDelimiters": " ./\\()\"'-:,.;<>~!@#$%^&*|+=[]{}~?\u2502"
+    },
+    "profiles": [
+        {
+            "closeOnExit": true,
+            "colorScheme": "Hviid",
+            "commandline": "powershell.exe",
+            "cursorColor": "#FFFFFF",
+            "fontFace": "Delugia Nerd Font",
+            "fontSize": 14,
+            "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+            "historySize": 9001,
+            "icon": "ms-appx:///ProfileIcons/{61c54bbd-c2c6-5271-96e7-009a87ff44bf}.png",
+            "name": "Windows PowerShell",
+            "snapOnInput": true,
+            "startingDirectory": "%USERPROFILE%/git"
+            // "acrylicOpacity": 0.8,
+            // "useAcrylic": true
+        },
+        {
+            "closeOnExit": true,
+            "colorScheme": "Hviid",
+            "commandline": "cmd.exe",
+            "cursorColor": "#FFFFFF",
+            "fontFace": "Delugia Nerd Font",
+            "fontSize": 14,
+            "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+            "historySize": 9001,
+            "icon": "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png",
+            "name": "Windows Console",
+            "snapOnInput": true,
+            "startingDirectory": "%USERPROFILE%/git/" //,
+            // "acrylicOpacity": 0.8,
+            // "useAcrylic": true
+        },
+        {
+            "closeOnExit": true,
+            "colorScheme": "Hviid",
+            "commandline": "wsl.exe -d Ubuntu",
+            "cursorColor": "#FFFFFF",
+            "fontFace": "Delugia Nerd Font",
+            "fontSize": 14,
+            "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
+            "historySize": 9001,
+            "icon": "ms-appx:///ProfileIcons/{9acb9455-ca41-5af7-950f-6bca1bc9722f}.png",
+            "name": "Ubuntu (WSL)",
+            "snapOnInput": true,
+            "acrylicOpacity": 0.8,
+            "useAcrylic": true
+        },
+        {
+            "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
+            "hidden": false,
+            "name": "Azure Cloud Shell",
+            "source": "Windows.Terminal.Azure"
+        }
+    ],
+    "schemes": [
+        {
+            "name": "Hviid",
+            "background": "#000000",
+            // "foreground": "#6ffa1f",
+            "foreground": "#FFFFFF",
+            "black": "#0C0C0C",
+            "blue": "#0037DA",
+            "brightBlack": "#767676",
+            "brightBlue": "#3B78FF",
+            "brightCyan": "#61D6D6",
+            "brightGreen": "#16C60C",
+            "brightPurple": "#B4009E",
+            "brightRed": "#E74856",
+            "brightWhite": "#F2F2F2",
+            "brightYellow": "#F9F1A5",
+            "cyan": "#3A96DD",
+            "green": "#13A10E",
+            "purple": "#881798",
+            "red": "#C50F1F",
+            "white": "#CCCCCC",
+            "yellow": "#C19C00"
+        }
+    ]
+}

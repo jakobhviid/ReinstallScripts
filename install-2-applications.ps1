@@ -34,7 +34,7 @@ Set-Theme Paradox
 
 Add-Content $profile "Import-Module posh-git"
 Add-Content $profile "Import-Module oh-my-posh"
-Add-Content $profile "Set-Theme Paradox"
+Add-Content $profile "Set-Theme Honukai"
 
 # Adding registry fixes
 regedit /s ./supportfiles/FixGitKraken.reg

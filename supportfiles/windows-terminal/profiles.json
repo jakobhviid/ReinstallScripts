@@ -3,8 +3,8 @@
     "globals": {
         "alwaysShowTabs": true,
         "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
-        "initialCols": 120,
-        "initialRows": 30,
+        "initialCols": 140,
+        "initialRows": 35,
         "keybindings": [
             {
                 "command": "closeTab",
@@ -283,14 +283,15 @@
             "commandline": "powershell.exe -nologo",
             "cursorColor": "#FFFFFF",
             "fontFace": "Delugia Nerd Font",
-            "fontSize": 14,
+            "fontSize": 13,
             "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
             "historySize": 9001,
             "icon": "ms-appx:///ProfileIcons/{61c54bbd-c2c6-5271-96e7-009a87ff44bf}.png",
             "name": "Windows PowerShell",
             "snapOnInput": true,
-            "startingDirectory": "%USERPROFILE%/git"
-            // "acrylicOpacity": 0.8,
+            "startingDirectory": "%USERPROFILE%/git" 
+            //,
+            // "acrylicOpacity": 0.9,
             // "useAcrylic": true
         },
         {
@@ -338,9 +339,9 @@
             // "foreground": "#6ffa1f",
             "foreground": "#FFFFFF",
             "black": "#0C0C0C",
-            "blue": "#294dbb",
+            "blue": "#2395d6",
             "brightBlack": "#767676",
-            "brightBlue": "#3B78FF",
+            "brightBlue": "#00c4f5",
             "brightCyan": "#61D6D6",
             "brightGreen": "#2bd622",
             "brightPurple": "#B4009E",

@@ -10,6 +10,7 @@ appget install du-meter
 appget install slack
 appget install discord
 appget install 7zip
+appget install visual-studio-code
 
 scoop install git
 git config --global user.name "Jakob Hviid"
@@ -20,7 +21,7 @@ scoop bucket add extras
 scoop bucket add java
 scoop bucket add nerd-fonts
 scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized
-scoop install busybox curl grep nano vim make say tar sudo micro coreutils git tidy oraclejre8 vlc 7zip paint.net vscode gitkraken filezilla sqlitebrowser putty anaconda3 nodejs python go sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli 
+scoop install busybox curl grep nano vim make say tar sudo micro coreutils git tidy oraclejre8 vlc 7zip paint.net gitkraken filezilla sqlitebrowser putty anaconda3 nodejs python go sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli 
 
 # Installing Visual Studio Code Sync Extension and the themes
 code --install-extension shan.code-settings-sync

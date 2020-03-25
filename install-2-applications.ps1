@@ -6,7 +6,6 @@ appget install teams
 appget install handbrake
 appget install teamviewer
 appget install spotify
-appget install du-meter
 appget install slack
 appget install discord
 appget install 7zip

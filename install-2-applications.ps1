@@ -11,6 +11,7 @@ appget install slack
 appget install discord
 appget install 7zip
 appget install visual-studio-code
+appget install xmeters
 
 scoop install git
 git config --global user.name "Jakob Hviid"

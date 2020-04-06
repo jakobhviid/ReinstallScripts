@@ -19,10 +19,9 @@ git config --global user.email "jakobhviid1982@gmail.com"
 scoop install aria2 sudo
 scoop bucket add extras
 scoop bucket add java
-scoop bucket add nerd-fonts
 scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized
-scoop install curl grep nano vim make say tar sudo coreutils git tidy oraclejre8 vlc 7zip paint.net gitkraken filezilla sqlitebrowser nodejs python sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli win-acme
-# Removed: busybox anaconda3 go micro putty
+scoop install curl grep nano vim make say tar sudo coreutils git tidy oraclejre8 vlc 7zip paint.net gitkraken filezilla sqlitebrowser nodejs python sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli win-acme micro
+# Removed: busybox anaconda3 go putty
 
 # Installing Visual Studio Code Sync Extension and the themes
 code --install-extension shan.code-settings-sync

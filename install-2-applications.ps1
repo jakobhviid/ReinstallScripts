@@ -21,8 +21,8 @@ scoop bucket add extras
 scoop bucket add java
 scoop bucket add nerd-fonts
 scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized
-scoop install curl grep nano vim make say tar sudo coreutils git tidy oraclejre8 vlc 7zip paint.net gitkraken filezilla sqlitebrowser putty nodejs python sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli win-acme
-# Removed: busybox anaconda3 go micro
+scoop install curl grep nano vim make say tar sudo coreutils git tidy oraclejre8 vlc 7zip paint.net gitkraken filezilla sqlitebrowser nodejs python sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli win-acme
+# Removed: busybox anaconda3 go micro putty
 
 # Installing Visual Studio Code Sync Extension and the themes
 code --install-extension shan.code-settings-sync

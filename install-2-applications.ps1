@@ -11,6 +11,7 @@ appget install discord
 appget install 7zip
 appget install visual-studio-code
 appget install xmeters
+appget install everything-search
 
 scoop install git
 git config --global user.name "Jakob Hviid"
@@ -20,7 +21,7 @@ scoop install aria2 sudo
 scoop bucket add extras
 scoop bucket add java
 scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized
-scoop install curl grep nano vim make say tar sudo coreutils git tidy oraclejre8 vlc 7zip paint.net gitkraken filezilla sqlitebrowser nodejs python sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli win-acme micro ueli everything
+scoop install curl grep nano vim make say tar sudo coreutils git tidy oraclejre8 vlc 7zip paint.net gitkraken filezilla sqlitebrowser nodejs python sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli win-acme micro ueli
 # Removed: busybox anaconda3 go putty
 
 # Installing Visual Studio Code Sync Extension and the themes

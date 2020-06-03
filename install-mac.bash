@@ -1,8 +1,9 @@
 #!/bin/bash
 
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew cask install firefox
-brew cask install google-chrome
-brew cask install visual-studio-code
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
-brew cask install plex-media-player
+brew install cask
+brew cask install mactex
+brew cask install dotnet-sdk
+brew cask install java
+

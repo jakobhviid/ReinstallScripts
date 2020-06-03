@@ -6,4 +6,6 @@ brew install cask
 brew cask install mactex
 brew cask install dotnet-sdk
 brew cask install java
+brew cask install bartender
+brew cask install drawio
 

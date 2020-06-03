@@ -8,4 +8,4 @@ brew cask install dotnet-sdk
 brew cask install java
 brew cask install bartender
 brew cask install drawio
-
+brew cask isntall microsoft-teams

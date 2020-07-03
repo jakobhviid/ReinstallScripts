@@ -16,6 +16,7 @@ appget install quicklook
 scoop install git
 git config --global user.name "Jakob Hviid"
 git config --global user.email "jakobhviid1982@gmail.com"
+git config --global core.sshcommand "C:/Windows/System32/OpenSSH/ssh.exe"
 
 scoop install aria2 sudo
 scoop bucket add extras

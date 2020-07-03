@@ -8,6 +8,9 @@ Invoke-WebRequest https://dl.appget.net/appget/appget.setup.exe -o appget.exe
 Install-Module -Name posh-git
 Install-Module -Name oh-my-posh
 
+Get-Service -Name ssh-agent | Set-Service -StartupType Automatic
+Start-Service ssh-agent
+
 # install WSL features
 Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
 

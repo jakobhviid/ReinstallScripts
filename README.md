@@ -9,13 +9,13 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://
 3. Windows Store Apps
    1. Microsoft To-do
    2. OneNote
-   3. Ubuntu (for WSFL)
+   3. Ubuntu (for WSL)
    4. Remote Desktop
    5. Termius
    6. Plex
    7. Netflix
    8. Terminal
-   9. Messenger (beta)
+   9. Messenger
 
 ## Getting Started with Windows 10
 

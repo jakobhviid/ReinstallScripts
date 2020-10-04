@@ -47,16 +47,6 @@
                 "startingDirectory": "%USERPROFILE%/git"
             },
             {
-                "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
-                "hidden": false,
-                "name": "Ubuntu",
-                "source": "Windows.Terminal.Wsl",
-                "cursorColor": "#FFFFFF",
-                "fontFace": "Delugia Nerd Font",
-                "colorScheme": "Hviid",
-                "fontSize": 13
-            },
-            {
                 "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
                 "hidden": false,
                 "name": "Azure Cloud Shell",
@@ -66,6 +56,16 @@
                 "fontSize": 13,
                 "colorScheme": "Hviid",
                 "startingDirectory": "%USERPROFILE%/git"
+            },
+            {
+                "guid": "{07b52e3e-de2c-5db4-bd2d-ba144ed6c273}",
+                "hidden": false,
+                "name": "Ubuntu-20.04",
+                "source": "Windows.Terminal.Wsl",
+                "cursorColor": "#FFFFFF",
+                "fontFace": "Delugia Nerd Font",
+                "colorScheme": "Hviid",
+                "fontSize": 13
             }
         ]
     },

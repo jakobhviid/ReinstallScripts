@@ -2,6 +2,16 @@
 
 Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://scoop.sh/) and [AppGet](https://appget.net/).
 
+## Getting Started with Mac
+
+Install homebrew using `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` or follow the latest instructions from [Homebrew](https://brew.sh/).
+
+Go to this folder with a terminal and run `brew bundle`. This will import all the applications described, including applications from the app store.
+
+To create a new Brewfile run `brew bundle dump`.
+
+For more instructions in export and import of applications using [Homebrew](https://brew.sh/), please take a look [here](https://tomlankhorst.nl/brew-bundle-restore-backup/).
+
 ## Missing items from install script for Windows 10
 
 1. [Office 365 Home](https://account.microsoft.com/services/office/install)

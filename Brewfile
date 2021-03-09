@@ -11,6 +11,7 @@ brew "aws-shell"
 brew "awscli"
 brew "awslogs"
 brew "cask"
+brew "docker-compose", link: false
 brew "gcc"
 brew "gh"
 brew "git"
@@ -32,7 +33,9 @@ cask "adoptopenjdk8"
 cask "alfred"
 cask "bartender"
 cask "cleanmymac"
+cask "customshortcuts"
 cask "discord"
+cask "docker-edge"
 cask "dotnet-sdk"
 cask "drawio"
 cask "firefox"
@@ -57,6 +60,7 @@ cask "wwdc"
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
 mas "Cardhop", id: 1290358394
+mas "com.pixelmatorteam.pixelmator.x", id: 1289583905
 mas "DaisyDisk", id: 411643860
 mas "Deliveries", id: 290986013
 mas "Disk Speed Test", id: 425264550
@@ -84,7 +88,6 @@ mas "Pages", id: 409201541
 mas "Paste", id: 967805235
 mas "Patterns", id: 429449079
 mas "PDF Expert", id: 1055273043
-mas "Pixelmator Pro", id: 1289583905
 mas "Reeder", id: 1529448980
 mas "Speedtest", id: 1153157709
 mas "Symbolic Linker", id: 1435106536

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Reinstall Scripts</title>
+        <style>
+</style>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.css" integrity="sha384-yFRtMMDnQtDRO8rLpMIKrtPCD5jdktao2TV19YiZYWMDkUR5GQZR/NOVTdquEx1j" crossorigin="anonymous">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        
+        <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+        
+    </head>
+    <body class="vscode-body">
+        <h1 id="reinstall-scripts">Reinstall Scripts</h1>
+<p>Mac script use <a href="https://brew.sh/">Homebrew</a>, while Windows uses <a href="https://scoop.sh/">Scoop</a> and <a href="https://appget.net/">AppGet</a>.</p>
+<h2 id="getting-started-with-mac">Getting Started with Mac</h2>
+<p>Install homebrew using <code>/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;</code> or follow the latest instructions from <a href="https://brew.sh/">Homebrew</a>.</p>
+<p>Go to this folder with a terminal and run <code>brew bundle</code>. This will import all the applications described, including applications from the app store</p>
+<p>To create a new Brewfile run <code>brew bundle dump</code>.</p>
+<p>For more instructions in export and import of applications using <a href="https://brew.sh/">Homebrew</a>, please take a look <a href="https://tomlankhorst.nl/brew-bundle-restore-backup/">here</a>.</p>
+<h2 id="getting-started-with-windows-10">Getting Started with Windows 10</h2>
+<p>Begin installation using the following:</p>
+<pre><code class="language-powershell"><div><span class="hljs-built_in">Set-ExecutionPolicy</span> <span class="hljs-literal">-ExecutionPolicy</span> Unrestricted <span class="hljs-literal">-Scope</span> LocalMachine
+
+<span class="hljs-comment">#run as admin</span>
+.\<span class="hljs-built_in">install-1</span><span class="hljs-literal">-managers</span>.ps1
+
+<span class="hljs-comment">#run as user</span>
+.\<span class="hljs-built_in">install-2</span><span class="hljs-literal">-applications</span>.ps1
+
+C:\Users\jakob\scoop\apps\vscode\current\vscode<span class="hljs-literal">-install</span><span class="hljs-literal">-context</span>.reg
+</div></code></pre>
+<p>More packages can be found at <a href="https://github.com/ScoopInstaller/Main/tree/master/bucket">Scoop</a>, and <a href="https://appget.net/packages">AppGet</a>.</p>
+<h3 id="missing-items-from-install-script-for-windows-10">Missing items from install script for Windows 10</h3>
+<ol>
+<li><a href="https://account.microsoft.com/services/office/install">Office 365 Home</a></li>
+<li><a href="https://visualstudio.microsoft.com/downloads/">Visual Studio Community 2019</a></li>
+<li>Windows Store Apps
+<ol>
+<li>Microsoft To-do</li>
+<li>OneNote</li>
+<li>Ubuntu (for WSL)</li>
+<li>Remote Desktop</li>
+<li>Termius</li>
+<li>Plex</li>
+<li>Netflix</li>
+<li>Terminal</li>
+<li>Messenger</li>
+</ol>
+</li>
+</ol>
+
+    </body>
+    </html>

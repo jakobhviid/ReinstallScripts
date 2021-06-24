@@ -6,7 +6,7 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://
 
 Install homebrew using `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` or follow the latest instructions from [Homebrew](https://brew.sh/).
 
-Go to this folder with a terminal and run `brew bundle`. This will import all the applications described, including applications from the app store.
+Go to this folder with a terminal and run `brew bundle`. This will import all the applications described, including applications from the app store
 
 To create a new Brewfile run `brew bundle dump`.
 

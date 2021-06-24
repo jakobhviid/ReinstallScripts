@@ -8,7 +8,7 @@ Install homebrew using `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent
 
 Go to this folder with a terminal and run `brew bundle`. This will import all the applications described, including applications from the app store.
 
-To create a new Brewfile run `brew bundle dump`.
+To create a new Brewfile run `brew bundle dump`
 
 For more instructions in export and import of applications using [Homebrew](https://brew.sh/), please take a look [here](https://tomlankhorst.nl/brew-bundle-restore-backup/).
 

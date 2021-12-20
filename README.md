@@ -14,8 +14,7 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://
    5. Termius
    6. Plex
    7. Netflix
-   8. Terminal
-   9. Messenger
+   8. Messenger
 
 ## Getting Started with Windows 10
 

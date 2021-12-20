@@ -8,13 +8,12 @@ Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://
 2. [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/)
 3. Windows Store Apps
    1. Microsoft To-do
-   2. OneNote
-   3. Ubuntu (for WSL)
-   4. Remote Desktop
-   5. Termius
-   6. Plex
-   7. Netflix
-   8. Messenger
+   2. Ubuntu (for WSL)
+   3. Remote Desktop
+   4. Termius
+   5. Plex
+   6. Netflix
+   7. Messenger
 
 ## Getting Started with Windows 10
 

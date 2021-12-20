@@ -42,5 +42,4 @@ More packages can be found at [Scoop](https://github.com/ScoopInstaller/Main/tre
    5. Termius
    6. Plex
    7. Netflix
-   8. Terminal
-   9. Messenger
+   8. Messenger

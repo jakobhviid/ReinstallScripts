@@ -39,8 +39,7 @@ More packages can be found at [Scoop](https://github.com/ScoopInstaller/Main/tre
    2. OneNote
    3. Ubuntu (for WSL)
    4. Remote Desktop
-   5. Termius
-   6. Plex
-   7. Netflix
-   8. Terminal
-   9. Messenger
+   5. Plex
+   6. Netflix
+   7. Terminal
+   8. Messenger

@@ -41,5 +41,4 @@ More packages can be found at [Scoop](https://github.com/ScoopInstaller/Main/tre
    4. Remote Desktop
    5. Plex
    6. Netflix
-   7. Terminal
-   8. Messenger
+   7. Messenger

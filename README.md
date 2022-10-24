@@ -1,6 +1,7 @@
 #Reinstall Scripts
 
-Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://scoop.sh/) and [AppGet](https://appget.net/)
+Mac script use [Homebrew](https://brew.sh/), while Windows uses [Scoop](https://scoop.sh/) and 
+[AppGet](https://appget.net/).
 
 ## Getting Started with Mac
 

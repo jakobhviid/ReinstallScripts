@@ -6,6 +6,7 @@ tap "homebrew/cask-versions"
 tap "homebrew/core"
 tap "homebrew/services"
 tap "romkatv/powerlevel10k"
+brew "antigen"
 brew "gnutls"
 brew "cask"
 brew "docker-compose"
@@ -29,6 +30,8 @@ brew "postgresql@14"
 brew "speedtest-cli"
 brew "watch"
 brew "youtube-dl"
+brew "z"
+brew "zsh"
 brew "zsh-autosuggestions"
 brew "zsh-completions"
 brew "zsh-syntax-highlighting"
@@ -43,6 +46,7 @@ cask "discord"
 cask "dotnet-sdk"
 cask "drawio"
 cask "dropbox"
+cask "fig"
 cask "forklift"
 cask "gitkraken"
 cask "google-chrome"
@@ -69,7 +73,9 @@ cask "ssh-config-editor"
 cask "steam"
 cask "tableplus"
 cask "teamviewer"
+cask "utm"
 cask "vlc"
+cask "warp"
 mas "1Password for Safari", id: 1569813296
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
@@ -96,6 +102,7 @@ mas "Microsoft Remote Desktop", id: 1295203466
 mas "Microsoft To Do", id: 1274495053
 mas "Microsoft Word", id: 462054704
 mas "MindNode", id: 1289197285
+mas "Noir", id: 1592917505
 mas "Numbers", id: 409203825
 mas "OmniGraffle", id: 1142578753
 mas "OmniPlan", id: 1460319993

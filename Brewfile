@@ -2,7 +2,6 @@ tap "homebrew/bundle"
 tap "homebrew/cask-drivers"
 tap "homebrew/cask-fonts"
 tap "homebrew/cask-versions"
-tap "homebrew/core"
 tap "homebrew/services"
 tap "romkatv/powerlevel10k"
 brew "webp"
@@ -36,6 +35,7 @@ brew "openssh"
 brew "pgcli"
 brew "pgformatter"
 brew "postgresql@14"
+brew "powerlevel10k"
 brew "python@3.10"
 brew "speedtest-cli"
 brew "transmission-cli"
@@ -46,7 +46,6 @@ brew "zsh"
 brew "zsh-autosuggestions"
 brew "zsh-completions"
 brew "zsh-syntax-highlighting"
-brew "romkatv/powerlevel10k/powerlevel10k"
 cask "aldente"
 cask "alt-tab"
 cask "bartender"
@@ -82,20 +81,19 @@ cask "postman"
 cask "raycast"
 cask "readdle-spark"
 cask "rode-connect"
+cask "sf-symbols"
 cask "shottr"
 cask "spotify"
 cask "ssh-config-editor"
 cask "steam"
 cask "teamviewer"
 cask "vlc"
-cask "warp"
-mas "1Blocker", id: 1365531024
 mas "1Password for Safari", id: 1569813296
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
 mas "AngryBirdsReloaded", id: 1539172625
+mas "Bear", id: 1091189122
 mas "Cardhop", id: 1290358394
-mas "Cityscapes", id: 1631153096
 mas "Developer", id: 640199958
 mas "Disk Speed Test", id: 425264550
 mas "Easy CSV Editor", id: 1171346381
@@ -128,6 +126,7 @@ mas "Permute 3", id: 1444998321
 mas "Pixelmator Pro", id: 1289583905
 mas "Reeder", id: 1529448980
 mas "Speedtest", id: 1153157709
+mas "Super Agent", id: 1568262835
 mas "Symbolic Linker", id: 1435106536
 mas "Texifier", id: 458866234
 mas "The Unarchiver", id: 425424353
@@ -146,6 +145,7 @@ vscode "eamodio.gitlens"
 vscode "Equinusocio.vsc-community-material-theme"
 vscode "Fudge.auto-using"
 vscode "GitHub.copilot"
+vscode "GitHub.copilot-chat"
 vscode "GitHub.github-vscode-theme"
 vscode "GitHub.remotehub"
 vscode "GitHub.vscode-pull-request-github"
@@ -169,6 +169,7 @@ vscode "ms-azuretools.vscode-docker"
 vscode "ms-dotnettools.csharp"
 vscode "ms-dotnettools.dotnet-interactive-vscode"
 vscode "ms-dotnettools.vscode-dotnet-pack"
+vscode "ms-dotnettools.vscode-dotnet-runtime"
 vscode "ms-toolsai.jupyter"
 vscode "ms-toolsai.jupyter-keymap"
 vscode "ms-toolsai.jupyter-renderers"

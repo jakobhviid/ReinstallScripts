@@ -6,6 +6,7 @@ tap "romkatv/powerlevel10k"
 brew "webp"
 brew "jpeg-xl"
 brew "aom"
+brew "ata"
 brew "gnutls"
 brew "cask"
 brew "docker"
@@ -30,21 +31,23 @@ brew "librdkafka"
 brew "kcat"
 brew "mas"
 brew "midnight-commander"
+brew "mpv"
 brew "nmap"
 brew "openjdk"
 brew "openssh"
 brew "pgcli"
 brew "pgformatter"
 brew "plantuml"
-brew "postgresql@14", restart_service: true
 brew "powerlevel10k"
 brew "python@3.10"
 brew "python@3.11"
 brew "python@3.9"
 brew "speedtest-cli"
+brew "tailscale"
 brew "transmission-cli"
 brew "typst"
 brew "watch"
+brew "wifi-password"
 brew "youtube-dl"
 brew "z"
 brew "zsh"
@@ -53,17 +56,21 @@ brew "zsh-completions"
 brew "zsh-syntax-highlighting"
 cask "1password-cli"
 cask "alt-tab"
+cask "appcleaner"
+cask "arc"
 cask "bartender"
 cask "cheatsheet"
 cask "cleanmymac"
+cask "codewhisperer"
+cask "diffusionbee"
 cask "discord"
 cask "dotnet-sdk"
 cask "drawio"
 cask "dropbox"
-cask "fig"
 cask "font-hack-nerd-font"
 cask "font-meslo-lg-nerd-font"
 cask "forklift"
+cask "gitbutler"
 cask "github"
 cask "gitkraken"
 cask "grammarly"
@@ -75,23 +82,22 @@ cask "logi-options-plus"
 cask "logitech-presentation"
 cask "logitune"
 cask "mactex"
+cask "macwhisper"
 cask "microsoft-auto-update"
 cask "microsoft-edge"
 cask "microsoft-teams"
 cask "mongodb-compass"
 cask "mono-mdk-for-visual-studio"
-cask "nvidia-geforce-now"
-cask "obsidian"
 cask "pdf-expert"
 cask "pgadmin4"
-cask "popclip"
 cask "readdle-spark"
 cask "rocket"
 cask "sf-symbols"
-cask "ssh-config-editor"
 cask "teamviewer"
 cask "tower"
+cask "upscayl"
 cask "visual-studio-code"
+cask "yubico-yubikey-manager"
 mas "1Password for Safari", id: 1569813296
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
@@ -102,17 +108,14 @@ mas "Easy CSV Editor", id: 1171346381
 mas "Gemini 2", id: 1090488118
 mas "Grammarly for Safari", id: 1462114288
 mas "iNet Network Scanner", id: 403304796
+mas "JSON Editor", id: 567740330
 mas "Kaleidoscope", id: 1575557335
 mas "Keynote", id: 409183694
+mas "Mactracker", id: 430255202
 mas "Magnet", id: 441258766
 mas "Messenger", id: 1480068668
-mas "Microsoft Excel", id: 462058435
-mas "Microsoft OneNote", id: 784801555
-mas "Microsoft Outlook", id: 985367838
-mas "Microsoft PowerPoint", id: 462062816
 mas "Microsoft Remote Desktop", id: 1295203466
 mas "Microsoft To Do", id: 1274495053
-mas "Microsoft Word", id: 462054704
 mas "MindNode", id: 1289197285
 mas "Noir", id: 1592917505
 mas "Numbers", id: 409203825
@@ -125,16 +128,21 @@ mas "Patterns", id: 429449079
 mas "Permute 3", id: 1444998321
 mas "Photomator", id: 1444636541
 mas "Pixelmator Pro", id: 1289583905
+mas "PLIST Editor", id: 1157491961
+mas "Postico", id: 6446933691
 mas "Reeder", id: 1529448980
 mas "Speedtest", id: 1153157709
+mas "SSH Config Editor", id: 1109319285
 mas "Super Agent", id: 1568262835
 mas "Symbolic Linker", id: 1435106536
 mas "Texifier", id: 458866234
 mas "The Unarchiver", id: 425424353
 mas "Things", id: 904280696
 mas "TimeStory", id: 1470702823
+mas "WireGuard", id: 1451685025
 vscode "aaron-bond.better-comments"
 vscode "adpyke.vscode-sql-formatter"
+vscode "amazonwebservices.codewhisperer-for-command-line-companion"
 vscode "andi1984.tinypng"
 vscode "andyyaldoo.vscode-json"
 vscode "britesnow.vscode-toggle-quotes"
@@ -230,7 +238,6 @@ vscode "vscjava.vscode-java-pack"
 vscode "vscjava.vscode-java-test"
 vscode "vscjava.vscode-maven"
 vscode "vscode-icons-team.vscode-icons"
-vscode "withfig.fig"
 vscode "yzhang.dictionary-completion"
 vscode "yzhang.markdown-all-in-one"
 vscode "ziyasal.vscode-open-in-github"

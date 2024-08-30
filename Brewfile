@@ -11,15 +11,16 @@ brew "gnutls"
 brew "cask"
 brew "docker"
 brew "docker-compose"
-brew "gcc"
 brew "openjpeg"
 brew "leptonica"
 brew "ffmpeg"
+brew "gcc"
+brew "geometry"
 brew "gh"
 brew "ghostscript"
 brew "git"
 brew "gnu-getopt"
-brew "git-flow-avh"
+brew "librsvg"
 brew "graphviz"
 brew "gyb"
 brew "helm"
@@ -31,10 +32,12 @@ brew "librdkafka"
 brew "kcat"
 brew "mas"
 brew "midnight-commander"
+brew "yt-dlp"
 brew "mpv"
 brew "nmap"
 brew "openjdk"
 brew "openssh"
+brew "pandoc"
 brew "pgcli"
 brew "pgformatter"
 brew "plantuml"
@@ -56,12 +59,12 @@ brew "zsh-completions"
 brew "zsh-syntax-highlighting"
 cask "1password-cli"
 cask "alt-tab"
+cask "amazon-q"
 cask "appcleaner"
 cask "arc"
 cask "bartender"
 cask "cheatsheet"
 cask "cleanmymac"
-cask "codewhisperer"
 cask "diffusionbee"
 cask "discord"
 cask "dotnet-sdk"
@@ -70,7 +73,6 @@ cask "dropbox"
 cask "font-hack-nerd-font"
 cask "font-meslo-lg-nerd-font"
 cask "forklift"
-cask "gitbutler"
 cask "github"
 cask "gitkraken"
 cask "grammarly"
@@ -78,49 +80,60 @@ cask "grandperspective"
 cask "handbrake"
 cask "iterm2"
 cask "jetbrains-toolbox"
-cask "logi-options-plus"
-cask "logitech-presentation"
+cask "linearmouse"
+cask "logi-options+"
 cask "logitune"
 cask "mactex"
 cask "macwhisper"
 cask "microsoft-auto-update"
 cask "microsoft-edge"
 cask "microsoft-teams"
+cask "mimestream"
 cask "mongodb-compass"
 cask "mono-mdk-for-visual-studio"
+cask "obsidian"
 cask "pdf-expert"
 cask "pgadmin4"
+cask "raycast"
 cask "readdle-spark"
 cask "rocket"
+cask "setapp"
 cask "sf-symbols"
+cask "shottr"
+cask "skype-for-business"
+cask "spotify"
 cask "teamviewer"
 cask "tower"
-cask "upscayl"
+cask "vanilla"
 cask "visual-studio-code"
+cask "warp"
 cask "yubico-yubikey-manager"
 mas "1Password for Safari", id: 1569813296
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
 mas "Bear", id: 1091189122
-mas "Cardhop", id: 1290358394
+mas "Craft", id: 1487937127
 mas "Disk Speed Test", id: 425264550
 mas "Easy CSV Editor", id: 1171346381
 mas "Gemini 2", id: 1090488118
 mas "Grammarly for Safari", id: 1462114288
 mas "iNet Network Scanner", id: 403304796
+mas "Iron Marines+", id: 1670387512
 mas "JSON Editor", id: 567740330
 mas "Kaleidoscope", id: 1575557335
 mas "Keynote", id: 409183694
+mas "Kingdom Rush Frontiers+", id: 1579364157
+mas "Kingdom Rush Vengeance+", id: 1610130712
 mas "Mactracker", id: 430255202
 mas "Magnet", id: 441258766
 mas "Messenger", id: 1480068668
-mas "Microsoft Remote Desktop", id: 1295203466
 mas "Microsoft To Do", id: 1274495053
 mas "MindNode", id: 1289197285
-mas "Noir", id: 1592917505
+mas "Mini Motorways", id: 1456188526
 mas "Numbers", id: 409203825
 mas "OmniGraffle", id: 1142578753
 mas "OmniPlan", id: 1460319993
+mas "Outlanders 2", id: 1614682164
 mas "Pages", id: 409201541
 mas "Parcel", id: 639968404
 mas "Paste", id: 967805235
@@ -129,31 +142,34 @@ mas "Permute 3", id: 1444998321
 mas "Photomator", id: 1444636541
 mas "Pixelmator Pro", id: 1289583905
 mas "PLIST Editor", id: 1157491961
-mas "Postico", id: 6446933691
 mas "Reeder", id: 1529448980
+mas "Save to Matter", id: 1548677272
+mas "Spaceland", id: 1471019397
 mas "Speedtest", id: 1153157709
 mas "SSH Config Editor", id: 1109319285
+mas "Star Trek", id: 1529664467
 mas "Super Agent", id: 1568262835
 mas "Symbolic Linker", id: 1435106536
 mas "Texifier", id: 458866234
 mas "The Unarchiver", id: 425424353
 mas "Things", id: 904280696
 mas "TimeStory", id: 1470702823
-mas "WireGuard", id: 1451685025
 vscode "aaron-bond.better-comments"
 vscode "adpyke.vscode-sql-formatter"
 vscode "amazonwebservices.codewhisperer-for-command-line-companion"
 vscode "andi1984.tinypng"
 vscode "andyyaldoo.vscode-json"
+vscode "bradymholt.pgformatter"
 vscode "britesnow.vscode-toggle-quotes"
+vscode "chrischinchilla.vscode-pandoc"
 vscode "ckolkman.vscode-postgres"
 vscode "codezombiech.gitignore"
+vscode "deerawan.vscode-dash"
 vscode "docsmsft.docs-markdown"
 vscode "dsznajder.es7-react-js-snippets"
 vscode "eamodio.gitlens"
 vscode "ecmel.vscode-html-css"
 vscode "equinusocio.vsc-material-theme"
-vscode "equinusocio.vsc-material-theme-icons"
 vscode "github.copilot"
 vscode "github.copilot-chat"
 vscode "github.github-vscode-theme"
@@ -172,9 +188,12 @@ vscode "jebbs.plantuml"
 vscode "jerryhong.autofilename"
 vscode "jmrog.vscode-nuget-package-manager"
 vscode "kaleidoscope-app.vscode-ksdiff"
+vscode "kevinrose.vsc-python-indent"
 vscode "kishoreithadi.dotnet-core-essentials"
+vscode "kzvi.pandoc-markdown-preview"
 vscode "liamhammett.inline-parameters"
 vscode "mdk.vega-preview"
+vscode "mechatroner.rainbow-csv"
 vscode "melishev.feather-vscode"
 vscode "ms-azuretools.vscode-docker"
 vscode "ms-dotnettools.csdevkit"
@@ -190,6 +209,7 @@ vscode "ms-mssql.sql-bindings-vscode"
 vscode "ms-mssql.sql-database-projects-vscode"
 vscode "ms-ossdata.vscode-postgresql"
 vscode "ms-python.debugpy"
+vscode "ms-python.isort"
 vscode "ms-python.python"
 vscode "ms-python.vscode-pylance"
 vscode "ms-toolsai.jupyter"
@@ -222,6 +242,7 @@ vscode "quicktype.quicktype"
 vscode "redhat.java"
 vscode "redhat.vscode-yaml"
 vscode "reflectiondm.classynaming"
+vscode "renesaarsoo.sql-formatter-vsc"
 vscode "richie5um2.vscode-sort-json"
 vscode "sidiandi.plantuml-sidiandi-fork"
 vscode "spikespaz.vscode-smoothtype"
@@ -232,12 +253,14 @@ vscode "tomoki1207.pdf"
 vscode "twxs.cmake"
 vscode "visualstudioexptteam.intellicode-api-usage-examples"
 vscode "visualstudioexptteam.vscodeintellicode"
+vscode "vscjava.vscode-gradle"
 vscode "vscjava.vscode-java-debug"
 vscode "vscjava.vscode-java-dependency"
 vscode "vscjava.vscode-java-pack"
 vscode "vscjava.vscode-java-test"
 vscode "vscjava.vscode-maven"
 vscode "vscode-icons-team.vscode-icons"
+vscode "yzane.markdown-pdf"
 vscode "yzhang.dictionary-completion"
 vscode "yzhang.markdown-all-in-one"
 vscode "ziyasal.vscode-open-in-github"

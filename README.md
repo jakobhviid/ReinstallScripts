@@ -15,7 +15,7 @@ For more instructions in export and import of applications using [Homebrew](http
 
 ## Getting Started with Windows 10
 
-Begin installation using the following:
+Begin installation using the following: 
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine

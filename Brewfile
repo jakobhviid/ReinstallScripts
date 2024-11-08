@@ -7,6 +7,7 @@ brew "webp"
 brew "jpeg-xl"
 brew "aom"
 brew "ata"
+brew "python@3.12"
 brew "gnutls"
 brew "cask"
 brew "docker"
@@ -41,12 +42,11 @@ brew "pandoc"
 brew "pgcli"
 brew "pgformatter"
 brew "plantuml"
-brew "powerlevel10k"
 brew "python@3.10"
 brew "python@3.11"
 brew "python@3.9"
 brew "speedtest-cli"
-brew "tailscale"
+brew "starship"
 brew "transmission-cli"
 brew "typst"
 brew "watch"
@@ -80,7 +80,9 @@ cask "grandperspective"
 cask "handbrake"
 cask "iterm2"
 cask "jetbrains-toolbox"
+cask "latest"
 cask "linearmouse"
+cask "lm-studio"
 cask "logi-options+"
 cask "logitune"
 cask "mactex"
@@ -111,29 +113,21 @@ cask "yubico-yubikey-manager"
 mas "1Password for Safari", id: 1569813296
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
-mas "Bear", id: 1091189122
 mas "Craft", id: 1487937127
+mas "DaisyDisk", id: 411643860
 mas "Disk Speed Test", id: 425264550
 mas "Easy CSV Editor", id: 1171346381
 mas "Gemini 2", id: 1090488118
 mas "Grammarly for Safari", id: 1462114288
 mas "iNet Network Scanner", id: 403304796
-mas "Iron Marines+", id: 1670387512
 mas "JSON Editor", id: 567740330
-mas "Kaleidoscope", id: 1575557335
 mas "Keynote", id: 409183694
-mas "Kingdom Rush Frontiers+", id: 1579364157
-mas "Kingdom Rush Vengeance+", id: 1610130712
 mas "Mactracker", id: 430255202
 mas "Magnet", id: 441258766
 mas "Messenger", id: 1480068668
-mas "Microsoft To Do", id: 1274495053
 mas "MindNode", id: 1289197285
-mas "Mini Motorways", id: 1456188526
 mas "Numbers", id: 409203825
 mas "OmniGraffle", id: 1142578753
-mas "OmniPlan", id: 1460319993
-mas "Outlanders 2", id: 1614682164
 mas "Pages", id: 409201541
 mas "Parcel", id: 639968404
 mas "Paste", id: 967805235
@@ -143,43 +137,30 @@ mas "Photomator", id: 1444636541
 mas "Pixelmator Pro", id: 1289583905
 mas "PLIST Editor", id: 1157491961
 mas "Reeder", id: 1529448980
-mas "Save to Matter", id: 1548677272
-mas "Spaceland", id: 1471019397
 mas "Speedtest", id: 1153157709
 mas "SSH Config Editor", id: 1109319285
-mas "Star Trek", id: 1529664467
 mas "Super Agent", id: 1568262835
 mas "Symbolic Linker", id: 1435106536
-mas "Texifier", id: 458866234
 mas "The Unarchiver", id: 425424353
 mas "Things", id: 904280696
 mas "TimeStory", id: 1470702823
 vscode "aaron-bond.better-comments"
-vscode "adpyke.vscode-sql-formatter"
 vscode "amazonwebservices.codewhisperer-for-command-line-companion"
-vscode "andi1984.tinypng"
-vscode "andyyaldoo.vscode-json"
 vscode "bradymholt.pgformatter"
 vscode "britesnow.vscode-toggle-quotes"
 vscode "chrischinchilla.vscode-pandoc"
-vscode "ckolkman.vscode-postgres"
 vscode "codezombiech.gitignore"
-vscode "deerawan.vscode-dash"
 vscode "docsmsft.docs-markdown"
-vscode "dsznajder.es7-react-js-snippets"
 vscode "eamodio.gitlens"
-vscode "ecmel.vscode-html-css"
-vscode "equinusocio.vsc-material-theme"
 vscode "github.copilot"
 vscode "github.copilot-chat"
 vscode "github.github-vscode-theme"
 vscode "github.remotehub"
+vscode "github.vscode-github-actions"
 vscode "github.vscode-pull-request-github"
-vscode "golang.go"
 vscode "grapecity.gc-excelviewer"
 vscode "gruntfuggly.todo-tree"
 vscode "hediet.vscode-drawio"
-vscode "humao.rest-client"
 vscode "ibm.output-colorizer"
 vscode "idleberg.icon-fonts"
 vscode "ionide.ionide-fsharp"
@@ -187,81 +168,42 @@ vscode "james-yu.latex-workshop"
 vscode "jebbs.plantuml"
 vscode "jerryhong.autofilename"
 vscode "jmrog.vscode-nuget-package-manager"
-vscode "kaleidoscope-app.vscode-ksdiff"
-vscode "kevinrose.vsc-python-indent"
-vscode "kishoreithadi.dotnet-core-essentials"
 vscode "kzvi.pandoc-markdown-preview"
 vscode "liamhammett.inline-parameters"
-vscode "mdk.vega-preview"
 vscode "mechatroner.rainbow-csv"
 vscode "melishev.feather-vscode"
 vscode "ms-azuretools.vscode-docker"
 vscode "ms-dotnettools.csdevkit"
 vscode "ms-dotnettools.csharp"
-vscode "ms-dotnettools.dotnet-interactive-vscode"
 vscode "ms-dotnettools.vscode-dotnet-pack"
 vscode "ms-dotnettools.vscode-dotnet-runtime"
 vscode "ms-dotnettools.vscodeintellicode-csharp"
 vscode "ms-kubernetes-tools.vscode-kubernetes-tools"
-vscode "ms-mssql.data-workspace-vscode"
-vscode "ms-mssql.mssql"
-vscode "ms-mssql.sql-bindings-vscode"
-vscode "ms-mssql.sql-database-projects-vscode"
 vscode "ms-ossdata.vscode-postgresql"
-vscode "ms-python.debugpy"
-vscode "ms-python.isort"
-vscode "ms-python.python"
-vscode "ms-python.vscode-pylance"
-vscode "ms-toolsai.jupyter"
-vscode "ms-toolsai.jupyter-keymap"
-vscode "ms-toolsai.jupyter-renderers"
-vscode "ms-toolsai.vscode-jupyter-cell-tags"
-vscode "ms-toolsai.vscode-jupyter-slideshow"
-vscode "ms-vscode-remote.remote-containers"
 vscode "ms-vscode-remote.remote-ssh"
 vscode "ms-vscode-remote.remote-ssh-edit"
-vscode "ms-vscode-remote.remote-wsl"
 vscode "ms-vscode-remote.vscode-remote-extensionpack"
-vscode "ms-vscode.azure-repos"
-vscode "ms-vscode.cmake-tools"
-vscode "ms-vscode.cpptools"
-vscode "ms-vscode.cpptools-extension-pack"
-vscode "ms-vscode.cpptools-themes"
-vscode "ms-vscode.makefile-tools"
-vscode "ms-vscode.powershell"
-vscode "ms-vscode.remote-explorer"
 vscode "ms-vscode.remote-repositories"
-vscode "ms-vscode.remote-server"
-vscode "ms-vsliveshare.vsliveshare"
 vscode "nvarner.typst-lsp"
+vscode "orangex4.vscode-typst-sync"
 vscode "patcx.vscode-nuget-gallery"
 vscode "piotrpalarz.vscode-gitignore-generator"
 vscode "pkief.material-icon-theme"
 vscode "pnp.polacode"
 vscode "quicktype.quicktype"
-vscode "redhat.java"
 vscode "redhat.vscode-yaml"
 vscode "reflectiondm.classynaming"
 vscode "renesaarsoo.sql-formatter-vsc"
 vscode "richie5um2.vscode-sort-json"
+vscode "s3anmorrow.openwithkraken"
 vscode "sidiandi.plantuml-sidiandi-fork"
 vscode "spikespaz.vscode-smoothtype"
 vscode "streetsidesoftware.code-spell-checker"
 vscode "streetsidesoftware.code-spell-checker-danish"
+vscode "surv.typst-math"
 vscode "tintoy.msbuild-project-tools"
 vscode "tomoki1207.pdf"
-vscode "twxs.cmake"
-vscode "visualstudioexptteam.intellicode-api-usage-examples"
-vscode "visualstudioexptteam.vscodeintellicode"
-vscode "vscjava.vscode-gradle"
-vscode "vscjava.vscode-java-debug"
-vscode "vscjava.vscode-java-dependency"
-vscode "vscjava.vscode-java-pack"
-vscode "vscjava.vscode-java-test"
-vscode "vscjava.vscode-maven"
 vscode "vscode-icons-team.vscode-icons"
 vscode "yzane.markdown-pdf"
 vscode "yzhang.dictionary-completion"
 vscode "yzhang.markdown-all-in-one"
-vscode "ziyasal.vscode-open-in-github"
-vscode "znck.grammarly"

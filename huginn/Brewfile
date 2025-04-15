@@ -1,10 +1,12 @@
 brew "webp"
 brew "jpeg-xl"
 brew "aom"
+brew "python@3.13"
 brew "asitop"
 brew "ata"
 brew "gnutls"
 brew "cask"
+brew "dotnet"
 brew "openjpeg"
 brew "leptonica"
 brew "ffmpeg"
@@ -26,6 +28,7 @@ brew "mactop"
 brew "mas"
 brew "midnight-commander"
 brew "mpv"
+brew "utf8proc"
 brew "neovim"
 brew "nmap"
 brew "ollama"
@@ -35,14 +38,12 @@ brew "pgcli"
 brew "pgformatter"
 brew "plantuml"
 brew "powerlevel10k"
-brew "python"
 brew "speedtest-cli"
 brew "starship"
 brew "stow"
 brew "transmission-cli"
 brew "tree"
 brew "typst"
-brew "utf8proc", args: ["HEAD"]
 brew "watch"
 brew "wifi-password"
 brew "z"
@@ -57,7 +58,6 @@ cask "chatgpt"
 cask "cleanmymac"
 cask "cleanshot"
 cask "discord"
-cask "dotnet-sdk"
 cask "drawio"
 cask "font-fira-code-nerd-font"
 cask "font-hack-nerd-font"
@@ -65,6 +65,7 @@ cask "font-meslo-lg-nerd-font"
 cask "forklift"
 cask "github"
 cask "gitkraken"
+cask "google-drive"
 cask "grandperspective"
 cask "handbrake"
 cask "iina"
@@ -83,20 +84,28 @@ cask "zoom"
 mas "1Password for Safari", id: 1569813296
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
+mas "Blackmagic Disk Speed Test", id: 425264550
+mas "Copilot", id: 6738511300
 mas "Craft", id: 1487937127
 mas "DaisyDisk", id: 411643860
-mas "Disk Speed Test", id: 425264550
 mas "Easy CSV Editor", id: 1171346381
+mas "Folder Preview", id: 6698876601
+mas "GarageBand", id: 682658836
 mas "Gemini 2", id: 1090488118
 mas "Grammarly for Safari", id: 1462114288
+mas "Hidden Bar", id: 1452453066
+mas "iMovie", id: 408981434
 mas "JSON Editor", id: 567740330
+mas "Keynote", id: 409183694
 mas "Lockera Widgets", id: 6466819847
 mas "Mactracker", id: 430255202
 mas "Magnet", id: 441258766
 mas "Messenger", id: 1480068668
 mas "MindNode", id: 1289197285
 mas "Noir", id: 1592917505
+mas "Numbers", id: 409203825
 mas "OmniGraffle", id: 1142578753
+mas "Pages", id: 409201541
 mas "Parcel", id: 639968404
 mas "Paste", id: 967805235
 mas "Patterns", id: 429449079
@@ -105,6 +114,7 @@ mas "Photomator", id: 1444636541
 mas "Pixelmator Pro", id: 1289583905
 mas "PLIST Editor", id: 1157491961
 mas "Reeder", id: 1529448980
+mas "Reeder", id: 6475002485
 mas "Speedtest", id: 1153157709
 mas "SSH Config Editor", id: 1109319285
 mas "Super Agent", id: 1568262835
@@ -112,7 +122,6 @@ mas "Symbolic Linker", id: 1435106536
 mas "The Unarchiver", id: 425424353
 mas "Things", id: 904280696
 vscode "aaron-bond.better-comments"
-vscode "amazonwebservices.codewhisperer-for-command-line-companion"
 vscode "be5invis.toml"
 vscode "bradymholt.pgformatter"
 vscode "britesnow.vscode-toggle-quotes"
@@ -141,7 +150,6 @@ vscode "jmrog.vscode-nuget-package-manager"
 vscode "liamhammett.inline-parameters"
 vscode "mechatroner.rainbow-csv"
 vscode "melishev.feather-vscode"
-vscode "ms-azuretools.vscode-docker"
 vscode "ms-dotnettools.csdevkit"
 vscode "ms-dotnettools.csharp"
 vscode "ms-dotnettools.dotnet-interactive-vscode"
@@ -164,7 +172,6 @@ vscode "ms-vscode.azure-repos"
 vscode "ms-vscode.remote-explorer"
 vscode "ms-vscode.remote-repositories"
 vscode "ms-vscode.remote-server"
-vscode "openai.openai-chatgpt-adhoc"
 vscode "orangex4.vscode-typst-sync"
 vscode "patcx.vscode-nuget-gallery"
 vscode "piotrpalarz.vscode-gitignore-generator"
@@ -183,7 +190,6 @@ vscode "streetsidesoftware.code-spell-checker-danish"
 vscode "surv.typst-math"
 vscode "tintoy.msbuild-project-tools"
 vscode "tomoki1207.pdf"
-vscode "vscode-icons-team.vscode-icons"
 vscode "yzane.markdown-pdf"
 vscode "yzhang.dictionary-completion"
 vscode "yzhang.markdown-all-in-one"

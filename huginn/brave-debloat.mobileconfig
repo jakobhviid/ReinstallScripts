@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadIdentifier</key>
+    <string>com.local.brave.debloat</string>
+    <key>PayloadUUID</key>
+    <string>9A4C3B90-8C1A-4F7D-9A11-000000000001</string>
+    <key>PayloadDisplayName</key>
+    <string>Brave Debloat</string>
+    <key>PayloadDescription</key>
+    <string>Disables Brave Wallet, Rewards, VPN, AI, Tor, News, Talk, Playlist, Speedreader, Wayback, P3A, and the built-in password manager.</string>
+    <key>PayloadContent</key>
+    <array>
+      <dict>
+        <key>PayloadType</key>
+        <string>com.brave.Browser</string>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>PayloadIdentifier</key>
+        <string>com.local.brave.debloat.payload</string>
+        <key>PayloadUUID</key>
+        <string>9A4C3B90-8C1A-4F7D-9A11-000000000002</string>
+        <key>PayloadDisplayName</key>
+        <string>Brave Policies</string>
+
+        <key>BraveWalletDisabled</key>
+        <true/>
+        <key>BraveRewardsDisabled</key>
+        <true/>
+        <key>BraveVPNDisabled</key>
+        <true/>
+        <key>BraveAIChatEnabled</key>
+        <false/>
+        <key>TorDisabled</key>
+        <true/>
+        <key>BraveNewsDisabled</key>
+        <true/>
+        <key>BraveTalkDisabled</key>
+        <true/>
+        <key>BravePlaylistEnabled</key>
+        <false/>
+        <key>BraveSpeedreaderEnabled</key>
+        <false/>
+        <key>BraveWaybackMachineEnabled</key>
+        <false/>
+        <key>BraveP3AEnabled</key>
+        <false/>
+
+        <key>PasswordManagerEnabled</key>
+        <false/>
+      </dict>
+    </array>
+  </dict>
+</plist>

@@ -251,15 +251,15 @@ npm install -g @openai/codex
 
 ### Not in Bazzite — install via [Extension Manager](https://flathub.org/apps/com.mattjakeman.ExtensionManager)
 
+- Tiling Shell (important)
+- Copyous (clipboard manager) (important)
 - Desktop Clock
-- Tiling Shell
 - Search Light
 - Advanced Alt-Tab Window Switcher (AATWS)
 - Panel Visual Clipboard
 - [Desktop Icons NG (DING)](https://extensions.gnome.org/extension/2087/desktop-icons-ng-ding/)
 - Arc Menu (Windows-like start menu)
 - Vitals
-- Copyous (clipboard manager)
 
 ---
 

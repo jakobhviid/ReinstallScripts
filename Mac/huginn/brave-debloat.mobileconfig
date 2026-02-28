@@ -13,7 +13,7 @@
     <key>PayloadDisplayName</key>
     <string>Brave Debloat</string>
     <key>PayloadDescription</key>
-    <string>Disables Brave Wallet, Rewards, VPN, AI, Tor, News, Talk, Playlist, Speedreader, Wayback, P3A, and the built-in password manager.</string>
+    <string>Disables Brave Wallet, Rewards, VPN, AI, Tor, News, Talk, Playlist, Speedreader, Wayback, P3A, and the built-in password manager. Disables telemetry and web discovery. Enforces DNS-over-HTTPS via Quad9. Sets Qwant as the default search engine.</string>
     <key>PayloadContent</key>
     <array>
       <dict>
@@ -53,6 +53,47 @@
 
         <key>PasswordManagerEnabled</key>
         <false/>
+        <key>AutofillAddressEnabled</key>
+        <false/>
+        <key>AutofillCreditCardEnabled</key>
+        <false/>
+
+        <key>BraveWebDiscoveryEnabled</key>
+        <false/>
+        <key>MetricsReportingEnabled</key>
+        <false/>
+        <key>BraveStatsPingEnabled</key>
+        <false/>
+        <key>UrlKeyedAnonymizedDataCollectionEnabled</key>
+        <false/>
+        <key>UserFeedbackAllowed</key>
+        <false/>
+
+        <key>SafeBrowsingExtendedReportingEnabled</key>
+        <false/>
+
+        <key>ShoppingListEnabled</key>
+        <false/>
+
+        <key>DnsOverHttpsMode</key>
+        <string>secure</string>
+        <key>DnsOverHttpsTemplates</key>
+        <string>https://dns.quad9.net/dns-query</string>
+
+        <key>DefaultSearchProviderEnabled</key>
+        <true/>
+        <key>DefaultSearchProviderName</key>
+        <string>Qwant</string>
+        <key>DefaultSearchProviderSearchURL</key>
+        <string>https://www.qwant.com/?q={searchTerms}</string>
+        <key>DefaultSearchProviderSuggestURL</key>
+        <string>https://api.qwant.com/api/suggest/?q={searchTerms}</string>
+        <key>DefaultSearchProviderKeyword</key>
+        <string>qwant</string>
+        <key>DefaultSearchProviderEncodings</key>
+        <array>
+          <string>UTF-8</string>
+        </array>
       </dict>
     </array>
   </dict>

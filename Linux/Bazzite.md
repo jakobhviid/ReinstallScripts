@@ -1,46 +1,19 @@
 # Getting Started with Bazzite
 
-## CLI Tools
-
-**Kiro CLI** ([kiro.dev/cli](https://kiro.dev/cli/))
-```sh
-curl -fsSL https://cli.kiro.dev/install | bash
-```
-
-**helvum**, **zed** — install via your package manager or Flatpak.
-
-**NVM + Node LTS**
-```sh
-# Install NVM
-curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-# Reload shell
-source ~/.nvm/nvm.sh
-# Install Node LTS
-nvm install --lts
-```
-
-**Codex CLI**
-```sh
-npm install -g @openai/codex-cli
-export PATH="${HOME}/.local/bin:${PATH}"
-```
-
----
-
-## RPM-OSTree Apps
+## 1. System Packages (rpm-ostree)
 
 ### Repo Setup
 
 ```sh
-# Brave
+# Brave repo
 sudo curl -fsSLo /etc/yum.repos.d/brave-browser.repo \
   https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
 
-# Vivaldi
+# Vivaldi repo
 sudo curl -fsSLo /etc/yum.repos.d/vivaldi-fedora.repo \
   https://repo.vivaldi.com/archive/vivaldi-fedora.repo
 
-# 1Password
+# 1Password repo (created explicitly)
 sudo tee /etc/yum.repos.d/1password.repo >/dev/null <<'EOF'
 [1password]
 name=1Password Stable Channel
@@ -51,7 +24,7 @@ repo_gpgcheck=1
 gpgkey=https://downloads.1password.com/linux/keys/1password.asc
 EOF
 
-# VS Code
+# VS Code repo (Microsoft) — repo file only; no rpm --import on an rpm-ostree host
 sudo tee /etc/yum.repos.d/vscode.repo >/dev/null <<'EOF'
 [code]
 name=Visual Studio Code
@@ -62,7 +35,7 @@ gpgcheck=1
 gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 EOF
 
-# Proton VPN
+# Proton VPN repo (Atomic-friendly: key is stored as a file and referenced via file://)
 FEDORA_RELEASE="$(rpm -E %fedora)"
 sudo curl -fsSLo "/etc/pki/rpm-gpg/RPM-GPG-KEY-protonvpn-${FEDORA_RELEASE}-stable" \
   "https://repo.protonvpn.com/fedora-${FEDORA_RELEASE}-stable/public_key.asc"
@@ -81,6 +54,7 @@ EOF
 ### Layer Packages
 
 ```sh
+# Layer packages by name (single transaction)
 sudo rpm-ostree install \
   podman-docker \
   podman-compose \
@@ -105,7 +79,11 @@ sudo rpm-ostree install \
 > gnome-sushi sushi nautilus-python file-roller-nautilus gnome-terminal-nautilus seahorse-nautilus
 > ```
 
-### Flatpaks
+> **Reboot required before continuing.**
+
+---
+
+## 2. Flatpaks
 
 ```sh
 flatpak install -y flathub \
@@ -135,57 +113,17 @@ flatpak install -y flathub \
   com.github.johnfactotum.Foliate
 ```
 
-### Manual Installs
-
-```sh
-# Claude Code
-curl -fsSL https://claude.ai/install.sh | bash
-
-# Codex
-mkdir -p ~/.local/npm
-npm config set prefix ~/.local/npm
-echo 'export PATH="$HOME/.local/npm/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-npm install -g @openai/codex
-```
-
 ---
 
-## App Fixes
-
-### 1Password — Global Shortcut
-
-```sh
-gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings \
-  "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/']" &&
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ \
-  name "1Password Quick Search" &&
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ \
-  command "1password --quick-access" &&
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ \
-  binding "<Alt><Shift>2"
-```
-
-### 1Password — Vivaldi Compatibility
-
-```sh
-sudo install -d -m 0755 /etc/1password
-printf '%s\n' vivaldi-bin | sudo tee /etc/1password/custom_allowed_browsers >/dev/null
-sudo chown root:root /etc/1password/custom_allowed_browsers
-sudo chmod 0755 /etc/1password/custom_allowed_browsers
-
-# Fix dark theme
-sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=WebContentsForceDark %U|' \
-  ~/.local/share/applications/1password.desktop
-```
+## 3. App Configuration
 
 ### Brave — Policy Configuration
 
 Disables unwanted Brave surfaces and locks search to Qwant. Policies override UI/Sync and apply at startup.
 
 ```sh
-sudo mkdir -p /etc/brave/policies/managed
-sudo tee /etc/brave/policies/managed/brave-policy.json >/dev/null <<'EOF'
+# Brave Config
+sudo mkdir -p /etc/brave/policies/managed && sudo tee /etc/brave/policies/managed/brave-policy.json >/dev/null <<'EOF'
 {
   "TorDisabled": true,
   "BraveTalkDisabled": true,
@@ -196,7 +134,17 @@ sudo tee /etc/brave/policies/managed/brave-policy.json >/dev/null <<'EOF'
   "BraveVPNDisabled": true,
 
   "PasswordManagerEnabled": false,
+  "AutofillAddressEnabled": false,
+  "AutofillCreditCardEnabled": false,
+
   "MetricsReportingEnabled": false,
+  "BraveStatsPingEnabled": false,
+  "UrlKeyedAnonymizedDataCollectionEnabled": false,
+  "UserFeedbackAllowed": false,
+
+  "SafeBrowsingExtendedReportingEnabled": false,
+
+  "ShoppingListEnabled": false,
 
   "DnsOverHttpsMode": "secure",
   "DnsOverHttpsTemplates": "https://dns.quad9.net/dns-query",
@@ -211,35 +159,75 @@ sudo tee /etc/brave/policies/managed/brave-policy.json >/dev/null <<'EOF'
 EOF
 ```
 
-#### Policy file locations by OS
+### 1Password — Global Shortcut
 
-| OS | Scope | Path |
-|---|---|---|
-| Linux (traditional) | System | `/etc/brave/policies/managed/brave-policy.json` |
-| Linux (traditional) | User | `~/.config/brave/policies/managed/brave-policy.json` |
-| Atomic Fedora (Bazzite) | System | `/etc/brave/policies/managed/brave-policy.json` (`/etc` persists across rebases) |
-| Atomic Fedora (Bazzite) | User | `~/.config/brave/policies/managed/brave-policy.json` |
-| macOS | System | `/Library/Managed Preferences/com.brave.Browser.plist` |
-| macOS | User | `~/Library/Managed Preferences/com.brave.Browser.plist` |
-| Windows | System | `HKLM\Software\Policies\BraveSoftware\Brave` |
-| Windows | User | `HKCU\Software\Policies\BraveSoftware\Brave` |
+```sh
+# Enable 1password shortcut
+gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/']" &&
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ name "1Password Quick Search" &&
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ command "1password --quick-access" &&
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ binding "<Alt><Shift>2"
+```
 
----
+### 1Password — Vivaldi Compatibility
 
-## Web Apps
-
-Install the following as web apps using Vivaldi as the wrapper:
-
-- [Apple Music](https://music.apple.com/dk/home)
-- [Nextcloud](https://home.cloud)
-- [AFFiNE](https://notes.home.cloud)
-- [Craft](https://docs.craft.do)
-- [Microsoft Teams](https://teams.microsoft.com)
-- [ChatGPT](https://chatgpt.com)
+```sh
+# 1Password ↔ Vivaldi compatibility (required on Linux)
+sudo install -d -m 0755 /etc/1password
+printf '%s\n' vivaldi-bin | sudo tee /etc/1password/custom_allowed_browsers >/dev/null
+sudo chown root:root /etc/1password/custom_allowed_browsers
+sudo chmod 0755 /etc/1password/custom_allowed_browsers
+# fixing the theme
+sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=WebContentsForceDark %U|' ~/.local/share/applications/1password.desktop
+```
 
 ---
 
-## GNOME Extensions
+## 4. CLI & Developer Tools
+
+### NVM + Node LTS
+
+```sh
+# install NVM (Node Version Manager)
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+# reload shell
+source ~/.nvm/nvm.sh
+# install Node LTS
+nvm install --lts
+```
+
+### Kiro CLI ([kiro.dev/cli](https://kiro.dev/cli/))
+
+```sh
+curl -fsSL https://cli.kiro.dev/install | bash
+```
+
+### Claude Code
+
+```sh
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+### Codex CLI
+
+```sh
+# Codex
+mkdir -p ~/.local/npm
+npm config set prefix ~/.local/npm
+echo 'export PATH="$HOME/.local/npm/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+npm install -g @openai/codex
+```
+
+### helvum, zed
+
+Install via Flatpak or package manager.
+
+---
+
+## 5. GNOME Extensions
+
+Install via the [Extension Manager](https://flathub.org/apps/com.mattjakeman.ExtensionManager) flatpak (already installed above).
 
 - Dash to Panel
 - Dash to Dock
@@ -267,11 +255,24 @@ Install the following as web apps using Vivaldi as the wrapper:
 
 ---
 
-## AI Apps
+## 6. Web Apps
 
-- [Alpaca](https://flathub.org/en/apps/com.jeffser.Alpaca) — Flatpak local LLM frontend
+Install the following as web apps using Vivaldi as the wrapper:
+
+- [Apple Music](https://music.apple.com/dk/home)
+- [Nextcloud](https://home.cloud)
+- [AFFiNE](https://notes.home.cloud)
+- [Craft](https://docs.craft.do)
+- [Microsoft Teams](https://teams.microsoft.com)
+- [ChatGPT](https://chatgpt.com)
+
+---
+
+## 7. AI Apps
+
+- [Alpaca](https://flathub.org/en/apps/com.jeffser.Alpaca) — Flatpak local LLM frontend (already installed above)
 - [Chatbox](https://github.com/chatboxai/chatbox)
-- Newelle — see below
+- Newelle — see below (already installed above)
 
 ### Newelle on Bazzite (Immutable Host)
 
@@ -279,9 +280,7 @@ Newelle is a native GTK4 AI tool. On an immutable system, the Flatpak sandbox ne
 
 **1. Grant permissions**
 ```sh
-flatpak override io.github.qwersyk.Newelle \
-  --talk-name=org.freedesktop.Flatpak \
-  --filesystem=home
+flatpak override io.github.qwersyk.Newelle --talk-name=org.freedesktop.Flatpak --filesystem=home
 ```
 
 **2. Disable Command Virtualization**

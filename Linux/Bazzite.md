@@ -74,6 +74,15 @@ sudo rpm-ostree install \
   nodejs-npm
 ```
 
+> On Silverblue, also install these GNOME extensions (they come standard on Bazzite):
+> ```sh
+> sudo rpm-ostree install \
+>   gnome-shell-extension-appindicator \
+>   gnome-shell-extension-blur-my-shell \
+>   gnome-shell-extension-caffeine \
+>   gnome-shell-extension-gsconnect
+> ```
+
 > On traditional Fedora (not Bazzite/Silverblue), also install:
 > ```sh
 > gnome-sushi sushi nautilus-python file-roller-nautilus gnome-terminal-nautilus seahorse-nautilus
@@ -188,8 +197,8 @@ sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/
 ### NVM + Node LTS
 
 ```sh
-# install NVM (Node Version Manager)
-curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+# install NVM (Node Version Manager) — always fetches the latest release
+curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | grep '"tag_name"' | cut -d'"' -f4)/install.sh" | bash
 # reload shell
 source ~/.nvm/nvm.sh
 # install Node LTS
@@ -219,35 +228,34 @@ source ~/.bashrc
 npm install -g @openai/codex
 ```
 
-### helvum, zed
-
-Install via Flatpak or package manager.
-
 ---
 
 ## 5. GNOME Extensions
 
-Install via the [Extension Manager](https://flathub.org/apps/com.mattjakeman.ExtensionManager) flatpak (already installed above).
+### Bundled and enabled by default in Bazzite — no action needed
 
-- Dash to Panel
-- Dash to Dock
-- AppIndicator and KStatusNotifierItem Support
-- Blur my Shell
+- Add to Steam
+- Hot Edge (disable if using Dash to Dock or Dash to Panel)
+- Restart To
 - Compiz alike magic lamp effect
+- Blur my Shell
+- AppIndicator and KStatusNotifierItem Support
+- Caffeine
+- GSConnect
+
+### Bundled in Bazzite but disabled by default — enable via Extension Manager
+
 - Compiz windows effect
 - Desktop Cube
-- Add to Steam
 - Burn my Windows
-- Caffeine (prevents lock during fullscreen games)
-- GSConnect
-- Hot Edge
-- Restart To
+
+### Not in Bazzite — install via [Extension Manager](https://flathub.org/apps/com.mattjakeman.ExtensionManager)
+
 - Desktop Clock
 - Tiling Shell
 - Search Light
 - Advanced Alt-Tab Window Switcher (AATWS)
 - Panel Visual Clipboard
-- [Rounded Window Corners Reborn](https://extensions.gnome.org/extension/7048/rounded-window-corners-reborn/)
 - [Desktop Icons NG (DING)](https://extensions.gnome.org/extension/2087/desktop-icons-ng-ding/)
 - Arc Menu (Windows-like start menu)
 - Vitals
@@ -270,8 +278,6 @@ Install the following as web apps using Vivaldi as the wrapper:
 
 ## 7. AI Apps
 
-- [Alpaca](https://flathub.org/en/apps/com.jeffser.Alpaca) — Flatpak local LLM frontend (already installed above)
-- [Chatbox](https://github.com/chatboxai/chatbox)
 - Newelle — see below (already installed above)
 
 ### Newelle on Bazzite (Immutable Host)

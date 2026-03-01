@@ -268,8 +268,8 @@ npm install -g @openai/codex
 Install the following as web apps using Vivaldi as the wrapper:
 
 - [Apple Music](https://music.apple.com/dk/home)
-- [Nextcloud](https://home.cloud)
-- [AFFiNE](https://notes.home.cloud)
+- [Nextcloud](https://hviid.cloud)
+- [AFFiNE](https://notes.hviid.cloud)
 - [Craft](https://docs.craft.do)
 - [Microsoft Teams](https://teams.microsoft.com)
 - [ChatGPT](https://chatgpt.com)

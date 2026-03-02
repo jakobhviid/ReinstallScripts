@@ -53,8 +53,9 @@ EOF
 
 ### Layer Packages
 
+Layer packages by name (single transaction)
+
 ```sh
-# Layer packages by name (single transaction)
 sudo rpm-ostree install \
   podman-docker \
   podman-compose \
@@ -74,21 +75,20 @@ sudo rpm-ostree install \
   nodejs-npm
 ```
 
-> On Silverblue, also install these GNOME extensions (they come standard on Bazzite):
-> ```sh
-> sudo rpm-ostree install \
->   gnome-shell-extension-appindicator \
->   gnome-shell-extension-blur-my-shell \
->   gnome-shell-extension-caffeine \
->   gnome-shell-extension-gsconnect
-> ```
+On Silverblue, also install these GNOME extensions (they come standard on Bazzite):
+```sh
+sudo rpm-ostree install \
+  gnome-shell-extension-appindicator \
+  gnome-shell-extension-blur-my-shell \
+  gnome-shell-extension-caffeine \
+  gnome-shell-extension-gsconnect
+```
 
-> On traditional Fedora (not Bazzite/Silverblue), also install:
-> ```sh
-> gnome-sushi sushi nautilus-python file-roller-nautilus gnome-terminal-nautilus seahorse-nautilus
-> ```
-
-> **Reboot required before continuing.**
+On traditional Fedora (not Bazzite/Silverblue), also install:
+```sh
+gnome-sushi sushi nautilus-python file-roller-nautilus gnome-terminal-nautilus seahorse-nautilus
+```
+**Reboot required before continuing.**
 
 ---
 

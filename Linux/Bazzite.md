@@ -1,5 +1,11 @@
 # Getting Started with Bazzite
 
+``` bash
+#fix paste problem:
+bind 'set enable-bracketed-paste off'
+source ~/.bashrc
+```
+
 ## 1. System Packages (rpm-ostree)
 
 ### Repo Setup

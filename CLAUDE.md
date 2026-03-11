@@ -19,10 +19,12 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 Requires [just](https://github.com/casey/just) (`brew install just`). Run from `Mac/`:
 
 ```sh
-just install huginn    # Install packages for a machine
-just backup huginn     # Dump current state to Brewfile.huginn
-just backup mynewmac   # Create a new machine's Brewfile
-just install           # Interactive — prompts for machine name
+just install huginn        # Install packages for a machine
+just backup huginn         # Dump current state to Brewfile.huginn
+just backup mynewmac       # Create a new machine's Brewfile
+just profile brave-debloat # Install a macOS configuration profile
+just install               # Interactive — prompts with numbered menu
+just                       # Show available commands/machines/profiles
 ```
 
 **Install Homebrew (first-time):**
@@ -54,6 +56,7 @@ From the `Mac/` directory, run `just backup <machinename>` to create `Brewfile.<
 
 ## Key Notes
 
+- **Never run justfile recipes, install scripts, or other destructive commands without explicit user consent.** These scripts install packages, modify system state, and open configuration profiles. When testing justfile changes, always use `just --dry-run <recipe>` to inspect the generated script. Only run a recipe live if the user explicitly asks for it.
 - **Brave browser policies must stay in sync across all platforms.** The same set of policies exists in three formats:
   - **Mac:** `Mac/brave-debloat.mobileconfig` (plist)
   - **Linux:** `Linux/Bazzite.md` — inline JSON block at `/etc/brave/policies/managed/brave-policy.json`

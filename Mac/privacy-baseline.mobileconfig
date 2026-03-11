@@ -7,26 +7,28 @@
     <key>PayloadVersion</key>
     <integer>1</integer>
     <key>PayloadIdentifier</key>
-    <string>com.local.safari.autofill</string>
+    <string>com.local.privacy.baseline</string>
     <key>PayloadUUID</key>
     <string>B2C3D4E5-0001-4000-B000-000000000001</string>
     <key>PayloadDisplayName</key>
-    <string>Safari — Disable Autofill</string>
+    <string>Privacy Baseline</string>
     <key>PayloadDescription</key>
-    <string>Disables Safari's built-in autofill for passwords, credit cards, and contact info. Use with a dedicated password manager like 1Password.</string>
+    <string>Disables Safari autofill (passwords, credit cards, contacts). Disables automatic diagnostic and analytics submission to Apple.</string>
     <key>PayloadContent</key>
     <array>
+
+      <!-- Safari: disable all autofill -->
       <dict>
         <key>PayloadType</key>
         <string>com.apple.Safari</string>
         <key>PayloadVersion</key>
         <integer>1</integer>
         <key>PayloadIdentifier</key>
-        <string>com.local.safari.autofill.payload</string>
+        <string>com.local.privacy.baseline.safari</string>
         <key>PayloadUUID</key>
         <string>B2C3D4E5-0001-4000-B000-000000000002</string>
         <key>PayloadDisplayName</key>
-        <string>Safari Autofill Settings</string>
+        <string>Safari — Disable Autofill</string>
 
         <key>AutoFillPasswords</key>
         <false/>
@@ -37,6 +39,24 @@
         <key>AutoFillMiscellaneousForms</key>
         <false/>
       </dict>
+
+      <!-- Diagnostics: disable automatic submission to Apple and app developers -->
+      <dict>
+        <key>PayloadType</key>
+        <string>com.apple.SubmitDiagInfo</string>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>PayloadIdentifier</key>
+        <string>com.local.privacy.baseline.diagnostics</string>
+        <key>PayloadUUID</key>
+        <string>B2C3D4E5-0002-4000-B000-000000000003</string>
+        <key>PayloadDisplayName</key>
+        <string>Diagnostics — Disable Auto-Submit</string>
+
+        <key>AutoSubmit</key>
+        <false/>
+      </dict>
+
     </array>
   </dict>
 </plist>

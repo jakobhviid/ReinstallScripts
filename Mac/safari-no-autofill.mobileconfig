@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadIdentifier</key>
+    <string>com.local.safari.autofill</string>
+    <key>PayloadUUID</key>
+    <string>B2C3D4E5-0001-4000-B000-000000000001</string>
+    <key>PayloadDisplayName</key>
+    <string>Safari — Disable Autofill</string>
+    <key>PayloadDescription</key>
+    <string>Disables Safari's built-in autofill for passwords, credit cards, and contact info. Use with a dedicated password manager like 1Password.</string>
+    <key>PayloadContent</key>
+    <array>
+      <dict>
+        <key>PayloadType</key>
+        <string>com.apple.Safari</string>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+        <key>PayloadIdentifier</key>
+        <string>com.local.safari.autofill.payload</string>
+        <key>PayloadUUID</key>
+        <string>B2C3D4E5-0001-4000-B000-000000000002</string>
+        <key>PayloadDisplayName</key>
+        <string>Safari Autofill Settings</string>
+
+        <key>AutoFillPasswords</key>
+        <false/>
+        <key>AutoFillFromAddressBook</key>
+        <false/>
+        <key>AutoFillCreditCardData</key>
+        <false/>
+        <key>AutoFillMiscellaneousForms</key>
+        <false/>
+      </dict>
+    </array>
+  </dict>
+</plist>

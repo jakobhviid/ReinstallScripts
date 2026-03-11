@@ -1,5 +1,3 @@
-tap "homebrew/bundle"
-tap "homebrew/services"
 brew "webp"
 brew "jpeg-xl"
 brew "aom"
@@ -8,7 +6,6 @@ brew "asitop"
 brew "ata"
 brew "caddy", restart_service: :changed
 brew "gnutls"
-brew "cask"
 brew "openjpeg"
 brew "leptonica"
 brew "ffmpeg"

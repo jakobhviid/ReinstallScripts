@@ -13,7 +13,7 @@
     <key>PayloadDisplayName</key>
     <string>Brave Debloat</string>
     <key>PayloadDescription</key>
-    <string>Disables Brave Wallet, Rewards, VPN, AI, Tor, News, Talk, Playlist, Speedreader, Wayback, P3A, and the built-in password manager. Disables telemetry and web discovery. Enforces DNS-over-HTTPS via Quad9. Sets Qwant as the default search engine.</string>
+    <string>Disables Brave Wallet, Rewards, VPN, AI, Tor, News, Talk, Playlist, Speedreader, Wayback, IPFS, P3A, and the built-in password/autofill/sync. Disables telemetry, web discovery, and Privacy Sandbox. Enforces DNS-over-HTTPS via dns0.eu (zero) and Quad9. Enforces Safe Browsing and HTTPS upgrades. Sets Qwant as the default search engine.</string>
     <key>PayloadContent</key>
     <array>
       <dict>
@@ -57,6 +57,10 @@
         <false/>
         <key>AutofillCreditCardEnabled</key>
         <false/>
+        <key>PaymentMethodQueryEnabled</key>
+        <false/>
+        <key>ImportSavedPasswords</key>
+        <false/>
 
         <key>BraveWebDiscoveryEnabled</key>
         <false/>
@@ -69,16 +73,41 @@
         <key>UserFeedbackAllowed</key>
         <false/>
 
+        <key>SafeBrowsingEnabled</key>
+        <true/>
         <key>SafeBrowsingExtendedReportingEnabled</key>
         <false/>
 
+        <key>HttpsUpgradesEnabled</key>
+        <true/>
+        <key>SSLVersionMin</key>
+        <string>tls1.2</string>
+
+        <key>SpellCheckServiceEnabled</key>
+        <false/>
+        <key>AlternateErrorPagesEnabled</key>
+        <false/>
+        <key>PromotionalTabsEnabled</key>
+        <false/>
+
+        <key>PrivacySandboxPromptEnabled</key>
+        <false/>
+        <key>PrivacySandboxAdMeasurementEnabled</key>
+        <false/>
+        <key>PrivacySandboxAdTopicsEnabled</key>
+        <false/>
+        <key>PrivacySandboxSiteEnabledAdsEnabled</key>
+        <false/>
+
         <key>ShoppingListEnabled</key>
+        <false/>
+        <key>IPFSEnabled</key>
         <false/>
 
         <key>DnsOverHttpsMode</key>
         <string>secure</string>
         <key>DnsOverHttpsTemplates</key>
-        <string>https://dns.quad9.net/dns-query</string>
+        <string>https://zero.dns0.eu/dns-query https://dns.quad9.net/dns-query</string>
 
         <key>DefaultSearchProviderEnabled</key>
         <true/>

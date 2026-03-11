@@ -1,19 +1,22 @@
 tap "mongodb/brew"
 tap "romkatv/powerlevel10k"
-brew "webp"
 brew "jpeg-xl"
+brew "webp"
 brew "aom"
 brew "asitop"
 brew "ata"
 brew "gnutls"
+brew "cask"
+brew "container"
 brew "convmv"
-brew "openjpeg"
-brew "leptonica"
+brew "exiftool"
 brew "ffmpeg"
 brew "fish"
 brew "gcc"
 brew "geometry"
 brew "gh"
+brew "openjpeg"
+brew "leptonica"
 brew "ghostscript"
 brew "git"
 brew "gnu-getopt"
@@ -26,6 +29,7 @@ brew "libheif"
 brew "imagemagick"
 brew "iperf3"
 brew "jq"
+brew "just"
 brew "librdkafka"
 brew "kcat"
 brew "mactop"
@@ -35,10 +39,9 @@ brew "midnight-commander"
 brew "uchardet"
 brew "yt-dlp"
 brew "mpv"
-brew "utf8proc", args: ["HEAD"]
+brew "utf8proc"
 brew "neovim"
 brew "nmap"
-brew "openjdk"
 brew "openssh"
 brew "p7zip"
 brew "pandoc"
@@ -47,12 +50,9 @@ brew "pgformatter"
 brew "plantuml"
 brew "podman"
 brew "podman-compose"
+brew "poppler"
 brew "postgresql@17"
 brew "powerlevel10k"
-brew "python@3.10"
-brew "python@3.11"
-brew "python@3.12"
-brew "python@3.9"
 brew "speedtest-cli"
 brew "starship"
 brew "stow"
@@ -71,99 +71,103 @@ brew "zsh-syntax-highlighting"
 brew "mongodb/brew/mongodb-community"
 cask "1password"
 cask "1password-cli"
-cask "amazon-q"
 cask "arc"
 cask "brave-browser"
+cask "calibre"
 cask "chatgpt"
+cask "claude"
 cask "cleanmymac"
 cask "cleanshot"
-cask "deeper"
+cask "codex"
 cask "diffusionbee"
 cask "discord"
+cask "dockdoor"
 cask "dotnet-sdk"
+cask "downie"
 cask "drawio"
 cask "font-fira-code-nerd-font"
 cask "font-hack-nerd-font"
+cask "font-jetbrains-mono"
 cask "font-meslo-lg-nerd-font"
 cask "forklift"
 cask "github"
 cask "gitkraken"
 cask "gitkraken-cli"
-cask "google-chrome"
 cask "grandperspective"
 cask "handbrake-app"
 cask "iina"
 cask "iterm2"
 cask "jetbrains-toolbox"
 cask "keyclu"
+cask "kiro-cli"
 cask "latest"
 cask "linearmouse"
-cask "lm-studio"
-cask "logi-options+"
+cask "logitech-g-hub"
 cask "mactex"
 cask "macwhisper"
 cask "microsoft-edge"
 cask "microsoft-teams"
-cask "miro"
 cask "mission-control-plus"
 cask "mongodb-compass"
-cask "notion"
-cask "onlyoffice"
+cask "nextcloud"
+cask "ollama-app"
 cask "pdf-expert"
-cask "pgadmin4"
+cask "pearcleaner"
 cask "podman-desktop"
 cask "proton-drive"
 cask "proton-mail"
+cask "proton-mail-bridge"
+cask "protonvpn"
 cask "raycast"
 cask "readdle-spark"
-cask "setapp"
+cask "signal"
+cask "sony-ps-remote-play"
+cask "sparkle"
+cask "steam"
 cask "tableplus"
 cask "teamviewer"
-cask "termius"
 cask "texifier"
-cask "thunderbird"
-cask "tower"
 cask "transmission"
 cask "visual-studio-code"
+cask "vivaldi"
+cask "warp"
 cask "zoom"
 cask "zotero"
 mas "1Password for Safari", id: 1569813296
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
+mas "Base", id: 6744867438
 mas "Blackmagic Disk Speed Test", id: 425264550
 mas "ClickClack", id: 6740695697
 mas "Compressor", id: 424390742
 mas "Copilot", id: 6738511300
 mas "Craft", id: 1487937127
+mas "Craft Web Clipper", id: 6748613311
 mas "DaisyDisk", id: 411643860
-mas "Developer", id: 640199958
 mas "Easy CSV Editor", id: 1171346381
 mas "Final Cut Pro", id: 424389933
 mas "Folder Preview", id: 6698876601
-mas "Gemini 2", id: 1090488118
 mas "Grammarly for Safari", id: 1462114288
 mas "Hand Mirror", id: 1502839586
 mas "JSON Editor", id: 567740330
 mas "Kaleidoscope", id: 1575557335
 mas "Keynote", id: 409183694
-mas "Logic Pro", id: 634148309
-mas "Mactracker", id: 430255202
+mas "LocalSend", id: 1661733229
 mas "Magnet", id: 441258766
+mas "MainStage", id: 634159523
+mas "Markdown Preview", id: 6739955340
 mas "Mela", id: 1568924476
-mas "Messenger", id: 1480068668
 mas "Microsoft Excel", id: 462058435
 mas "Microsoft Outlook", id: 985367838
 mas "Microsoft PowerPoint", id: 462062816
 mas "Microsoft Word", id: 462054704
-mas "MindNode", id: 1289197285
+mas "MindNode Classic", id: 1289197285
 mas "Motion", id: 434290957
 mas "Native SQLite Manager", id: 1416282836
-mas "NeoServer", id: 6448362669
 mas "Noir", id: 1592917505
 mas "OmniGraffle", id: 1142578753
-mas "OneDrive", id: 823766827
 mas "OpenSpeedTest-Server", id: 1579499874
-mas "Parcel", id: 639968404
+mas "Parcel", id: 375589283
 mas "Paste", id: 967805235
 mas "Patterns", id: 429449079
 mas "Permute 3", id: 1444998321
@@ -176,10 +180,8 @@ mas "Shazam", id: 897118787
 mas "Speedtest", id: 1153157709
 mas "SSH Config Editor", id: 1109319285
 mas "Super Agent", id: 1568262835
-mas "Swift Playground", id: 1496833156
 mas "Symbolic Linker", id: 1435106536
 mas "The Unarchiver", id: 425424353
-mas "Things", id: 904280696
 mas "TimeStory", id: 1470702823
 mas "Transloader", id: 572281534
 mas "WhatsApp", id: 310633997
@@ -191,8 +193,12 @@ vscode "be5invis.toml"
 vscode "bierner.markdown-mermaid"
 vscode "bradymholt.pgformatter"
 vscode "britesnow.vscode-toggle-quotes"
+vscode "chrischinchilla.vscode-pandoc"
 vscode "codezombiech.gitignore"
+vscode "cweijan.dbclient-jdbc"
+vscode "cweijan.vscode-postgresql-client2"
 vscode "dbaeumer.vscode-eslint"
+vscode "docsmsft.docs-markdown"
 vscode "eamodio.gitlens"
 vscode "esbenp.prettier-vscode"
 vscode "github.copilot"
@@ -212,7 +218,6 @@ vscode "jebbs.plantuml"
 vscode "jerryhong.autofilename"
 vscode "jmrog.vscode-nuget-package-manager"
 vscode "liamhammett.inline-parameters"
-vscode "marp-team.marp-vscode"
 vscode "matthewpi.caddyfile-support"
 vscode "mechatroner.rainbow-csv"
 vscode "melishev.feather-vscode"
@@ -222,7 +227,6 @@ vscode "ms-dotnettools.csharp"
 vscode "ms-dotnettools.dotnet-interactive-vscode"
 vscode "ms-dotnettools.vscode-dotnet-pack"
 vscode "ms-dotnettools.vscode-dotnet-runtime"
-vscode "ms-dotnettools.vscodeintellicode-csharp"
 vscode "ms-kubernetes-tools.vscode-kubernetes-tools"
 vscode "ms-ossdata.vscode-pgsql"
 vscode "ms-toolsai.jupyter"
@@ -243,6 +247,7 @@ vscode "ms-vscode.remote-repositories"
 vscode "ms-vscode.remote-server"
 vscode "openai.chatgpt"
 vscode "orangex4.vscode-typst-sync"
+vscode "parallelsdesktop.parallels-desktop"
 vscode "patcx.vscode-nuget-gallery"
 vscode "piotrpalarz.vscode-gitignore-generator"
 vscode "pkief.material-icon-theme"
@@ -252,6 +257,7 @@ vscode "redhat.vscode-yaml"
 vscode "reflectiondm.classynaming"
 vscode "renesaarsoo.sql-formatter-vsc"
 vscode "richie5um2.vscode-sort-json"
+vscode "ritwickdey.liveserver"
 vscode "s3anmorrow.openwithkraken"
 vscode "sidiandi.plantuml-sidiandi-fork"
 vscode "spikespaz.vscode-smoothtype"
@@ -259,6 +265,7 @@ vscode "streetsidesoftware.code-spell-checker"
 vscode "streetsidesoftware.code-spell-checker-danish"
 vscode "surv.typst-math"
 vscode "tintoy.msbuild-project-tools"
+vscode "tomoki1207.pdf"
 vscode "vscode-icons-team.vscode-icons"
 vscode "vstirbu.vscode-mermaid-preview"
 vscode "yzane.markdown-pdf"

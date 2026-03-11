@@ -1,13 +1,34 @@
 # Getting Started with Mac
 
-Install Homebrew using the command below, or follow the latest instructions from [Homebrew](https://brew.sh/).
+Install [Homebrew](https://brew.sh/) and [just](https://github.com/casey/just):
 
 ```sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install just
 ```
 
-Go to the folder for your machine and run `brew bundle`. This will import all the applications described, including applications from the App Store.
+Then from the `Mac/` directory:
 
-To create a new Brewfile run `brew bundle dump`.
+```sh
+# Install packages for a machine
+just install huginn
 
-For more instructions on export and import of applications using Homebrew, see [this guide](https://tomlankhorst.nl/brew-bundle-restore-backup/).
+# Or run interactively (prompts for machine name)
+just install
+
+# Backup current machine state
+just backup huginn
+
+# Or run interactively (pick existing or create new)
+just backup
+
+# Install a macOS configuration profile
+just profile brave-debloat
+
+# Show all commands and available machines/profiles
+just
+```
+
+Each machine has its own `Brewfile.<name>` — one self-contained file with all packages, casks, Mac App Store apps, and VS Code extensions.
+
+For more on Homebrew Bundle, see [this guide](https://tomlankhorst.nl/brew-bundle-restore-backup/).

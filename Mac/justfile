@@ -1,0 +1,81 @@
+# Mac setup recipes — run from the Mac/ directory
+
+# List available machines (Brewfile.* without the prefix)
+_machines := `ls Brewfile.* 2>/dev/null | sed 's/Brewfile\.//' | tr '\n' ' '`
+
+# List available profiles (*.mobileconfig without the extension)
+_profiles := `ls *.mobileconfig 2>/dev/null | sed 's/\.mobileconfig//' | tr '\n' ' '`
+
+# Show available commands
+default:
+    @echo "Mac setup — run from the Mac/ directory"
+    @echo ""
+    @echo "Commands:"
+    @echo "  just install [machine]    Install Homebrew packages from a machine's Brewfile"
+    @echo "  just backup [machine]     Dump current Homebrew state to a Brewfile (or create new)"
+    @echo "  just profile [name]       Install a macOS configuration profile (.mobileconfig)"
+    @echo ""
+    @echo "Available machines: {{_machines}}"
+    @echo "Available profiles: {{_profiles}}"
+
+# Install Homebrew packages from a machine's Brewfile
+install machine="":
+    #!/usr/bin/env zsh
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        echo "Available machines: {{_machines}}"
+        echo -n "Which machine? "
+        read machine
+    fi
+    if [[ -z "$machine" ]]; then
+        echo "No machine selected, exiting."
+        exit 0
+    fi
+    if [[ ! -f "Brewfile.$machine" ]]; then
+        echo "Error: Brewfile.$machine not found"
+        exit 1
+    fi
+    echo "Installing from Brewfile.$machine..."
+    brew bundle --file="Brewfile.$machine"
+
+# Dump current Homebrew state to a Brewfile (or create a new one)
+backup machine="":
+    #!/usr/bin/env zsh
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        echo "Existing machines: {{_machines}}"
+        echo -n "Machine name (existing or new): "
+        read machine
+    fi
+    if [[ -z "$machine" ]]; then
+        echo "No machine selected, exiting."
+        exit 0
+    fi
+    if [[ -f "Brewfile.$machine" ]]; then
+        echo "Overwriting Brewfile.$machine..."
+    else
+        echo "Creating new Brewfile.$machine..."
+    fi
+    brew bundle dump --file="Brewfile.$machine" --force
+    echo "Done. Saved to Brewfile.$machine"
+
+# Install a macOS configuration profile (.mobileconfig)
+profile name="":
+    #!/usr/bin/env zsh
+    name="{{name}}"
+    if [[ -z "$name" ]]; then
+        echo "Available profiles: {{_profiles}}"
+        echo -n "Which profile? "
+        read name
+    fi
+    if [[ -z "$name" ]]; then
+        echo "No profile selected, exiting."
+        exit 0
+    fi
+    file="${name}.mobileconfig"
+    if [[ ! -f "$file" ]]; then
+        echo "Error: $file not found"
+        exit 1
+    fi
+    echo "Installing profile $file..."
+    open "$file"

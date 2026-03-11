@@ -168,6 +168,7 @@ sudo mkdir -p /etc/brave/policies/managed && sudo tee /etc/brave/policies/manage
   "SafeBrowsingExtendedReportingEnabled": false,
 
   "HttpsUpgradesEnabled": true,
+  "SSLVersionMin": "tls1.2",
 
   "SpellCheckServiceEnabled": false,
   "AlternateErrorPagesEnabled": false,

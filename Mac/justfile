@@ -13,6 +13,7 @@ default:
     @echo "Commands:"
     @echo "  just install [machine]    Install Homebrew packages from a machine's Brewfile"
     @echo "  just backup [machine]     Dump current Homebrew state to a Brewfile (or create new)"
+    @echo "  just cleanup [machine]    Uninstall packages not listed in a machine's Brewfile"
     @echo "  just profile [name]       Install a macOS configuration profile (.mobileconfig)"
     @echo ""
     @echo "Available machines: {{_machines}}"
@@ -100,3 +101,59 @@ profile name="":
     fi
     echo "Installing profile $file..."
     open "$file"
+
+# Uninstall packages not listed in a machine's Brewfile
+cleanup machine="":
+    #!/usr/bin/env zsh
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        choices=( $(ls Brewfile.* 2>/dev/null | sed 's/Brewfile\.//') )
+        echo "Available machines:"
+        for i in {1..${#choices[@]}}; do echo "  $i) $choices[$i]"; done
+        echo -n "Pick a machine (number or name): "
+        read choice
+        if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#choices[@]} )); then
+            machine="$choices[$choice]"
+        else
+            machine="$choice"
+        fi
+    fi
+    if [[ -z "$machine" ]]; then
+        echo "No machine selected, exiting."
+        exit 0
+    fi
+    if [[ ! -f "Brewfile.$machine" ]]; then
+        echo "Error: Brewfile.$machine not found"
+        exit 1
+    fi
+    output=$(brew bundle cleanup --file="Brewfile.$machine" 2>&1)
+    if [[ -z "$output" ]]; then
+        echo "Brewfile.$machine is in sync — nothing to clean up."
+        exit 0
+    fi
+    section=""
+    echo "Not in Brewfile.$machine:"
+    echo "$output" | while IFS= read -r line; do
+        if [[ "$line" == "Would uninstall casks:"* ]]; then
+            section="casks"; echo ""; echo "  Casks:"
+        elif [[ "$line" == "Would uninstall formulae:"* ]]; then
+            section="formulae"; echo ""; echo "  Formulae:"
+        elif [[ "$line" == "Would uninstall VSCode"* ]]; then
+            section="vscode"; echo ""; echo "  VS Code extensions:"
+        elif [[ "$line" == "Would \`brew cleanup\`:"* ]]; then
+            section="cache"; echo ""; echo "  Cached files:"
+        elif [[ -n "$section" && -n "$line" ]]; then
+            if [[ "$section" == "cache" ]]; then
+                if [[ "$line" == "Would remove:"* ]]; then
+                    echo "    ${line#Would remove: }"
+                fi
+            else
+                for word in ${=line}; do
+                    echo "    $word"
+                done
+            fi
+        fi
+    done
+    echo ""
+    echo "To uninstall these:"
+    echo "  brew bundle cleanup --file=Brewfile.$machine --force"

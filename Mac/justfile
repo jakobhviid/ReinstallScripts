@@ -142,6 +142,8 @@ cleanup machine="":
             section="vscode"; echo ""; echo "  VS Code extensions:"
         elif [[ "$line" == "Would \`brew cleanup\`:"* ]]; then
             section="cache"; echo ""; echo "  Cached files:"
+        elif [[ "$line" == "Run \`brew"* || "$line" == "Run "* ]]; then
+            continue
         elif [[ -n "$section" && -n "$line" ]]; then
             if [[ "$section" == "cache" ]]; then
                 if [[ "$line" == "Would remove:"* ]]; then

@@ -1,12 +1,8 @@
 Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
 
-Set-Location ~\Downloads\
-Invoke-WebRequest https://dl.appget.net/appget/appget.setup.exe -o appget.exe 
-./appget.exe /sp- /silent /norestart
-
-# Installing modules for a fancy powershell
+# Installing oh-my-posh (v3+)
+winget install --id=JanDeDobbeleer.OhMyPosh -e --silent
 Install-Module -Name posh-git
-Install-Module -Name oh-my-posh
 
 Get-Service -Name ssh-agent | Set-Service -StartupType Automatic
 Start-Service ssh-agent

@@ -1,6 +1,4 @@
-# scoop install 7zip
-scoop install 7zip
-appget install steam
+# Steam and 7zip are already installed by previous scripts
 
 # Copying games install script
 Copy-Item .\steamcmd.txt "C:\Program Files (x86)\Steam\steamcmd.txt"

@@ -1,17 +1,16 @@
-appget install chrome
-appget install 1password
-appget install logitech-options
-appget install logitech-unifying-software
-appget install teams
-appget install handbrake
-appget install teamviewer
-appget install spotify
-appget install slack
-appget install discord
-appget install 7zip
-appget install visual-studio-code
-appget install xmeters
-appget install quicklook
+# Applications (winget)
+winget install --id=Google.Chrome -e --silent
+winget install --id=AgileBits.1Password -e --silent
+winget install --id=Logitech.Options -e --silent
+winget install --id=Microsoft.Teams -e --silent
+winget install --id=HandBrake.HandBrake -e --silent
+winget install --id=TeamViewer.TeamViewer -e --silent
+winget install --id=Spotify.Spotify -e --silent
+winget install --id=SlackTechnologies.Slack -e --silent
+winget install --id=Discord.Discord -e --silent
+winget install --id=7zip.7zip -e --silent
+winget install --id=Microsoft.VisualStudioCode -e --silent
+winget install --id=QL-Win.QuickLook -e --silent
 
 scoop install git
 git config --global user.name "Jakob Hviid"
@@ -22,25 +21,21 @@ scoop install aria2 sudo
 scoop bucket add extras
 scoop bucket add java
 scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized
-scoop install curl grep nano vim make say tar sudo coreutils git tidy oraclejre8 vlc 7zip paint.net gitkraken filezilla sqlitebrowser nodejs python sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli win-acme micro ueli
-# Removed: busybox anaconda3 go putty
+scoop install curl grep nano vim make say tar sudo coreutils tidy oraclejre8 vlc paint.net filezilla sqlitebrowser sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli win-acme micro ueli
 
-# Installing Visual Studio Code Sync Extension and the themes
-code --install-extension shan.code-settings-sync
+# Installing Visual Studio Code extensions
 code --install-extension pkief.material-icon-theme
-code --install-extension equinusocio.vsc-material-theme
 
-# Bling for powershell console
+# oh-my-posh v3+ setup
 Import-Module posh-git
-Import-Module oh-my-posh
-Set-Theme Paradox
+oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/paradox.omp.json" | Invoke-Expression
 
-Add-Content $profile "Import-Module posh-git"
-Add-Content $profile "Import-Module oh-my-posh"
-Add-Content $profile "Set-Theme Honukai"
+Add-Content $profile 'Import-Module posh-git'
+Add-Content $profile 'oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/honukai.omp.json" | Invoke-Expression'
 
 # Adding registry fixes
-regedit /s ./supportfiles/FixGitKraken.reg
+New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\GitKraken\command" -Force | Out-Null
+Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\GitKraken\command" -Name '(Default)' -Value "`"$env:LOCALAPPDATA\gitkraken\update.exe`" --processStart=gitkraken.exe --process-start-args=`"-p %V`""
 regedit /s ./supportfiles/DisableNetworkDriveWarning.reg
 
 # Instaling pygments for Latex highlighting

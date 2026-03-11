@@ -1,25 +1,28 @@
-# Getting Started with Windows 10
+# Getting Started with Windows
 
 Begin installation using the following:
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
 
-#run as admin
+# Run as admin
 .\install-1-managers.ps1
+# Reboot here
 
-#run as user
+# Run as user
 .\install-2-applications.ps1
 
-C:\Users\jakob\scoop\apps\vscode\current\vscode-install-context.reg
+# Run as admin
+.\install-3-gamerelated.ps1
+.\install-4-specificgames.ps1
 ```
 
-More packages can be found at [Scoop](https://github.com/ScoopInstaller/Main/tree/master/bucket) and [AppGet](https://appget.net/packages).
+More packages can be found at [Scoop](https://github.com/ScoopInstaller/Main/tree/master/bucket) and [winget](https://winget.run/).
 
 ## Missing items from install script
 
 1. [Office 365 Home](https://account.microsoft.com/services/office/install)
-2. [Visual Studio Community 2019](https://visualstudio.microsoft.com/downloads/)
+2. [Visual Studio Community](https://visualstudio.microsoft.com/downloads/)
 3. Windows Store Apps
    1. Microsoft To-do
    2. OneNote

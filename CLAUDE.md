@@ -57,6 +57,11 @@ Create `Mac/<machinename>/Brewfile` by running `brew bundle dump` on the new mac
 
 ## Key Notes
 
+- **Brave browser policies must stay in sync across all platforms.** The same set of policies exists in three formats:
+  - **Mac:** `Mac/<machine>/brave-debloat.mobileconfig` (plist) — one per machine (Chronos, huginn)
+  - **Linux:** `Linux/Bazzite.md` — inline JSON block at `/etc/brave/policies/managed/brave-policy.json`
+  - **Windows:** TBD (no Brave policy file exists yet)
+  When adding, removing, or changing a Brave policy, update all three locations.
 - Windows scripts reference `jakobhviid1982@gmail.com` as the git user — update if setting up for a different identity.
 - `supportfiles/` contains registry fixes (GitKraken, network drive warning) and fonts (Cascadia, Delugia Nerd Font) used by `install-2-applications.ps1`.
 - AppGet (`appget.net`) referenced in Windows scripts is discontinued; those entries may need replacing with Scoop or Winget equivalents.

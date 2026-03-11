@@ -63,4 +63,5 @@ From the `Mac/` directory, run `just backup <machinename>` to create `Brewfile.<
   - **Windows:** TBD (no Brave policy file exists yet)
   When adding, removing, or changing a Brave policy, update all locations.
 - Windows scripts reference `jakobhviid1982@gmail.com` as the git user — update if setting up for a different identity.
+- **Mac Brewfiles are intentionally different per machine.** Each machine serves a different purpose (Chronos = personal laptop, Helios = server, huginn = work laptop). Do not flag cross-machine package inconsistencies as issues.
 - `supportfiles/` contains registry fixes (network drive warning), fonts (Cascadia, Delugia Nerd Font), and Windows Terminal settings used by `install-2-applications.ps1`.

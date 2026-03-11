@@ -23,9 +23,16 @@ install machine="":
     #!/usr/bin/env zsh
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
-        echo "Available machines: {{_machines}}"
-        echo -n "Which machine? "
-        read machine
+        choices=( $(ls Brewfile.* 2>/dev/null | sed 's/Brewfile\.//') )
+        echo "Available machines:"
+        for i in {1..${#choices[@]}}; do echo "  $i) $choices[$i]"; done
+        echo -n "Pick a machine (number or name): "
+        read choice
+        if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#choices[@]} )); then
+            machine="$choices[$choice]"
+        else
+            machine="$choice"
+        fi
     fi
     if [[ -z "$machine" ]]; then
         echo "No machine selected, exiting."
@@ -43,9 +50,16 @@ backup machine="":
     #!/usr/bin/env zsh
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
-        echo "Existing machines: {{_machines}}"
-        echo -n "Machine name (existing or new): "
-        read machine
+        choices=( $(ls Brewfile.* 2>/dev/null | sed 's/Brewfile\.//') )
+        echo "Existing machines:"
+        for i in {1..${#choices[@]}}; do echo "  $i) $choices[$i]"; done
+        echo -n "Pick a machine (number, name, or new name): "
+        read choice
+        if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#choices[@]} )); then
+            machine="$choices[$choice]"
+        else
+            machine="$choice"
+        fi
     fi
     if [[ -z "$machine" ]]; then
         echo "No machine selected, exiting."
@@ -64,9 +78,16 @@ profile name="":
     #!/usr/bin/env zsh
     name="{{name}}"
     if [[ -z "$name" ]]; then
-        echo "Available profiles: {{_profiles}}"
-        echo -n "Which profile? "
-        read name
+        choices=( $(ls *.mobileconfig 2>/dev/null | sed 's/\.mobileconfig//') )
+        echo "Available profiles:"
+        for i in {1..${#choices[@]}}; do echo "  $i) $choices[$i]"; done
+        echo -n "Pick a profile (number or name): "
+        read choice
+        if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#choices[@]} )); then
+            name="$choices[$choice]"
+        else
+            name="$choice"
+        fi
     fi
     if [[ -z "$name" ]]; then
         echo "No profile selected, exiting."

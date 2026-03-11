@@ -11,29 +11,18 @@
     <key>PayloadUUID</key>
     <string>A1B2C3D4-0001-4000-A000-000000000001</string>
     <key>PayloadDisplayName</key>
-    <string>Encrypted DNS — Quad9 (primary)</string>
+    <string>Encrypted DNS — Quad9</string>
     <key>PayloadDescription</key>
-    <string>Enforces system-wide DNS-over-HTTPS using Quad9. Applies to all apps, Terminal, and network traffic. Install alongside the dns0.eu profile for failover.</string>
+    <string>Enforces system-wide DNS-over-HTTPS using Quad9. Applies to all apps, Terminal, and network traffic.</string>
+    <key>PayloadScope</key>
+    <string>System</string>
     <key>PayloadContent</key>
     <array>
       <dict>
-        <key>PayloadType</key>
-        <string>com.apple.dnsSettings.managed</string>
-        <key>PayloadVersion</key>
-        <integer>1</integer>
-        <key>PayloadIdentifier</key>
-        <string>com.local.dns.quad9.payload</string>
-        <key>PayloadUUID</key>
-        <string>A1B2C3D4-0001-4000-A000-000000000002</string>
-        <key>PayloadDisplayName</key>
-        <string>DNS-over-HTTPS</string>
-
         <key>DNSSettings</key>
         <dict>
           <key>DNSProtocol</key>
           <string>HTTPS</string>
-          <key>ServerURL</key>
-          <string>https://dns.quad9.net/dns-query</string>
           <key>ServerAddresses</key>
           <array>
             <string>9.9.9.9</string>
@@ -41,11 +30,28 @@
             <string>2620:fe::fe</string>
             <string>2620:fe::9</string>
           </array>
-          <key>SupplementalMatchDomains</key>
-          <array>
-            <string></string>
-          </array>
+          <key>ServerURL</key>
+          <string>https://dns.quad9.net/dns-query</string>
+          <key>AllowFailover</key>
+          <true/>
         </dict>
+        <key>OnDemandRules</key>
+        <array>
+          <dict>
+            <key>Action</key>
+            <string>Connect</string>
+          </dict>
+        </array>
+        <key>PayloadDisplayName</key>
+        <string>Encrypted DNS — Quad9</string>
+        <key>PayloadIdentifier</key>
+        <string>com.local.dns.quad9.payload</string>
+        <key>PayloadType</key>
+        <string>com.apple.dnsSettings.managed</string>
+        <key>PayloadUUID</key>
+        <string>A1B2C3D4-0001-4000-A000-000000000002</string>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
       </dict>
     </array>
   </dict>

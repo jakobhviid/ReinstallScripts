@@ -140,29 +140,49 @@ Disables unwanted Brave surfaces and locks search to Qwant. Policies override UI
 # Brave Config
 sudo mkdir -p /etc/brave/policies/managed && sudo tee /etc/brave/policies/managed/brave-policy.json >/dev/null <<'EOF'
 {
-  "TorDisabled": true,
-  "BraveTalkDisabled": true,
-  "BraveNewsDisabled": true,
   "BraveWalletDisabled": true,
   "BraveRewardsDisabled": true,
-  "BraveWebDiscoveryEnabled": false,
   "BraveVPNDisabled": true,
+  "BraveAIChatEnabled": false,
+  "TorDisabled": true,
+  "BraveNewsDisabled": true,
+  "BraveTalkDisabled": true,
+  "BravePlaylistEnabled": false,
+  "BraveSpeedreaderEnabled": false,
+  "BraveWaybackMachineEnabled": false,
+  "BraveP3AEnabled": false,
 
   "PasswordManagerEnabled": false,
   "AutofillAddressEnabled": false,
   "AutofillCreditCardEnabled": false,
+  "PaymentMethodQueryEnabled": false,
+  "ImportSavedPasswords": false,
 
+  "BraveWebDiscoveryEnabled": false,
   "MetricsReportingEnabled": false,
   "BraveStatsPingEnabled": false,
   "UrlKeyedAnonymizedDataCollectionEnabled": false,
   "UserFeedbackAllowed": false,
 
+  "SafeBrowsingEnabled": true,
   "SafeBrowsingExtendedReportingEnabled": false,
 
+  "HttpsUpgradesEnabled": true,
+
+  "SpellCheckServiceEnabled": false,
+  "AlternateErrorPagesEnabled": false,
+  "PromotionalTabsEnabled": false,
+
+  "PrivacySandboxPromptEnabled": false,
+  "PrivacySandboxAdMeasurementEnabled": false,
+  "PrivacySandboxAdTopicsEnabled": false,
+  "PrivacySandboxSiteEnabledAdsEnabled": false,
+
   "ShoppingListEnabled": false,
+  "IPFSEnabled": false,
 
   "DnsOverHttpsMode": "secure",
-  "DnsOverHttpsTemplates": "https://dns.quad9.net/dns-query",
+  "DnsOverHttpsTemplates": "https://dns0.eu/dns-query https://dns.quad9.net/dns-query",
 
   "DefaultSearchProviderEnabled": true,
   "DefaultSearchProviderName": "Qwant",

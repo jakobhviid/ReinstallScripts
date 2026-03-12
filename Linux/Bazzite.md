@@ -303,7 +303,21 @@ Install the following as web apps using Vivaldi as the wrapper:
 
 ---
 
-## 7. AI Apps
+## 7. Audio Device Names
+
+Renames USB audio devices from their generic labels to proper names:
+- Sonos Ace (analog + digital output → "Sonos Ace", mic → "Sonos Ace Mic")
+- Sennheiser BTD 700 (analog → "Sennheiser BTD 700", digital → "Sennheiser BTD 700 Digital", mic → "Sennheiser BTD 700 Mic")
+
+```sh
+mkdir -p ~/.config/pipewire/pipewire.conf.d/
+cp rename-devices.conf ~/.config/pipewire/pipewire.conf.d/
+systemctl --user restart pipewire pipewire-pulse
+```
+
+---
+
+## 8. AI Apps
 
 - Newelle — see below (already installed above)
 

@@ -1,6 +1,6 @@
 # Getting Started with Bazzite
 
-``` bash
+```bash
 #fix paste problem:
 bind 'set enable-bracketed-paste off'
 source ~/.bashrc
@@ -55,6 +55,10 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-protonvpn-${FEDORA_RELEASE}-stable
 EOF
+
+# Claude Desktop repo (unofficial Linux repackage of Anthropic's Windows build)
+sudo curl -fsSLo /etc/yum.repos.d/claude-desktop.repo \
+  https://aaddrick.github.io/claude-desktop-debian/rpm/claude-desktop.repo
 ```
 
 ### Layer Packages
@@ -65,9 +69,7 @@ Layer packages by name (single transaction)
 sudo rpm-ostree install \
   podman-docker \
   podman-compose \
-  docker-compose \
   brave-browser \
-  vivaldi-stable \
   1password \
   code \
   proton-vpn-gnome-desktop \
@@ -78,10 +80,14 @@ sudo rpm-ostree install \
   libgda-sqlite \
   piper \
   nodejs \
-  nodejs-npm
+  nodejs-npm \
+  claude-desktop
+  
+# removed: docker-compose \ vivaldi-stable \
 ```
 
 On Silverblue, also install these GNOME extensions (they come standard on Bazzite):
+
 ```sh
 sudo rpm-ostree install \
   gnome-shell-extension-appindicator \
@@ -91,9 +97,11 @@ sudo rpm-ostree install \
 ```
 
 On traditional Fedora (not Bazzite/Silverblue), also install:
+
 ```sh
 gnome-sushi sushi nautilus-python file-roller-nautilus gnome-terminal-nautilus seahorse-nautilus
 ```
+
 **Reboot required before continuing.**
 
 ---
@@ -306,6 +314,7 @@ Install the following as web apps using Vivaldi as the wrapper:
 ## 7. Audio Device Names
 
 Renames USB audio devices from their generic labels to proper names:
+
 - Sonos Ace (analog + digital output → "Sonos Ace", mic → "Sonos Ace Mic")
 - Sennheiser BTD 700 (analog → "Sennheiser BTD 700", digital → "Sennheiser BTD 700 Digital", mic → "Sennheiser BTD 700 Mic")
 
@@ -326,6 +335,7 @@ systemctl --user restart pipewire pipewire-pulse
 Newelle is a native GTK4 AI tool. On an immutable system, the Flatpak sandbox needs access to `flatpak-spawn` to run host commands.
 
 **1. Grant permissions**
+
 ```sh
 flatpak override io.github.qwersyk.Newelle --talk-name=org.freedesktop.Flatpak --filesystem=home
 ```
@@ -337,6 +347,7 @@ In Newelle: **Settings > General > Neural Network Control** — toggle **Command
 **3. Use Toolbox for package installs**
 
 Since the host is read-only, direct Newelle to run commands inside a Toolbox container. Tell it: *"Always run terminal commands inside my default toolbox container."* The underlying command it will use is:
+
 ```sh
 flatpak-spawn --host toolbox run <command>
 ```

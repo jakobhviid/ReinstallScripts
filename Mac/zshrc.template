@@ -38,6 +38,11 @@ setopt SHARE_HISTORY
 setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_SPACE
 
+# ─── Git aliases ──────────────────────────────────────────────────────────────
+alias gp="git pull"
+gc() { git add --all && git commit -m "$1" }
+gcp() { git add --all && git commit -m "$1" && git push }
+
 # ─── Key bindings ─────────────────────────────────────────────────────────────
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down

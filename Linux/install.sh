@@ -29,11 +29,9 @@ RPM_PACKAGES=(
     "gnome-shell-extension-dash-to-panel"    "Dash to Panel"
     "gnome-shell-extension-dash-to-dock"     "Dash to Dock"
     "zsh"                                    "Zsh"
-    "libgda"                                 "LibGDA"
-    "libgda-sqlite"                          "LibGDA SQLite"
+    "libgda libgda-sqlite"                   "SQLite (libgda)"
     "piper"                                  "Piper (mouse config)"
-    "nodejs"                                 "Node.js"
-    "nodejs-npm"                             "npm"
+    "nodejs nodejs-npm"                      "Node.js + npm"
     "claude-desktop"                         "Claude Desktop"
 )
 
@@ -112,17 +110,14 @@ CLI_TOOLS=(
     "codex"  "Codex CLI"
 )
 
-CONFIG_STEPS=(
-    "repos"         "Package Repositories"
-    "brave-policy"  "Brave Browser Policy"
-    "1password"     "1Password Shortcuts & Config"
-    "audio"         "Audio Device Renaming"
-    "newelle"       "Newelle AI Permissions"
-)
-
 # ─── Detection ────────────────────────────────────────────────────────────────
 
-is_rpm_installed()     { rpm -q "$1" &>/dev/null; }
+is_rpm_installed() {
+    local pkg
+    for pkg in $1; do
+        rpm -q "$pkg" &>/dev/null || return 1
+    done
+}
 is_flatpak_installed() { flatpak info "$1" &>/dev/null 2>&1; }
 is_gext_installed()    { gnome-extensions list 2>/dev/null | grep -qF "$1"; }
 is_cli_installed() {
@@ -133,7 +128,6 @@ is_cli_installed() {
         codex)  command -v codex &>/dev/null ;;
     esac
 }
-is_config_done() { return 1; }  # always unchecked — idempotent, safe to re-run
 
 # ─── Interactive Checklist ────────────────────────────────────────────────────
 
@@ -165,28 +159,28 @@ show_checklist() {
     local result
     if [[ -n "$selected_arg" ]]; then
         result=$(printf '%s\n' "${options[@]}" | gum choose --no-limit \
-            --header="$header (space=toggle, enter=confirm)" \
+            --header="$header  |  ↑↓ navigate · x/space toggle · enter confirm" \
             --selected="$selected_arg") || return 1
     else
         result=$(printf '%s\n' "${options[@]}" | gum choose --no-limit \
-            --header="$header (space=toggle, enter=confirm)") || return 1
+            --header="$header  |  ↑↓ navigate · x/space toggle · enter confirm") || return 1
     fi
 
     echo "$result"
 }
 
-# Map a display label back to its key in a paired array
-label_to_key() {
-    local label="$1"
+# Map a key back to its display label in a paired array
+key_to_label() {
+    local key="$1"
     shift
     while [[ $# -ge 2 ]]; do
-        if [[ "$2" == "$label" ]]; then
-            echo "$1"
+        if [[ "$1" == "$key" ]]; then
+            echo "$2"
             return 0
         fi
         shift 2
     done
-    return 1
+    echo "$key"  # fallback to key itself
 }
 
 # Compute diff between selected and currently installed
@@ -239,16 +233,20 @@ compute_diff() {
 
 # ─── Config Step Implementations ─────────────────────────────────────────────
 
-run_config_repos() {
-    info "Setting up package repositories"
-
-    sudo curl -fsSLo /etc/yum.repos.d/brave-browser.repo \
-      https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-
-    sudo curl -fsSLo /etc/yum.repos.d/vivaldi-fedora.repo \
-      https://repo.vivaldi.com/archive/vivaldi-fedora.repo
-
-    sudo tee /etc/yum.repos.d/1password.repo >/dev/null <<'EOF'
+# Per-package repo setup — called automatically when installing a package that needs one
+ensure_repo() {
+    case "$1" in
+        brave-browser)
+            if [[ ! -f /etc/yum.repos.d/brave-browser.repo ]]; then
+                info "Adding Brave repository"
+                sudo curl -fsSLo /etc/yum.repos.d/brave-browser.repo \
+                  https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+            fi
+            ;;
+        1password)
+            if [[ ! -f /etc/yum.repos.d/1password.repo ]]; then
+                info "Adding 1Password repository"
+                sudo tee /etc/yum.repos.d/1password.repo >/dev/null <<'EOF'
 [1password]
 name=1Password Stable Channel
 baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
@@ -257,8 +255,12 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://downloads.1password.com/linux/keys/1password.asc
 EOF
-
-    sudo tee /etc/yum.repos.d/vscode.repo >/dev/null <<'EOF'
+            fi
+            ;;
+        code)
+            if [[ ! -f /etc/yum.repos.d/vscode.repo ]]; then
+                info "Adding VS Code repository"
+                sudo tee /etc/yum.repos.d/vscode.repo >/dev/null <<'EOF'
 [code]
 name=Visual Studio Code
 baseurl=https://packages.microsoft.com/yumrepos/vscode
@@ -267,13 +269,16 @@ type=rpm-md
 gpgcheck=1
 gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 EOF
-
-    local fedora_release
-    fedora_release="$(rpm -E %fedora)"
-    sudo curl -fsSLo "/etc/pki/rpm-gpg/RPM-GPG-KEY-protonvpn-${fedora_release}-stable" \
-      "https://repo.protonvpn.com/fedora-${fedora_release}-stable/public_key.asc"
-
-    sudo tee /etc/yum.repos.d/protonvpn-stable.repo >/dev/null <<EOF
+            fi
+            ;;
+        proton-vpn-gnome-desktop)
+            if [[ ! -f /etc/yum.repos.d/protonvpn-stable.repo ]]; then
+                info "Adding Proton VPN repository"
+                local fedora_release
+                fedora_release="$(rpm -E %fedora)"
+                sudo curl -fsSLo "/etc/pki/rpm-gpg/RPM-GPG-KEY-protonvpn-${fedora_release}-stable" \
+                  "https://repo.protonvpn.com/fedora-${fedora_release}-stable/public_key.asc"
+                sudo tee /etc/yum.repos.d/protonvpn-stable.repo >/dev/null <<EOF
 [protonvpn-fedora-stable]
 name=Proton VPN Fedora Stable repository
 baseurl=https://repo.protonvpn.com/fedora-${fedora_release}-stable/
@@ -282,14 +287,19 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-protonvpn-${fedora_release}-stable
 EOF
-
-    sudo curl -fsSLo /etc/yum.repos.d/claude-desktop.repo \
-      https://aaddrick.github.io/claude-desktop-debian/rpm/claude-desktop.repo
-
-    ok "Repos configured"
+            fi
+            ;;
+        claude-desktop)
+            if [[ ! -f /etc/yum.repos.d/claude-desktop.repo ]]; then
+                info "Adding Claude Desktop repository"
+                sudo curl -fsSLo /etc/yum.repos.d/claude-desktop.repo \
+                  https://aaddrick.github.io/claude-desktop-debian/rpm/claude-desktop.repo
+            fi
+            ;;
+    esac
 }
 
-run_config_brave-policy() {
+run_config_brave_policy() {
     info "Applying Brave browser policy"
 
     sudo mkdir -p /etc/brave/policies/managed
@@ -418,9 +428,10 @@ install_cli_tool() {
             curl -fsSL https://claude.ai/install.sh | bash
             ;;
         codex)
-            export NVM_DIR="$HOME/.nvm"
-            # shellcheck source=/dev/null
-            [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
+            if ! command -v npm &>/dev/null; then
+                err "npm is required for Codex. Select 'npm' in System Packages first."
+                return 1
+            fi
             mkdir -p ~/.local/npm
             npm config set prefix ~/.local/npm
             if ! grep -q '.local/npm/bin' ~/.bashrc 2>/dev/null; then
@@ -541,16 +552,6 @@ main() {
     local -a cli_to_install=("${to_install[@]+"${to_install[@]}"}")
     local -a cli_to_remove=("${to_remove[@]+"${to_remove[@]}"}")
 
-    # ── 5. Configuration ──────────────────────────────────────────────────────
-
-    local config_selected
-    config_selected=$(show_checklist "Configuration Steps (idempotent)" is_config_done "${CONFIG_STEPS[@]}") || true
-
-    local -a config_selected_arr=()
-    if [[ -n "$config_selected" ]]; then
-        mapfile -t config_selected_arr <<< "$config_selected"
-    fi
-
     # ── Summary ───────────────────────────────────────────────────────────────
 
     echo ""
@@ -558,47 +559,63 @@ main() {
     local has_changes=false
 
     if [[ ${#rpm_to_install[@]} -gt 0 ]]; then
-        echo "  Install (rpm-ostree): ${rpm_to_install[*]}"
+        local -a rpm_install_labels=()
+        for key in "${rpm_to_install[@]}"; do rpm_install_labels+=("$(key_to_label "$key" "${RPM_PACKAGES[@]}")"); done
+        printf '  %-22s %s\n' "Install (rpm-ostree):" "${rpm_install_labels[*]}"
         has_changes=true
     fi
     if [[ ${#rpm_to_remove[@]} -gt 0 ]]; then
-        echo "  Remove  (rpm-ostree): ${rpm_to_remove[*]}"
+        local -a rpm_remove_labels=()
+        for key in "${rpm_to_remove[@]}"; do rpm_remove_labels+=("$(key_to_label "$key" "${RPM_PACKAGES[@]}")"); done
+        printf '  %-22s %s\n' "Remove (rpm-ostree):" "${rpm_remove_labels[*]}"
         has_changes=true
     fi
     if [[ ${#flatpak_to_install[@]} -gt 0 ]]; then
-        echo "  Install (flatpak):    ${flatpak_to_install[*]}"
+        local -a fp_install_labels=()
+        for key in "${flatpak_to_install[@]}"; do fp_install_labels+=("$(key_to_label "$key" "${FLATPAK_PACKAGES[@]}")"); done
+        printf '  %-22s %s\n' "Install (flatpak):" "${fp_install_labels[*]}"
         has_changes=true
     fi
     if [[ ${#flatpak_to_remove[@]} -gt 0 ]]; then
-        echo "  Remove  (flatpak):    ${flatpak_to_remove[*]}"
+        local -a fp_remove_labels=()
+        for key in "${flatpak_to_remove[@]}"; do fp_remove_labels+=("$(key_to_label "$key" "${FLATPAK_PACKAGES[@]}")"); done
+        printf '  %-22s %s\n' "Remove (flatpak):" "${fp_remove_labels[*]}"
         has_changes=true
     fi
     if [[ ${#gext_bundled_enable[@]} -gt 0 ]]; then
-        echo "  Enable  (extensions): ${gext_bundled_enable[*]}"
+        local -a gbe_labels=()
+        for key in "${gext_bundled_enable[@]}"; do gbe_labels+=("$(key_to_label "$key" "${GNOME_BUNDLED[@]}")"); done
+        printf '  %-22s %s\n' "Enable (extensions):" "${gbe_labels[*]}"
         has_changes=true
     fi
     if [[ ${#gext_bundled_disable[@]} -gt 0 ]]; then
-        echo "  Disable (extensions): ${gext_bundled_disable[*]}"
+        local -a gbd_labels=()
+        for key in "${gext_bundled_disable[@]}"; do gbd_labels+=("$(key_to_label "$key" "${GNOME_BUNDLED[@]}")"); done
+        printf '  %-22s %s\n' "Disable (extensions):" "${gbd_labels[*]}"
         has_changes=true
     fi
     if [[ ${#gext_to_install[@]} -gt 0 ]]; then
-        echo "  Install (extensions): ${gext_to_install[*]}"
+        local -a gei_labels=()
+        for key in "${gext_to_install[@]}"; do gei_labels+=("$(key_to_label "$key" "${GNOME_INSTALL[@]}")"); done
+        printf '  %-22s %s\n' "Install (extensions):" "${gei_labels[*]}"
         has_changes=true
     fi
     if [[ ${#gext_to_remove[@]} -gt 0 ]]; then
-        echo "  Remove  (extensions): ${gext_to_remove[*]}"
+        local -a ger_labels=()
+        for key in "${gext_to_remove[@]}"; do ger_labels+=("$(key_to_label "$key" "${GNOME_INSTALL[@]}")"); done
+        printf '  %-22s %s\n' "Remove (extensions):" "${ger_labels[*]}"
         has_changes=true
     fi
     if [[ ${#cli_to_install[@]} -gt 0 ]]; then
-        echo "  Install (CLI):        ${cli_to_install[*]}"
+        local -a cli_i_labels=()
+        for key in "${cli_to_install[@]}"; do cli_i_labels+=("$(key_to_label "$key" "${CLI_TOOLS[@]}")"); done
+        printf '  %-22s %s\n' "Install (CLI):" "${cli_i_labels[*]}"
         has_changes=true
     fi
     if [[ ${#cli_to_remove[@]} -gt 0 ]]; then
-        echo "  Remove  (CLI):        ${cli_to_remove[*]}"
-        has_changes=true
-    fi
-    if [[ ${#config_selected_arr[@]} -gt 0 ]]; then
-        echo "  Run config:           ${config_selected_arr[*]}"
+        local -a cli_r_labels=()
+        for key in "${cli_to_remove[@]}"; do cli_r_labels+=("$(key_to_label "$key" "${CLI_TOOLS[@]}")"); done
+        printf '  %-22s %s\n' "Remove (CLI):" "${cli_r_labels[*]}"
         has_changes=true
     fi
 
@@ -615,29 +632,39 @@ main() {
 
     # ── Execute ───────────────────────────────────────────────────────────────
 
-    # Config: repos must run before rpm-ostree installs
-    for cfg in "${config_selected_arr[@]+"${config_selected_arr[@]}"}"; do
-        local cfg_key
-        cfg_key=$(label_to_key "$cfg" "${CONFIG_STEPS[@]}") || continue
-        "run_config_${cfg_key}"
+    # rpm-ostree — expand grouped keys (e.g. "nodejs nodejs-npm") into individual packages
+    local -a rpm_pkgs_install=() rpm_pkgs_remove=()
+    for group in "${rpm_to_install[@]+"${rpm_to_install[@]}"}"; do
+        for pkg in $group; do
+            ensure_repo "$pkg"
+            rpm_pkgs_install+=("$pkg")
+        done
+    done
+    for group in "${rpm_to_remove[@]+"${rpm_to_remove[@]}"}"; do
+        for pkg in $group; do
+            rpm_pkgs_remove+=("$pkg")
+        done
     done
 
-    # rpm-ostree
-    if [[ ${#rpm_to_install[@]} -gt 0 ]]; then
+    if [[ ${#rpm_pkgs_install[@]} -gt 0 ]]; then
         info "Installing system packages"
-        # Ensure repos are set up even if not selected as config step
-        if ! printf '%s\n' "${config_selected_arr[@]+"${config_selected_arr[@]}"}" | grep -qF "Package Repositories"; then
-            run_config_repos
-        fi
-        sudo rpm-ostree install --idempotent "${rpm_to_install[@]}"
+        sudo rpm-ostree install --idempotent "${rpm_pkgs_install[@]}"
         needs_reboot=true
         ok "System packages layered"
     fi
-    if [[ ${#rpm_to_remove[@]} -gt 0 ]]; then
+    if [[ ${#rpm_pkgs_remove[@]} -gt 0 ]]; then
         info "Removing system packages"
-        sudo rpm-ostree uninstall "${rpm_to_remove[@]}"
+        sudo rpm-ostree uninstall "${rpm_pkgs_remove[@]}"
         needs_reboot=true
         ok "System packages removed"
+    fi
+
+    # App-specific config — apply if app is selected (already installed or being installed)
+    if is_rpm_installed brave-browser || printf '%s\n' "${rpm_to_install[@]+"${rpm_to_install[@]}"}" | grep -qF "brave-browser"; then
+        run_config_brave_policy
+    fi
+    if is_rpm_installed 1password || printf '%s\n' "${rpm_to_install[@]+"${rpm_to_install[@]}"}" | grep -qF "1password"; then
+        run_config_1password
     fi
 
     # Flatpaks
@@ -650,6 +677,11 @@ main() {
         info "Removing Flatpaks"
         flatpak uninstall -y --noninteractive "${flatpak_to_remove[@]}"
         ok "Flatpaks removed"
+    fi
+
+    # Newelle config — apply if Newelle is selected
+    if is_flatpak_installed io.github.qwersyk.Newelle || printf '%s\n' "${flatpak_to_install[@]+"${flatpak_to_install[@]}"}" | grep -qF "io.github.qwersyk.Newelle"; then
+        run_config_newelle
     fi
 
     # GNOME extensions (bundled)
@@ -684,6 +716,9 @@ main() {
         info "Removing $tool"
         uninstall_cli_tool "$tool"
     done
+
+    # Audio device renaming (always applied)
+    run_config_audio
 
     # ── Done ──────────────────────────────────────────────────────────────────
 

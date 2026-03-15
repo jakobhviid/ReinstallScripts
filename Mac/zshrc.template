@@ -21,6 +21,9 @@ source BREW_PREFIX/share/zsh-autopair/autopair.zsh
 source BREW_PREFIX/share/zsh-you-should-use/you-should-use.plugin.zsh
 source BREW_PREFIX/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
 
+# ─── fzf shell integration (Ctrl+R history, Ctrl+T file finder, Alt+C cd) ────
+source <(fzf --zsh)
+
 # ─── Completions ──────────────────────────────────────────────────────────────
 FPATH=BREW_PREFIX/share/zsh-completions:$FPATH
 autoload -Uz compinit && compinit

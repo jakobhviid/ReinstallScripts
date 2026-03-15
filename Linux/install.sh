@@ -446,6 +446,9 @@ source $brew_prefix/share/zsh-autopair/autopair.zsh
 source $brew_prefix/share/zsh-you-should-use/you-should-use.plugin.zsh
 source $brew_prefix/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
 
+# ─── fzf shell integration (Ctrl+R history, Ctrl+T file finder, Alt+C cd) ────
+source <(fzf --zsh)
+
 # ─── Completions ──────────────────────────────────────────────────────────────
 FPATH=$brew_prefix/share/zsh-completions:\$FPATH
 autoload -Uz compinit && compinit

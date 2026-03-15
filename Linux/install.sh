@@ -482,7 +482,8 @@ if [[ -d "\$HOME/.nvm" ]]; then
     [ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
 fi
 
-# ─── Local npm bin ────────────────────────────────────────────────────────────
+# ─── Local bins ──────────────────────────────────────────────────────────────
+[[ -d "\$HOME/.local/bin" ]] && export PATH="\$HOME/.local/bin:\$PATH"
 [[ -d "\$HOME/.local/npm/bin" ]] && export PATH="\$HOME/.local/npm/bin:\$PATH"
 
 # ─── Powerlevel10k config ────────────────────────────────────────────────────

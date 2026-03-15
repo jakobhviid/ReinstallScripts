@@ -536,6 +536,11 @@ install_cli_tool() {
             ;;
         claude)
             curl -fsSL https://claude.ai/install.sh | bash
+            # Ensure ~/.local/bin is in PATH for current and future sessions
+            if ! grep -q '\.local/bin' ~/.zshrc 2>/dev/null; then
+                sed -i '/# ─── Powerlevel10k config/i # ─── Local bins ──────────────────────────────────────────────────────────────\n[[ -d "$HOME/.local/bin" ]] \&\& export PATH="$HOME/.local/bin:$PATH"\n' ~/.zshrc 2>/dev/null || true
+            fi
+            export PATH="$HOME/.local/bin:$PATH"
             ;;
         codex)
             if ! command -v npm &>/dev/null; then

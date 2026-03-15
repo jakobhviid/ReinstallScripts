@@ -319,9 +319,9 @@ Renames USB audio devices from their generic labels to proper names:
 - Sennheiser BTD 700 (analog → "Sennheiser BTD 700", digital → "Sennheiser BTD 700 Digital", mic → "Sennheiser BTD 700 Mic")
 
 ```sh
-mkdir -p ~/.config/pipewire/pipewire.conf.d/
-cp rename-devices.conf ~/.config/pipewire/pipewire.conf.d/
-systemctl --user restart pipewire pipewire-pulse
+mkdir -p ~/.config/wireplumber/wireplumber.conf.d/
+cp rename-devices.conf ~/.config/wireplumber/wireplumber.conf.d/
+systemctl --user restart wireplumber pipewire pipewire-pulse
 ```
 
 ---

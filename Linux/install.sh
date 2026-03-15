@@ -426,6 +426,8 @@ install_zsh_setup() {
 # ─── Homebrew ─────────────────────────────────────────────────────────────────
 if [[ -d /home/linuxbrew/.linuxbrew ]]; then
     eval "\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+elif [[ -d /opt/homebrew ]]; then
+    eval "\$(/opt/homebrew/bin/brew shellenv zsh)"
 fi
 
 # ─── Powerlevel10k instant prompt ─────────────────────────────────────────────
@@ -447,6 +449,7 @@ source $brew_prefix/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
 # ─── Completions ──────────────────────────────────────────────────────────────
 FPATH=$brew_prefix/share/zsh-completions:\$FPATH
 autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
 # ─── History ──────────────────────────────────────────────────────────────────
 HISTFILE=~/.zsh_history

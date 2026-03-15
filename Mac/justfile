@@ -15,6 +15,7 @@ default:
     @echo "  just backup [machine]     Dump current Homebrew state to a Brewfile (or create new)"
     @echo "  just cleanup [machine]    Uninstall packages not listed in a machine's Brewfile"
     @echo "  just profile [name]       Install a macOS configuration profile (.mobileconfig)"
+    @echo "  just zsh                  Set up Zsh with plugins, Powerlevel10k, and config"
     @echo ""
     @echo "Available machines: {{_machines}}"
     @echo "Available profiles: {{_profiles}}"
@@ -159,3 +160,88 @@ cleanup machine="":
     echo ""
     echo "To uninstall these:"
     echo "  brew bundle cleanup --file=Brewfile.$machine --force"
+
+# Set up Zsh with plugins, Powerlevel10k, and configuration
+zsh:
+    #!/usr/bin/env zsh
+    echo "Installing Zsh plugins via Homebrew..."
+    brew install \
+        zsh-autosuggestions \
+        zsh-syntax-highlighting \
+        zsh-completions \
+        zsh-history-substring-search \
+        zsh-autopair \
+        zsh-you-should-use \
+        fzf \
+        fzf-tab \
+        zoxide \
+        romkatv/powerlevel10k/powerlevel10k
+
+    if [[ -f ~/.zshrc ]]; then
+        cp ~/.zshrc ~/.zshrc.bak
+        echo "Backed up existing .zshrc to .zshrc.bak"
+    fi
+
+    brew_prefix="$(brew --prefix)"
+
+    cat > ~/.zshrc <<ZSHRC
+# ─── Homebrew ─────────────────────────────────────────────────────────────────
+if [[ -d /home/linuxbrew/.linuxbrew ]]; then
+    eval "\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+elif [[ -d /opt/homebrew ]]; then
+    eval "\$(/opt/homebrew/bin/brew shellenv zsh)"
+fi
+
+# ─── Powerlevel10k instant prompt ─────────────────────────────────────────────
+if [[ -r "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh" ]]; then
+    source "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh"
+fi
+
+# ─── Prompt ───────────────────────────────────────────────────────────────────
+source $brew_prefix/share/powerlevel10k/powerlevel10k.zsh-theme
+
+# ─── Plugins ──────────────────────────────────────────────────────────────────
+source $brew_prefix/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $brew_prefix/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source $brew_prefix/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+source $brew_prefix/share/zsh-autopair/autopair.zsh
+source $brew_prefix/share/zsh-you-should-use/you-should-use.plugin.zsh
+source $brew_prefix/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
+
+# ─── Completions ──────────────────────────────────────────────────────────────
+FPATH=$brew_prefix/share/zsh-completions:\$FPATH
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# ─── History ──────────────────────────────────────────────────────────────────
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+
+# ─── Key bindings ─────────────────────────────────────────────────────────────
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+# ─── Zoxide (smart cd) ───────────────────────────────────────────────────────
+eval "\$(zoxide init zsh)"
+
+# ─── NVM (if installed) ──────────────────────────────────────────────────────
+if [[ -d "\$HOME/.nvm" ]]; then
+    export NVM_DIR="\$HOME/.nvm"
+    [ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
+fi
+
+# ─── Local npm bin ────────────────────────────────────────────────────────────
+[[ -d "\$HOME/.local/npm/bin" ]] && export PATH="\$HOME/.local/npm/bin:\$PATH"
+
+# ─── Powerlevel10k config ────────────────────────────────────────────────────
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+ZSHRC
+
+    cp "{{justfile_directory()}}/p10k.zsh" ~/.p10k.zsh
+
+    echo "✓ Zsh setup complete — restart your terminal to activate"
+    echo "  Run 'p10k configure' to customize the prompt theme"

@@ -20,7 +20,6 @@ needs_reboot=false
 # Paired arrays: "key" "Display Name" ...
 
 RPM_PACKAGES=(
-    "podman-docker"                          "Podman Docker"
     "podman-compose"                         "Podman Compose"
     "brave-browser"                          "Brave Browser"
     "1password"                              "1Password"
@@ -42,7 +41,6 @@ FLATPAK_PACKAGES=(
     "com.mattjakeman.ExtensionManager"       "Extension Manager"
     "com.github.tchx84.Flatseal"            "Flatseal"
     "org.gimp.GIMP"                          "GIMP"
-    "com.github.git_cola.git-cola"           "Git Cola"
     "be.alexandervanhee.gradia"              "Gradia"
     "org.libreoffice.LibreOffice"            "LibreOffice"
     "io.missioncenter.MissionCenter"         "Mission Center"
@@ -84,13 +82,6 @@ FLATPAK_PACKAGES=(
     "org.zotero.Zotero"                      "Zotero"
 )
 
-# Bundled in Bazzite but disabled by default
-GNOME_BUNDLED=(
-    "compiz-windows-effect@hermes83.github.com"  "Compiz Windows Effect"
-    "desktop-cube@schneegans.github.com"         "Desktop Cube"
-    "burn-my-windows@schneegans.github.com"      "Burn My Windows"
-)
-
 # Install from extensions.gnome.org
 GNOME_INSTALL=(
     "tilingshell@ferrarodomenico.com"        "Tiling Shell"
@@ -104,10 +95,11 @@ GNOME_INSTALL=(
 )
 
 CLI_TOOLS=(
-    "nvm"    "NVM + Node LTS"
-    "kiro"   "Kiro CLI"
-    "claude" "Claude Code"
-    "codex"  "Codex CLI"
+    "brew"       "Homebrew"
+    "zsh-setup"  "Zsh Plugins + Powerlevel10k"
+    "nvm"        "NVM + Node LTS"
+    "claude"     "Claude Code"
+    "codex"      "Codex CLI"
 )
 
 # ─── Detection ────────────────────────────────────────────────────────────────
@@ -122,10 +114,11 @@ is_flatpak_installed() { flatpak info "$1" &>/dev/null 2>&1; }
 is_gext_installed()    { gnome-extensions list 2>/dev/null | grep -qF "$1"; }
 is_cli_installed() {
     case "$1" in
-        nvm)    [[ -d "$HOME/.nvm" ]] ;;
-        kiro)   command -v kiro &>/dev/null ;;
-        claude) command -v claude &>/dev/null ;;
-        codex)  command -v codex &>/dev/null ;;
+        brew)      command -v brew &>/dev/null || [[ -d /home/linuxbrew/.linuxbrew ]] ;;
+        zsh-setup) [[ -f "$HOME/.zshrc" ]] && command -v brew &>/dev/null && brew list powerlevel10k &>/dev/null ;;
+        nvm)       [[ -d "$HOME/.nvm" ]] ;;
+        claude)    command -v claude &>/dev/null ;;
+        codex)     command -v codex &>/dev/null ;;
     esac
 }
 
@@ -150,21 +143,13 @@ show_checklist() {
         fi
     done
 
-    local selected_arg=""
-    if [[ ${#selected[@]} -gt 0 ]]; then
-        selected_arg=$(printf '%s,' "${selected[@]}")
-        selected_arg="${selected_arg%,}"
-    fi
+    local -a gum_args=(--no-limit --header="$header  |  ↑↓ navigate · x/space toggle · enter confirm")
+    for sel in "${selected[@]+"${selected[@]}"}"; do
+        gum_args+=(--selected="$sel")
+    done
 
     local result
-    if [[ -n "$selected_arg" ]]; then
-        result=$(printf '%s\n' "${options[@]}" | gum choose --no-limit \
-            --header="$header  |  ↑↓ navigate · x/space toggle · enter confirm" \
-            --selected="$selected_arg") || return 1
-    else
-        result=$(printf '%s\n' "${options[@]}" | gum choose --no-limit \
-            --header="$header  |  ↑↓ navigate · x/space toggle · enter confirm") || return 1
-    fi
+    result=$(printf '%s\n' "${options[@]}" | gum choose "${gum_args[@]}") || return 1
 
     echo "$result"
 }
@@ -190,7 +175,7 @@ compute_diff() {
     shift
     # remaining args: selected_labels... -- key1 label1 key2 label2 ...
     local -a selected_labels=()
-    while [[ "$1" != "--" ]]; do
+    while [[ $# -gt 0 && "$1" != "--" ]]; do
         selected_labels+=("$1")
         shift
     done
@@ -388,13 +373,14 @@ run_config_1password() {
 }
 
 run_config_audio() {
-    info "Setting up audio device renaming"
-
     mkdir -p ~/.config/wireplumber/wireplumber.conf.d/
-    cp "$SCRIPT_DIR/rename-devices.conf" ~/.config/wireplumber/wireplumber.conf.d/
-    systemctl --user restart wireplumber pipewire pipewire-pulse
-
-    ok "Audio device names configured"
+    local dest=~/.config/wireplumber/wireplumber.conf.d/rename-devices.conf
+    if ! diff -q "$SCRIPT_DIR/rename-devices.conf" "$dest" &>/dev/null; then
+        info "Updating audio device names"
+        cp "$SCRIPT_DIR/rename-devices.conf" "$dest"
+        systemctl --user restart wireplumber pipewire pipewire-pulse
+        ok "Audio device names configured"
+    fi
 }
 
 run_config_newelle() {
@@ -406,10 +392,123 @@ run_config_newelle() {
     ok "Newelle configured (remember to disable Command Virtualization in Settings)"
 }
 
+# ─── Zsh Setup ────────────────────────────────────────────────────────────────
+
+install_zsh_setup() {
+    if ! command -v brew &>/dev/null; then
+        err "Homebrew is required for Zsh setup. Select 'Homebrew' first."
+        return 1
+    fi
+
+    info "Installing Zsh plugins via Homebrew"
+    brew install \
+        romkatv/powerlevel10k/powerlevel10k \
+        zsh-autosuggestions \
+        zsh-syntax-highlighting \
+        zsh-completions \
+        zsh-history-substring-search \
+        zsh-autopair \
+        zsh-you-should-use \
+        fzf \
+        fzf-tab \
+        zoxide
+
+    # Back up existing .zshrc
+    if [[ -f ~/.zshrc ]]; then
+        cp ~/.zshrc ~/.zshrc.bak
+        info "Backed up existing .zshrc to .zshrc.bak"
+    fi
+
+    local brew_prefix
+    brew_prefix="$(brew --prefix)"
+
+    cat > ~/.zshrc <<ZSHRC
+# ─── Homebrew ─────────────────────────────────────────────────────────────────
+if [[ -d /home/linuxbrew/.linuxbrew ]]; then
+    eval "\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+fi
+
+# ─── Powerlevel10k instant prompt ─────────────────────────────────────────────
+if [[ -r "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh" ]]; then
+    source "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh"
+fi
+
+# ─── Prompt ───────────────────────────────────────────────────────────────────
+source $brew_prefix/share/powerlevel10k/powerlevel10k.zsh-theme
+
+# ─── Plugins ──────────────────────────────────────────────────────────────────
+source $brew_prefix/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $brew_prefix/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source $brew_prefix/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+source $brew_prefix/share/zsh-autopair/autopair.zsh
+source $brew_prefix/share/zsh-you-should-use/you-should-use.plugin.zsh
+source $brew_prefix/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
+
+# ─── Completions ──────────────────────────────────────────────────────────────
+FPATH=$brew_prefix/share/zsh-completions:\$FPATH
+autoload -Uz compinit && compinit
+
+# ─── History ──────────────────────────────────────────────────────────────────
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+
+# ─── Key bindings ─────────────────────────────────────────────────────────────
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+# ─── Zoxide (smart cd) ───────────────────────────────────────────────────────
+eval "\$(zoxide init zsh)"
+
+# ─── NVM (if installed) ──────────────────────────────────────────────────────
+if [[ -d "\$HOME/.nvm" ]]; then
+    export NVM_DIR="\$HOME/.nvm"
+    [ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
+fi
+
+# ─── Local npm bin ────────────────────────────────────────────────────────────
+[[ -d "\$HOME/.local/npm/bin" ]] && export PATH="\$HOME/.local/npm/bin:\$PATH"
+
+# ─── Powerlevel10k config ────────────────────────────────────────────────────
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+ZSHRC
+
+    # Install p10k config
+    cp "$SCRIPT_DIR/p10k.zsh" ~/.p10k.zsh
+
+    # Set zsh as default shell
+    if [[ "$(basename "$SHELL")" != "zsh" ]]; then
+        info "Setting Zsh as default shell"
+        sudo usermod -s "$(which zsh)" "$USER"
+    fi
+
+    ok "Zsh setup complete (restart your terminal to activate)"
+}
+
 # ─── CLI Tool Install/Uninstall ───────────────────────────────────────────────
 
 install_cli_tool() {
     case "$1" in
+        brew)
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            if [[ -d /home/linuxbrew/.linuxbrew ]]; then
+                eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+                # Add to .bashrc
+                if ! grep -q 'linuxbrew' ~/.bashrc 2>/dev/null; then
+                    printf '\neval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv bash)"\n' >> ~/.bashrc
+                fi
+                # Add to .zshrc if zsh is present
+                if [[ -f ~/.zshrc ]] && ! grep -q 'linuxbrew' ~/.zshrc 2>/dev/null; then
+                    printf '\neval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"\n' >> ~/.zshrc
+                fi
+            fi
+            ;;
+        zsh-setup)
+            install_zsh_setup
+            ;;
         nvm)
             if [[ ! -d "$HOME/.nvm" ]]; then
                 local nvm_version
@@ -421,15 +520,12 @@ install_cli_tool() {
             [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
             nvm install --lts
             ;;
-        kiro)
-            curl -fsSL https://cli.kiro.dev/install | bash
-            ;;
         claude)
             curl -fsSL https://claude.ai/install.sh | bash
             ;;
         codex)
             if ! command -v npm &>/dev/null; then
-                err "npm is required for Codex. Select 'npm' in System Packages first."
+                err "npm is required for Codex. Select 'Node.js + npm' in System Packages first."
                 return 1
             fi
             mkdir -p ~/.local/npm
@@ -445,13 +541,16 @@ install_cli_tool() {
 
 uninstall_cli_tool() {
     case "$1" in
+        brew)
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+            ;;
+        zsh-setup)
+            warn "Zsh setup removal: manually clean ~/.zshrc, ~/.zsh_plugins.txt, and ~/.p10k.zsh"
+            ;;
         nvm)
             rm -rf "$HOME/.nvm"
             sed -i '/NVM_DIR/d' ~/.bashrc 2>/dev/null || true
             sed -i '/nvm.sh/d' ~/.bashrc 2>/dev/null || true
-            ;;
-        kiro)
-            rm -f ~/.local/bin/kiro
             ;;
         claude)
             rm -f ~/.local/bin/claude
@@ -514,18 +613,6 @@ main() {
 
     # ── 3. GNOME Extensions ───────────────────────────────────────────────────
 
-    local gext_bundled_selected
-    gext_bundled_selected=$(show_checklist "GNOME Extensions (bundled — enable/disable)" is_gext_installed "${GNOME_BUNDLED[@]}") || true
-
-    local -a gext_bundled_selected_arr=()
-    if [[ -n "$gext_bundled_selected" ]]; then
-        mapfile -t gext_bundled_selected_arr <<< "$gext_bundled_selected"
-    fi
-
-    compute_diff is_gext_installed "${gext_bundled_selected_arr[@]+"${gext_bundled_selected_arr[@]}"}" -- "${GNOME_BUNDLED[@]}"
-    local -a gext_bundled_enable=("${to_install[@]+"${to_install[@]}"}")
-    local -a gext_bundled_disable=("${to_remove[@]+"${to_remove[@]}"}")
-
     local gext_install_selected
     gext_install_selected=$(show_checklist "GNOME Extensions (from extensions.gnome.org)" is_gext_installed "${GNOME_INSTALL[@]}") || true
 
@@ -580,18 +667,6 @@ main() {
         local -a fp_remove_labels=()
         for key in "${flatpak_to_remove[@]}"; do fp_remove_labels+=("$(key_to_label "$key" "${FLATPAK_PACKAGES[@]}")"); done
         printf '  %-22s %s\n' "Remove (flatpak):" "${fp_remove_labels[*]}"
-        has_changes=true
-    fi
-    if [[ ${#gext_bundled_enable[@]} -gt 0 ]]; then
-        local -a gbe_labels=()
-        for key in "${gext_bundled_enable[@]}"; do gbe_labels+=("$(key_to_label "$key" "${GNOME_BUNDLED[@]}")"); done
-        printf '  %-22s %s\n' "Enable (extensions):" "${gbe_labels[*]}"
-        has_changes=true
-    fi
-    if [[ ${#gext_bundled_disable[@]} -gt 0 ]]; then
-        local -a gbd_labels=()
-        for key in "${gext_bundled_disable[@]}"; do gbd_labels+=("$(key_to_label "$key" "${GNOME_BUNDLED[@]}")"); done
-        printf '  %-22s %s\n' "Disable (extensions):" "${gbd_labels[*]}"
         has_changes=true
     fi
     if [[ ${#gext_to_install[@]} -gt 0 ]]; then
@@ -659,11 +734,11 @@ main() {
         ok "System packages removed"
     fi
 
-    # App-specific config — apply if app is selected (already installed or being installed)
-    if is_rpm_installed brave-browser || printf '%s\n' "${rpm_to_install[@]+"${rpm_to_install[@]}"}" | grep -qF "brave-browser"; then
+    # App-specific config — only apply if app was just installed
+    if printf '%s\n' "${rpm_to_install[@]+"${rpm_to_install[@]}"}" | grep -qF "brave-browser"; then
         run_config_brave_policy
     fi
-    if is_rpm_installed 1password || printf '%s\n' "${rpm_to_install[@]+"${rpm_to_install[@]}"}" | grep -qF "1password"; then
+    if printf '%s\n' "${rpm_to_install[@]+"${rpm_to_install[@]}"}" | grep -qF "1password"; then
         run_config_1password
     fi
 
@@ -684,17 +759,7 @@ main() {
         run_config_newelle
     fi
 
-    # GNOME extensions (bundled)
-    for ext in "${gext_bundled_enable[@]+"${gext_bundled_enable[@]}"}"; do
-        info "Enabling $ext"
-        gnome-extensions enable "$ext"
-    done
-    for ext in "${gext_bundled_disable[@]+"${gext_bundled_disable[@]}"}"; do
-        info "Disabling $ext"
-        gnome-extensions disable "$ext"
-    done
-
-    # GNOME extensions (installable)
+    # GNOME extensions
     if [[ ${#gext_to_install[@]} -gt 0 ]] || [[ ${#gext_to_remove[@]} -gt 0 ]]; then
         ensure_gext
     fi

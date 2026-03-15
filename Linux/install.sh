@@ -465,6 +465,7 @@ setopt HIST_IGNORE_SPACE
 
 # ─── Git aliases ──────────────────────────────────────────────────────────────
 alias gp="git pull"
+alias gs="git status"
 gc() { git add --all && git commit -m "\$1" }
 gcp() { git add --all && git commit -m "\$1" && git push }
 

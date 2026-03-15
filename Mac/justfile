@@ -183,64 +183,7 @@ zsh:
     fi
 
     brew_prefix="$(brew --prefix)"
-
-    cat > ~/.zshrc <<ZSHRC
-# ─── Homebrew ─────────────────────────────────────────────────────────────────
-if [[ -d /home/linuxbrew/.linuxbrew ]]; then
-    eval "\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
-elif [[ -d /opt/homebrew ]]; then
-    eval "\$(/opt/homebrew/bin/brew shellenv zsh)"
-fi
-
-# ─── Powerlevel10k instant prompt ─────────────────────────────────────────────
-if [[ -r "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh" ]]; then
-    source "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh"
-fi
-
-# ─── Prompt ───────────────────────────────────────────────────────────────────
-source $brew_prefix/share/powerlevel10k/powerlevel10k.zsh-theme
-
-# ─── Plugins ──────────────────────────────────────────────────────────────────
-source $brew_prefix/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source $brew_prefix/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source $brew_prefix/share/zsh-history-substring-search/zsh-history-substring-search.zsh
-source $brew_prefix/share/zsh-autopair/autopair.zsh
-source $brew_prefix/share/zsh-you-should-use/you-should-use.plugin.zsh
-source $brew_prefix/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
-
-# ─── Completions ──────────────────────────────────────────────────────────────
-FPATH=$brew_prefix/share/zsh-completions:\$FPATH
-autoload -Uz compinit && compinit
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
-
-# ─── History ──────────────────────────────────────────────────────────────────
-HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
-setopt SHARE_HISTORY
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_SPACE
-
-# ─── Key bindings ─────────────────────────────────────────────────────────────
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
-
-# ─── Zoxide (smart cd) ───────────────────────────────────────────────────────
-eval "\$(zoxide init zsh)"
-
-# ─── NVM (if installed) ──────────────────────────────────────────────────────
-if [[ -d "\$HOME/.nvm" ]]; then
-    export NVM_DIR="\$HOME/.nvm"
-    [ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
-fi
-
-# ─── Local npm bin ────────────────────────────────────────────────────────────
-[[ -d "\$HOME/.local/npm/bin" ]] && export PATH="\$HOME/.local/npm/bin:\$PATH"
-
-# ─── Powerlevel10k config ────────────────────────────────────────────────────
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
-ZSHRC
-
+    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/zshrc.template" > ~/.zshrc
     cp "{{justfile_directory()}}/p10k.zsh" ~/.p10k.zsh
 
     echo "✓ Zsh setup complete — restart your terminal to activate"

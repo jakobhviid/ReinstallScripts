@@ -1,0 +1,54 @@
+# ─── Homebrew ─────────────────────────────────────────────────────────────────
+if [[ -d /home/linuxbrew/.linuxbrew ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+elif [[ -d /opt/homebrew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+fi
+
+# ─── Powerlevel10k instant prompt ─────────────────────────────────────────────
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# ─── Prompt ───────────────────────────────────────────────────────────────────
+source BREW_PREFIX/share/powerlevel10k/powerlevel10k.zsh-theme
+
+# ─── Plugins ──────────────────────────────────────────────────────────────────
+source BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source BREW_PREFIX/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+source BREW_PREFIX/share/zsh-autopair/autopair.zsh
+source BREW_PREFIX/share/zsh-you-should-use/you-should-use.plugin.zsh
+source BREW_PREFIX/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
+
+# ─── Completions ──────────────────────────────────────────────────────────────
+FPATH=BREW_PREFIX/share/zsh-completions:$FPATH
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# ─── History ──────────────────────────────────────────────────────────────────
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+
+# ─── Key bindings ─────────────────────────────────────────────────────────────
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+# ─── Zoxide (smart cd) ───────────────────────────────────────────────────────
+eval "$(zoxide init zsh)"
+
+# ─── NVM (if installed) ──────────────────────────────────────────────────────
+if [[ -d "$HOME/.nvm" ]]; then
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+fi
+
+# ─── Local npm bin ────────────────────────────────────────────────────────────
+[[ -d "$HOME/.local/npm/bin" ]] && export PATH="$HOME/.local/npm/bin:$PATH"
+
+# ─── Powerlevel10k config ────────────────────────────────────────────────────
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh

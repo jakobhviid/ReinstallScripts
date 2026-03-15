@@ -291,7 +291,6 @@ npm install -g @openai/codex
 - Desktop Clock
 - Search Light
 - Advanced Alt-Tab Window Switcher (AATWS)
-- Panel Visual Clipboard
 - [Desktop Icons NG (DING)](https://extensions.gnome.org/extension/2087/desktop-icons-ng-ding/)
 - Arc Menu (Windows-like start menu)
 - Vitals

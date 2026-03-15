@@ -183,6 +183,7 @@ zsh:
     fi
 
     brew_prefix="$(brew --prefix)"
+    chmod -R go-w "$brew_prefix/share" "$brew_prefix/share/zsh" 2>/dev/null || true
     sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/zshrc.template" > ~/.zshrc
     cp "{{justfile_directory()}}/p10k.zsh" ~/.p10k.zsh
 

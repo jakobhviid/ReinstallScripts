@@ -486,6 +486,9 @@ fi
 [[ -d "\$HOME/.local/bin" ]] && export PATH="\$HOME/.local/bin:\$PATH"
 [[ -d "\$HOME/.local/npm/bin" ]] && export PATH="\$HOME/.local/npm/bin:\$PATH"
 
+# ─── Aliases & functions ─────────────────────────────────────────────────────
+gcp() { git commit -am "\$1" && git push }
+
 # ─── Powerlevel10k config ────────────────────────────────────────────────────
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 ZSHRC

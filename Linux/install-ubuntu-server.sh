@@ -97,10 +97,10 @@ setopt HIST_IGNORE_DUPS
 setopt HIST_IGNORE_SPACE
 
 # ─── Git aliases ──────────────────────────────────────────────────────────────
-alias gp="git pull"
-alias gs="git status"
-gc() { git add --all && git commit -m "\$1" }
-gcp() { git add --all && git commit -m "\$1" && git push }
+alias gss='git status'
+alias ga='git add .'
+gcm() { git commit -m "\$*" }
+gcp() { git commit -am "\$*" && git push }
 
 # ─── Key bindings ─────────────────────────────────────────────────────────────
 bindkey '^[[A' history-substring-search-up

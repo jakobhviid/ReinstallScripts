@@ -154,13 +154,13 @@ Pressing the closing character when already at one skips over it instead of doub
 Reminds you when you type a command that has an alias defined. If you've set up:
 
 ```sh
-alias gs="git status"
+alias gss='git status'
 ```
 
 And then type `git status`, you'll see:
 
 ```
-Found existing alias for "git status". You can use: "gs"
+Found existing alias for "git status". You can use: "gss"
 ```
 
 Helps you build muscle memory for your own aliases.

@@ -44,6 +44,12 @@ alias ga='git add .'
 gcm() { git commit -m "$*" }
 gcp() { git commit -am "$*" && git push }
 
+# ─── Podman aliases ──────────────────────────────────────────────────────────
+alias pc='podman compose'
+alias pcu='podman compose up -d'
+alias pcd='podman compose down'
+alias pcl='podman compose ps'
+
 # ─── Key bindings ─────────────────────────────────────────────────────────────
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down

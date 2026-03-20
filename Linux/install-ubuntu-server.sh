@@ -105,7 +105,9 @@ setopt HIST_REDUCE_BLANKS
 setopt HIST_VERIFY
 
 # ─── Git aliases ──────────────────────────────────────────────────────────────
+alias gs='git status'
 alias gss='git status'
+alias gp='git pull'
 alias ga='git add .'
 gcm() { git commit -m "\$*" }
 gcp() { git commit -am "\$*" && git push }

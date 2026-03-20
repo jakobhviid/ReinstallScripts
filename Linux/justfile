@@ -1,0 +1,44 @@
+# Linux setup recipes — run from the Linux/ directory
+
+# Show available commands
+default:
+    @echo "Linux setup — run from the Linux/ directory"
+    @echo ""
+    @echo "Commands:"
+    @echo "  just zsh    Install/update Zsh plugins, config, and prompt theme"
+
+# Set up Zsh with plugins, Powerlevel10k, and configuration
+zsh:
+    #!/usr/bin/env bash
+    echo "Installing Zsh plugins via Homebrew..."
+    brew install \
+        zsh-autosuggestions \
+        zsh-syntax-highlighting \
+        zsh-completions \
+        zsh-history-substring-search \
+        zsh-autopair \
+        zsh-you-should-use \
+        bat \
+        eza \
+        fzf \
+        fzf-tab \
+        zoxide \
+        romkatv/powerlevel10k/powerlevel10k
+
+    if [[ -f ~/.zshrc ]]; then
+        cp ~/.zshrc ~/.zshrc.bak
+        echo "Backed up existing .zshrc to .zshrc.bak"
+    fi
+
+    brew_prefix="$(brew --prefix)"
+    chmod -R go-w "$brew_prefix/share" "$brew_prefix/share/zsh" 2>/dev/null || true
+    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/zshrc.template" > ~/.zshrc
+    cp "{{justfile_directory()}}/p10k.zsh" ~/.p10k.zsh
+
+    if [[ "$(basename "$SHELL")" != "zsh" ]]; then
+        echo "Setting Zsh as default shell..."
+        chsh -s "$(which zsh)"
+    fi
+
+    echo "✓ Zsh setup complete — restart your terminal to activate"
+    echo "  Run 'p10k configure' to customize the prompt theme"

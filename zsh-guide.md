@@ -78,6 +78,13 @@ fzf provides fuzzy search everywhere. Three keybindings are active:
 - `Esc` or `Ctrl+C` to cancel
 - Arrow keys or `Ctrl+J`/`Ctrl+K` to navigate
 
+### fzf previews
+
+`Ctrl+T` and `Alt+C` show inline previews as you arrow through results:
+
+- **Ctrl+T** shows file contents (syntax-highlighted via `bat`)
+- **Alt+C** shows directory listings
+
 ### fzf-tab
 
 Replaces the default tab completion menu with fzf. When you press `Tab` and there are multiple matches, you get a fuzzy-searchable list instead of a static menu.
@@ -167,6 +174,21 @@ Helps you build muscle memory for your own aliases.
 
 ---
 
+## eza (modern ls)
+
+`ls`, `ll`, `la`, and `lt` are aliased to `eza`, a modern replacement for `ls` with color and git awareness.
+
+| Command | What it does |
+|---------|-------------|
+| `ls` | Colored file listing |
+| `ll` | Long format with git status column |
+| `la` | Long format including hidden files |
+| `lt` | Tree view (2 levels deep) |
+
+The git column in `ll`/`la` shows per-file status (`M` modified, `N` new, etc.) when inside a git repo.
+
+---
+
 ## Case-Insensitive Completion
 
 Tab completion ignores case. Typing `developer<Tab>` matches `Developer`, `dev<Tab>` matches `Developer`, etc. Works everywhere — file paths, commands, arguments.
@@ -194,10 +216,12 @@ Your shell history is configured with:
 | Setting | What it does |
 |---------|-------------|
 | `SHARE_HISTORY` | History is shared across all open terminal sessions |
-| `HIST_IGNORE_DUPS` | Duplicate consecutive commands are stored only once |
+| `HIST_IGNORE_ALL_DUPS` | Duplicate commands are removed from history (keeps the latest) |
 | `HIST_IGNORE_SPACE` | Commands starting with a space are not saved to history (useful for sensitive commands) |
-| `HISTSIZE=10000` | 10,000 commands kept in memory |
-| `SAVEHIST=10000` | 10,000 commands saved to `~/.zsh_history` |
+| `HIST_REDUCE_BLANKS` | Trims extra whitespace from saved commands |
+| `HIST_VERIFY` | Shows expanded history command before running (safety net for `!!`) |
+| `HISTSIZE=50000` | 50,000 commands kept in memory |
+| `SAVEHIST=50000` | 50,000 commands saved to `~/.zsh_history` |
 
 **Privacy tip:** Prefix a command with a space to keep it out of history:
 
@@ -217,6 +241,8 @@ Your shell history is configured with:
 | Search command history | `Ctrl+R` |
 | Find a file | `Ctrl+T` |
 | See git branch in prompt | It's always there |
+| List files with git status | `ll` |
+| List files as a tree | `lt` |
 | Check if a command is valid | Look at the color (green = valid) |
 | Accept an autosuggestion | `Right arrow` |
 | Accept one word of suggestion | `Ctrl+Right arrow` |

@@ -172,6 +172,8 @@ zsh:
         zsh-history-substring-search \
         zsh-autopair \
         zsh-you-should-use \
+        bat \
+        eza \
         fzf \
         fzf-tab \
         zoxide \

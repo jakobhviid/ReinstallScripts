@@ -24,19 +24,25 @@ source BREW_PREFIX/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
 # ─── fzf shell integration (Ctrl+R history, Ctrl+T file finder, Alt+C cd) ────
 source <(fzf --zsh)
 
+# ─── fzf previews ────────────────────────────────────────────────────────────
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :200 {} 2>/dev/null || head -200 {}'"
+export FZF_ALT_C_OPTS="--preview 'ls -la {}'"
+
 # ─── Completions ──────────────────────────────────────────────────────────────
-FPATH=BREW_PREFIX/share/zsh-completions:$FPATH
+FPATH=BREW_PREFIX/share/zsh-completions:BREW_PREFIX/share/zsh/site-functions:$FPATH
 autoload -Uz compinit && compinit
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
 # ─── History ──────────────────────────────────────────────────────────────────
 HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
+HISTSIZE=50000
+SAVEHIST=50000
 setopt AUTO_CD
 setopt SHARE_HISTORY
-setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_IGNORE_SPACE
+setopt HIST_REDUCE_BLANKS
+setopt HIST_VERIFY
 
 # ─── Git aliases ──────────────────────────────────────────────────────────────
 alias gss='git status'
@@ -49,6 +55,12 @@ alias pc='podman compose'
 alias pcu='podman compose up -d'
 alias pcd='podman compose down'
 alias pcl='podman compose ps'
+
+# ─── eza aliases (modern ls) ─────────────────────────────────────────────────
+alias ls='eza'
+alias ll='eza -l --git'
+alias la='eza -la --git'
+alias lt='eza --tree --level=2'
 
 # ─── Key bindings ─────────────────────────────────────────────────────────────
 bindkey '^[[A' history-substring-search-up

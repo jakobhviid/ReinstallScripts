@@ -1,33 +1,28 @@
 # Getting Started with Windows
 
-Begin installation using the following:
+## First-time setup
+
+Run `bootstrap.ps1` as admin to install Scoop, just, oh-my-posh, WSL, and ssh-agent:
 
 ```powershell
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
-
-# Run as admin
-.\install-1-managers.ps1
+.\bootstrap.ps1
 # Reboot here
+```
 
-# Run as user
-.\install-2-applications.ps1
+## After reboot
 
-# Run as admin
-.\install-3-gamerelated.ps1
-.\install-4-specificgames.ps1
+From the `Windows/` directory:
+
+```powershell
+just install    # All apps (winget+scoop), CLI tools, fonts, Brave policy
+just zsh        # PowerShell profile, git config, Windows Terminal settings
+just games      # Game launchers (optional)
+```
+
+To re-sync shell config after changes (re-runnable):
+
+```powershell
+just zsh
 ```
 
 More packages can be found at [Scoop](https://github.com/ScoopInstaller/Main/tree/master/bucket) and [winget](https://winget.run/).
-
-## Missing items from install script
-
-1. [Office 365 Home](https://account.microsoft.com/services/office/install)
-2. [Visual Studio Community](https://visualstudio.microsoft.com/downloads/)
-3. Windows Store Apps
-   1. Microsoft To-do
-   2. OneNote
-   3. Ubuntu (for WSL)
-   4. Remote Desktop
-   5. Plex
-   6. Netflix
-   7. Messenger

@@ -5,7 +5,8 @@ default:
     @echo "Linux setup — run from the Linux/ directory"
     @echo ""
     @echo "Commands:"
-    @echo "  just zsh    Install/update Zsh plugins, config, and prompt theme"
+    @echo "  just zsh      Install/update Zsh plugins, config, and prompt theme"
+    @echo "  just brave    Deploy Brave browser policy"
 
 # Set up Zsh with plugins, Powerlevel10k, and configuration
 zsh:
@@ -47,3 +48,11 @@ zsh:
 
     echo "✓ Zsh setup complete — restart your terminal to activate"
     echo "  Run 'p10k configure' to customize the prompt theme"
+
+# Deploy Brave browser policy
+brave:
+    #!/usr/bin/env bash
+    echo "Deploying Brave browser policy..."
+    sudo mkdir -p /etc/brave/policies/managed
+    sudo cp "{{justfile_directory()}}/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
+    echo "✓ Brave policy applied"

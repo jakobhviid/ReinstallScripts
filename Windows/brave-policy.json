@@ -1,0 +1,53 @@
+{
+  "BraveWalletDisabled": true,
+  "BraveRewardsDisabled": true,
+  "BraveVPNDisabled": true,
+  "BraveAIChatEnabled": false,
+  "TorDisabled": true,
+  "BraveNewsDisabled": true,
+  "BraveTalkDisabled": true,
+  "BravePlaylistEnabled": false,
+  "BraveSpeedreaderEnabled": false,
+  "BraveWaybackMachineEnabled": false,
+  "BraveP3AEnabled": false,
+
+  "PasswordManagerEnabled": false,
+  "AutofillAddressEnabled": false,
+  "AutofillCreditCardEnabled": false,
+  "PaymentMethodQueryEnabled": false,
+  "ImportSavedPasswords": false,
+
+  "BraveWebDiscoveryEnabled": false,
+  "MetricsReportingEnabled": false,
+  "BraveStatsPingEnabled": false,
+  "UrlKeyedAnonymizedDataCollectionEnabled": false,
+  "UserFeedbackAllowed": false,
+
+  "SafeBrowsingEnabled": true,
+  "SafeBrowsingExtendedReportingEnabled": false,
+
+  "HttpsUpgradesEnabled": true,
+  "SSLVersionMin": "tls1.2",
+
+  "SpellCheckServiceEnabled": false,
+  "AlternateErrorPagesEnabled": false,
+  "PromotionalTabsEnabled": false,
+
+  "PrivacySandboxPromptEnabled": false,
+  "PrivacySandboxAdMeasurementEnabled": false,
+  "PrivacySandboxAdTopicsEnabled": false,
+  "PrivacySandboxSiteEnabledAdsEnabled": false,
+
+  "ShoppingListEnabled": false,
+  "IPFSEnabled": false,
+
+  "DnsOverHttpsMode": "secure",
+  "DnsOverHttpsTemplates": "https://dns0.eu/dns-query https://dns.quad9.net/dns-query",
+
+  "DefaultSearchProviderEnabled": true,
+  "DefaultSearchProviderName": "Qwant",
+  "DefaultSearchProviderSearchURL": "https://www.qwant.com/?q={searchTerms}",
+  "DefaultSearchProviderSuggestURL": "https://api.qwant.com/api/suggest/?q={searchTerms}",
+  "DefaultSearchProviderKeyword": "qwant",
+  "DefaultSearchProviderEncodings": ["UTF-8"]
+}

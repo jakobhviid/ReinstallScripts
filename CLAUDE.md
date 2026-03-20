@@ -16,7 +16,10 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `Linux/justfile` — Recipe for installing/updating Zsh setup
 - `Linux/zshrc.template` — Zsh config template for Linux (uses `BREW_PREFIX` placeholder)
 - `Linux/p10k.zsh` — Powerlevel10k prompt config for Linux
-- `Windows/` — Numbered PowerShell scripts meant to be run in order
+- `Windows/bootstrap.ps1` — One-time admin setup (Scoop, just, oh-my-posh, WSL, ssh-agent)
+- `Windows/justfile` — Recipes for installing apps and setting up the shell
+- `Windows/profile.template.ps1` — PowerShell profile template (equivalent to zshrc.template)
+- `Windows/brave-policy.json` — Brave browser policy (same policies as Mac/Linux)
 - `Linux/Bazzite.md` — Notes for Bazzite Linux setup
 
 ## Mac Workflow
@@ -58,18 +61,18 @@ The templates use `BREW_PREFIX` as a placeholder, substituted at install time vi
 
 ## Windows Workflow
 
-Scripts must be run in order. Scripts 1 and 3–4 require admin; script 2 runs as user. Uses Scoop for CLI/dev tools and winget for GUI applications.
+Requires a one-time bootstrap (as admin), then uses [just](https://github.com/casey/just) for everything else. Run from `Windows/`:
 
 ```powershell
-# First: allow script execution
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
-
-# Run as admin
-.\install-1-managers.ps1   # Scoop, oh-my-posh, posh-git, WSL, ssh-agent
+# First time only (as admin) — installs Scoop, just, oh-my-posh, WSL, ssh-agent
+.\bootstrap.ps1
 # Reboot here
-.\install-2-applications.ps1  # All apps (winget+scoop), git config, registry fixes, fonts
-.\install-3-gamerelated.ps1   # Logitech G Hub, Steam, Epic, etc.
-.\install-4-specificgames.ps1 # SteamCMD + game batch install
+
+# Then use just for everything
+just install    # All apps (winget+scoop), CLI tools, fonts, Brave policy, registry fixes
+just zsh        # PowerShell profile, git config, Windows Terminal settings (re-runnable)
+just games      # Game launchers — Steam, Epic, etc. (optional)
+just            # Show available commands
 ```
 
 ## Adding a New Mac Machine
@@ -79,16 +82,17 @@ From the `Mac/` directory, run `just backup <machinename>` to create `Brewfile.<
 ## Key Notes
 
 - **Never run justfile recipes, install scripts, or other destructive commands without explicit user consent.** These scripts install packages, modify system state, and open configuration profiles. When testing justfile changes, always use `just --dry-run <recipe>` to inspect the generated script. Only run a recipe live if the user explicitly asks for it.
-- **Brave browser policies must stay in sync across all platforms.** The same set of policies exists in three formats:
-  - **Mac:** `Mac/brave-debloat.mobileconfig` (plist)
-  - **Linux:** `Linux/Bazzite.md` — inline JSON block at `/etc/brave/policies/managed/brave-policy.json`
-  - **Windows:** TBD (no Brave policy file exists yet)
+- **Brave browser policies must stay in sync across all platforms.** The same set of policies exists in these locations:
+  - **Mac:** `Mac/brave-debloat.mobileconfig` (plist format)
+  - **Linux:** `Linux/brave-policy.json` + `Linux/install-bazzite.sh` inline in `run_config_brave_policy()`
+  - **Windows:** `Windows/brave-policy.json`
   When adding, removing, or changing a Brave policy, update all locations.
 - **Git identity across all platforms is "Jakob Hviid, PhD" / jakob@hviid.phd** with `pull.rebase true`. Set by `just zsh` on Mac/Linux.
-- **Zsh config changes must be applied to all locations.** Each platform has its own template and install scripts:
+- **Shell config changes must be applied to all locations.** Each platform has its own template and install scripts:
   - `Mac/zshrc.template` + `Mac/justfile` zsh recipe
   - `Linux/zshrc.template` + `Linux/justfile` zsh recipe
   - `Linux/install-ubuntu-server.sh` (inline heredoc)
   - `Linux/install-bazzite.sh` (inline heredoc)
+  - `Windows/profile.template.ps1` + `Windows/justfile` zsh recipe
 - **Mac Brewfiles are intentionally different per machine.** Each machine serves a different purpose (Chronos = personal laptop, Helios = server, huginn = work laptop). Do not flag cross-machine package inconsistencies as issues.
-- `supportfiles/` contains registry fixes (network drive warning), fonts (Cascadia, Delugia Nerd Font), and Windows Terminal settings used by `install-2-applications.ps1`.
+- `Windows/supportfiles/` contains registry fixes (network drive warning) and Windows Terminal settings.

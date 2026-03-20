@@ -47,6 +47,9 @@ install machine="":
     echo "Installing from Brewfile.$machine..."
     brew bundle --file="Brewfile.$machine"
 
+    just zsh
+    just profile brave-debloat
+
 # Dump current Homebrew state to a Brewfile (or create a new one)
 backup machine="":
     #!/usr/bin/env zsh

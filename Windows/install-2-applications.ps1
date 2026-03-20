@@ -11,17 +11,23 @@ winget install --id=Discord.Discord -e --silent
 winget install --id=7zip.7zip -e --silent
 winget install --id=Microsoft.VisualStudioCode -e --silent
 winget install --id=QL-Win.QuickLook -e --silent
+winget install --id=VideoLAN.VLC -e --silent
+winget install --id=dotPDN.PaintDotNet -e --silent
+winget install --id=JGraph.Draw -e --silent
+winget install --id=Plex.Plex -e --silent
+winget install --id=Ookla.Speedtest.CLI -e --silent
 
+# CLI tools (scoop)
 scoop install git
-git config --global user.name "Jakob Hviid"
-git config --global user.email "jakobhviid1982@gmail.com"
+git config --global user.name "Jakob Hviid, PhD"
+git config --global user.email "jakob@hviid.phd"
+git config --global pull.rebase true
 git config --global core.sshcommand "C:/Windows/System32/OpenSSH/ssh.exe"
 
 scoop install aria2 sudo
 scoop bucket add extras
-scoop bucket add java
 scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized
-scoop install curl grep nano vim make say tar sudo coreutils tidy oraclejre8 vlc paint.net filezilla sqlitebrowser sharpkeys nssm draw.io ssh-copy-id perl terminus plex-player latex speedtest-cli win-acme micro ueli
+scoop install grep nano vim make coreutils ssh-copy-id micro
 
 # Installing Visual Studio Code extensions
 code --install-extension pkief.material-icon-theme
@@ -37,18 +43,5 @@ Add-Content $profile 'oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/honuk
 New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\GitKraken\command" -Force | Out-Null
 Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\GitKraken\command" -Name '(Default)' -Value "`"$env:LOCALAPPDATA\gitkraken\update.exe`" --processStart=gitkraken.exe --process-start-args=`"-p %V`""
 regedit /s ./supportfiles/DisableNetworkDriveWarning.reg
-
-# Instaling pygments for Latex highlighting
-python -m pip install --upgrade pip
-pip install pygments
-
-# Installing cpan packages for Latex
-cpan -f -i Unicode::GCString
-cpan -f -i YAML::Tiny
-cpan -f -i Log::Dispatch::File
-cpan -f -i Log::Log4perl
-
-# extra apps for scientific work
-scoop install protege
 
 ./add-fonts.ps1

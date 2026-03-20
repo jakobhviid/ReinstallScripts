@@ -9,10 +9,13 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 ## Structure
 
 - `Mac/Brewfile.<machine>` — Per-machine Homebrew bundle (Chronos, Helios, huginn)
-- `Mac/justfile` — Recipes for installing and backing up Brewfiles
+- `Mac/justfile` — Recipes for installing/backing up Brewfiles and Zsh setup
+- `Mac/zshrc.template` — Zsh config template for macOS (uses `BREW_PREFIX` placeholder)
+- `Mac/p10k.zsh` — Powerlevel10k prompt config for macOS
 - `Mac/brave-debloat.mobileconfig` — macOS configuration profile to debloat Brave browser
 - `Linux/justfile` — Recipe for installing/updating Zsh setup
 - `Linux/zshrc.template` — Zsh config template for Linux (uses `BREW_PREFIX` placeholder)
+- `Linux/p10k.zsh` — Powerlevel10k prompt config for Linux
 - `Windows/` — Numbered PowerShell scripts meant to be run in order
 - `Linux/Bazzite.md` — Notes for Bazzite Linux setup
 
@@ -41,11 +44,17 @@ Machines: Chronos (personal laptop), Helios (server), huginn (work laptop).
 Requires [just](https://github.com/casey/just) (`brew install just`). Run from `Linux/`:
 
 ```sh
-just zsh    # Install/update Zsh plugins, config, and prompt theme
+just zsh    # Install/update Zsh plugins, config, prompt theme, and git identity
 just        # Show available commands
 ```
 
 First-time setup still uses `install-ubuntu-server.sh` or `install-bazzite.sh`. The justfile is for re-syncing config after the initial install.
+
+## Zsh Config Sync
+
+Both `just zsh` (Mac and Linux) fully overwrite `~/.zshrc` from the platform's `zshrc.template`. Per-machine customizations go in `~/.zshrc.local`, which is sourced at the end of `.zshrc` if it exists.
+
+The templates use `BREW_PREFIX` as a placeholder, substituted at install time via `sed`. The `p10k.zsh` configs are intentionally different per platform (different nerd font versions and icon sizes).
 
 ## Windows Workflow
 
@@ -75,6 +84,11 @@ From the `Mac/` directory, run `just backup <machinename>` to create `Brewfile.<
   - **Linux:** `Linux/Bazzite.md` — inline JSON block at `/etc/brave/policies/managed/brave-policy.json`
   - **Windows:** TBD (no Brave policy file exists yet)
   When adding, removing, or changing a Brave policy, update all locations.
-- **Git identity across all platforms is "Jakob Hviid, PhD" / jakob@hviid.phd** with `pull.rebase true`.
+- **Git identity across all platforms is "Jakob Hviid, PhD" / jakob@hviid.phd** with `pull.rebase true`. Set by `just zsh` on Mac/Linux.
+- **Zsh config changes must be applied to all locations.** Each platform has its own template and install scripts:
+  - `Mac/zshrc.template` + `Mac/justfile` zsh recipe
+  - `Linux/zshrc.template` + `Linux/justfile` zsh recipe
+  - `Linux/install-ubuntu-server.sh` (inline heredoc)
+  - `Linux/install-bazzite.sh` (inline heredoc)
 - **Mac Brewfiles are intentionally different per machine.** Each machine serves a different purpose (Chronos = personal laptop, Helios = server, huginn = work laptop). Do not flag cross-machine package inconsistencies as issues.
 - `supportfiles/` contains registry fixes (network drive warning), fonts (Cascadia, Delugia Nerd Font), and Windows Terminal settings used by `install-2-applications.ps1`.

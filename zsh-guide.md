@@ -158,16 +158,10 @@ Pressing the closing character when already at one skips over it instead of doub
 
 ## You Should Use
 
-Reminds you when you type a command that has an alias defined. If you've set up:
-
-```sh
-alias gss='git status'
-```
-
-And then type `git status`, you'll see:
+Reminds you when you type a command that has an alias defined. For example, if you type `git status`, you'll see:
 
 ```
-Found existing alias for "git status". You can use: "gss"
+Found existing alias for "git status". You can use: "gs"
 ```
 
 Helps you build muscle memory for your own aliases.
@@ -231,6 +225,37 @@ Your shell history is configured with:
 
 ---
 
+## Git Aliases
+
+| Alias | Command |
+|-------|---------|
+| `gs` | `git status` |
+| `gp` | `git pull` |
+| `ga` | `git add .` |
+| `gc message` | `git commit -m "message"` |
+| `gcp message` | `git commit -am "message" && git push` |
+
+`gcp` stages tracked modified files, commits, and pushes in one step. New (untracked) files need `ga` first.
+
+---
+
+## Podman Aliases
+
+| Alias | Command |
+|-------|---------|
+| `pc` | `podman compose` |
+| `pcu` | `podman compose up -d` |
+| `pcd` | `podman compose down` |
+| `pcl` | `podman compose ps` |
+
+---
+
+## Local Overrides
+
+Per-machine customizations go in `~/.zshrc.local`. This file is sourced at the end of `.zshrc` if it exists, and is not overwritten by `just zsh`. Use it for machine-specific env vars, aliases, or tool config.
+
+---
+
 ## Quick Reference
 
 | What you want | How to do it |
@@ -246,5 +271,8 @@ Your shell history is configured with:
 | Check if a command is valid | Look at the color (green = valid) |
 | Accept an autosuggestion | `Right arrow` |
 | Accept one word of suggestion | `Ctrl+Right arrow` |
+| Git status | `gs` |
+| Git add, commit, push | `ga && gcp message` |
 | Reconfigure prompt theme | `p10k configure` |
+| Per-machine zsh overrides | `~/.zshrc.local` |
 | Hide a command from history | Prefix with a space |

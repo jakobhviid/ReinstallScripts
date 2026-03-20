@@ -1,114 +1,111 @@
 # Windows setup recipes — run from the Windows/ directory
 # Requires: scoop + just (installed by bootstrap.ps1)
 
+set shell := ["powershell", "-NoProfile", "-NoLogo", "-Command"]
+
+# Helper to check for admin privileges
+_require-admin:
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent(); \
+    $principal = New-Object Security.Principal.WindowsPrincipal($identity); \
+    if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { \
+        Write-Error "This command requires admin. Right-click your terminal and select 'Run as Administrator'."; \
+        exit 1 \
+    }
+
 # Show available commands
 default:
-    @echo "Windows setup — run from the Windows/ directory"
-    @echo ""
-    @echo "Commands:"
-    @echo "  just install    Install all applications, CLI tools, fonts, and shell setup"
-    @echo "  just zsh        Update PowerShell profile, git config, and terminal settings"
-    @echo "  just brave      Deploy Brave browser policy"
-    @echo "  just games      Install game launchers and hardware tools"
+    @Write-Output ("Windows setup — run from the Windows/ directory`n`nCommands:`n  just install    Install all applications, CLI tools, fonts, and shell setup (admin)`n  just zsh        Update PowerShell profile, git config, and terminal settings`n  just brave      Deploy Brave browser policy (admin)`n  just games      Install game launchers and hardware tools")
 
-# Install all applications, CLI tools, fonts, and shell setup
-install:
-    #!powershell
-    Write-Output "Installing applications (winget)..."
-    winget install --id=BraveSoftware.BraveBrowser -e --silent
-    winget install --id=JanDeDobbeleer.OhMyPosh -e --silent
-    winget install --id=AgileBits.1Password -e --silent
-    winget install --id=Logitech.Options -e --silent
-    winget install --id=Microsoft.Teams -e --silent
-    winget install --id=HandBrake.HandBrake -e --silent
-    winget install --id=TeamViewer.TeamViewer -e --silent
-    winget install --id=Spotify.Spotify -e --silent
-    winget install --id=SlackTechnologies.Slack -e --silent
-    winget install --id=Discord.Discord -e --silent
-    winget install --id=7zip.7zip -e --silent
-    winget install --id=Microsoft.VisualStudioCode -e --silent
-    winget install --id=QL-Win.QuickLook -e --silent
-    winget install --id=VideoLAN.VLC -e --silent
-    winget install --id=dotPDN.PaintDotNet -e --silent
-    winget install --id=JGraph.Draw -e --silent
-    winget install --id=Plex.Plex -e --silent
-    winget install --id=Ookla.Speedtest.CLI -e --silent
+# Install all applications, CLI tools, fonts, and shell setup (requires admin)
+install: _require-admin _install-apps brave zsh
 
-    Write-Output "Installing CLI tools (scoop)..."
-    scoop install aria2 sudo
-    scoop bucket add extras
-    scoop bucket add nerd-fonts
-    scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized
-    scoop install grep nano vim make coreutils ssh-copy-id micro fzf zoxide eza bat
-    scoop install nerd-fonts/CascadiaCode-NF nerd-fonts/DelugiaMono-NF
-
-    Write-Output "Installing VS Code extensions..."
-    code --install-extension pkief.material-icon-theme
-
-    Write-Output "Applying registry fixes..."
-    New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\GitKraken\command" -Force | Out-Null
+_install-apps:
+    Write-Output "Installing applications (winget)..."; \
+    winget install --id=BraveSoftware.BraveBrowser -e --silent; \
+    winget install --id=JanDeDobbeleer.OhMyPosh -e --silent; \
+    winget install --id=AgileBits.1Password -e --silent; \
+    winget install --id=Logitech.OptionsPlus -e --silent; \
+    winget install --id=Microsoft.Teams -e --silent; \
+    winget install --id=HandBrake.HandBrake -e --silent; \
+    winget install --id=TeamViewer.TeamViewer -e --silent; \
+    winget install --id=Spotify.Spotify -e --silent; \
+    winget install --id=SlackTechnologies.Slack -e --silent; \
+    winget install --id=Discord.Discord -e --silent; \
+    winget install --id=7zip.7zip -e --silent; \
+    winget install --id=Microsoft.VisualStudioCode -e --silent; \
+    winget install --id=QL-Win.QuickLook -e --silent; \
+    winget install --id=VideoLAN.VLC -e --silent; \
+    winget install --id=dotPDN.PaintDotNet -e --silent; \
+    winget install --id=JGraph.Draw -e --silent; \
+    winget install --id=Plex.Plex -e --silent; \
+    winget install --id=Ookla.Speedtest.CLI -e --silent; \
+    \
+    Write-Output "Installing CLI tools (scoop)..."; \
+    scoop install aria2 sudo; \
+    scoop bucket add extras; \
+    scoop bucket add nerd-fonts; \
+    scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized; \
+    scoop install grep nano vim make coreutils ssh-copy-id micro fzf zoxide eza bat; \
+    scoop install nerd-fonts/CascadiaCode-NF nerd-fonts/Delugia-Nerd-Font; \
+    \
+    Write-Output "Installing VS Code extensions..."; \
+    code --install-extension pkief.material-icon-theme; \
+    \
+    Write-Output "Applying registry fixes..."; \
+    New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\GitKraken\command" -Force | Out-Null; \
     Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\GitKraken\command" -Name '(Default)' -Value "`"$env:LOCALAPPDATA\gitkraken\update.exe`" --processStart=gitkraken.exe --process-start-args=`"-p %V`""
-    regedit /s "{{justfile_directory()}}\supportfiles\DisableNetworkDriveWarning.reg"
-
-    Write-Output "Setting up ssh-agent..."
-    Get-Service -Name ssh-agent | Set-Service -StartupType Automatic
-    Start-Service ssh-agent
-
-    just brave
-    just zsh
 
 # Set up PowerShell profile, git config, and Windows Terminal settings (re-runnable)
 zsh:
-    #!powershell
-    Write-Output "Installing PowerShell modules..."
-    Install-Module -Name posh-git -Scope CurrentUser -Force
-    Install-Module -Name PSFzf -Scope CurrentUser -Force
-
-    Write-Output "Configuring Git..."
-    git config --global user.name "Jakob Hviid, PhD"
-    git config --global user.email "jakob@hviid.phd"
-    git config --global pull.rebase true
-    git config --global core.sshcommand "C:/Windows/System32/OpenSSH/ssh.exe"
-
-    Write-Output "Deploying PowerShell profile..."
-    if (Test-Path $PROFILE) {
-        Copy-Item $PROFILE "$PROFILE.bak"
-        Write-Output "Backed up existing profile to $PROFILE.bak"
-    }
-    $profileDir = Split-Path -Parent $PROFILE
-    if (-not (Test-Path $profileDir)) { New-Item -ItemType Directory -Path $profileDir -Force | Out-Null }
-    Copy-Item "{{justfile_directory()}}\profile.template.ps1" $PROFILE
-
-    Write-Output "Deploying Windows Terminal settings..."
-    $wtSettingsDir = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
-    if (Test-Path $wtSettingsDir) {
-        Copy-Item "{{justfile_directory()}}\supportfiles\windows-terminal\settings.json" "$wtSettingsDir\settings.json"
-        Write-Output "Windows Terminal settings deployed"
-    } else {
-        Write-Output "Windows Terminal not found — skipping settings"
-    }
-
-    Write-Output ""
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope CurrentUser | Out-Null; \
+    \
+    Write-Output "Installing PowerShell modules..."; \
+    Install-Module -Name posh-git -Scope CurrentUser -Force; \
+    Install-Module -Name PSFzf -Scope CurrentUser -Force; \
+    \
+    Write-Output "Configuring Git..."; \
+    git config --global user.name "Jakob Hviid, PhD"; \
+    git config --global user.email "jakob@hviid.phd"; \
+    git config --global pull.rebase true; \
+    git config --global core.sshcommand "C:/Windows/System32/OpenSSH/ssh.exe"; \
+    \
+    Write-Output "Deploying PowerShell profile..."; \
+    if (Test-Path $PROFILE) { \
+        Copy-Item $PROFILE "$PROFILE.bak"; \
+        Write-Output "Backed up existing profile to $PROFILE.bak" \
+    }; \
+    $profileDir = Split-Path -Parent $PROFILE; \
+    if (-not (Test-Path $profileDir)) { New-Item -ItemType Directory -Path $profileDir -Force | Out-Null }; \
+    Copy-Item "{{justfile_directory()}}\profile.template.ps1" $PROFILE; \
+    \
+    Write-Output "Deploying Windows Terminal settings..."; \
+    $wtSettingsDir = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"; \
+    if (Test-Path $wtSettingsDir) { \
+        Copy-Item "{{justfile_directory()}}\supportfiles\windows-terminal\settings.json" "$wtSettingsDir\settings.json"; \
+        Write-Output "Windows Terminal settings deployed" \
+    } else { \
+        Write-Output "Windows Terminal not found — skipping settings" \
+    }; \
+    \
+    Write-Output ""; \
     Write-Output "Done. Restart your terminal to activate."
 
-# Deploy Brave browser policy
-brave:
-    #!powershell
-    Write-Output "Deploying Brave browser policy..."
-    $policyDir = "C:\Program Files\BraveSoftware\Brave-Browser\Application\policies\managed"
-    if (-not (Test-Path $policyDir)) { New-Item -ItemType Directory -Path $policyDir -Force | Out-Null }
-    Copy-Item "{{justfile_directory()}}\brave-policy.json" "$policyDir\brave-policy.json"
+# Deploy Brave browser policy (requires admin)
+brave: _require-admin
+    Write-Output "Deploying Brave browser policy..."; \
+    $policyDir = "C:\Program Files\BraveSoftware\Brave-Browser\Application\policies\managed"; \
+    if (-not (Test-Path $policyDir)) { New-Item -ItemType Directory -Path $policyDir -Force | Out-Null }; \
+    Copy-Item "{{justfile_directory()}}\brave-policy.json" "$policyDir\brave-policy.json"; \
     Write-Output "Done."
 
 # Install game launchers and hardware tools
 games:
-    #!powershell
-    Write-Output "Installing hardware tools..."
-    winget install --id=Logitech.GHUB -e --silent
-
-    Write-Output "Installing game launchers..."
-    winget install --id=Valve.Steam -e --silent
-    winget install --id=ElectronicArts.EADesktop -e --silent
-    winget install --id=Ubisoft.Connect -e --silent
+    Write-Output "Installing hardware tools..."; \
+    winget install --id=Logitech.GHUB -e --silent; \
+    \
+    Write-Output "Installing game launchers..."; \
+    winget install --id=Valve.Steam -e --silent; \
+    winget install --id=ElectronicArts.EADesktop -e --silent; \
+    winget install --id=Ubisoft.Connect -e --silent; \
     winget install --id=EpicGames.EpicGamesLauncher -e --silent
-    winget install --id=Nvidia.GeForceExperience -e --silent

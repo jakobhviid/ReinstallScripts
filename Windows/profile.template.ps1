@@ -11,23 +11,37 @@ Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 
 # ─── PSFzf (Ctrl+R history, Ctrl+T file finder, Tab completion) ──────────────
-Import-Module PSFzf
-Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
-Set-PSReadLineKeyHandler -Key Tab -ScriptBlock { Invoke-FzfTabCompletion }
+if (Get-Module -ListAvailable -Name PSFzf) {
+    Import-Module PSFzf
+    Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+    if (Get-Command Invoke-FzfTabCompletion -ErrorAction SilentlyContinue) {
+        Set-PSReadLineKeyHandler -Key Tab -ScriptBlock { Invoke-FzfTabCompletion }
+    }
+}
 
 # ─── fzf previews ────────────────────────────────────────────────────────────
-$env:FZF_CTRL_T_OPTS = "--preview 'bat --color=always --line-range :200 {} 2>$null'"
-$env:FZF_ALT_C_OPTS = "--preview 'dir {}'"
+$env:FZF_CTRL_T_OPTS = '--preview "bat --color=always --line-range :200 {} 2>NUL"'
+$env:FZF_ALT_C_OPTS = '--preview "dir {}"'
 
 # ─── Zoxide (smart cd) ───────────────────────────────────────────────────────
 Invoke-Expression (& { zoxide init powershell | Out-String })
 
 # ─── Git aliases ──────────────────────────────────────────────────────────────
+Remove-Item Alias:gc -Force -ErrorAction SilentlyContinue
 function gs  { git status }
 function gp  { git pull }
 function ga  { git add . }
-function gc  { param([Parameter(ValueFromRemainingArguments)]$m) git commit -m ($m -join ' ') }
-function gcp { param([Parameter(ValueFromRemainingArguments)]$m) git commit -am ($m -join ' '); git push }
+function gc  {
+    param([Parameter(ValueFromRemainingArguments)]$m)
+    if (-not $m) { Write-Error "Commit message required"; return }
+    git commit -m ($m -join ' ')
+}
+function gcp {
+    param([Parameter(ValueFromRemainingArguments)]$m)
+    if (-not $m) { Write-Error "Commit message required"; return }
+    git commit -am ($m -join ' ')
+    if ($LASTEXITCODE -eq 0) { git push }
+}
 
 # ─── Podman aliases ──────────────────────────────────────────────────────────
 function pc { podman compose @args }

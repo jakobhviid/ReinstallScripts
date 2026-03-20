@@ -24,7 +24,7 @@ $env:FZF_CTRL_T_OPTS = '--preview "bat --color=always --line-range :200 {} 2>NUL
 $env:FZF_ALT_C_OPTS = '--preview "dir {}"'
 
 # ─── Zoxide (smart cd) ───────────────────────────────────────────────────────
-Invoke-Expression (& { zoxide init powershell | Out-String })
+Invoke-Expression (& { zoxide init powershell --cmd cd | Out-String })
 
 # ─── Git aliases ──────────────────────────────────────────────────────────────
 Remove-Item Alias:gc -Force -ErrorAction SilentlyContinue

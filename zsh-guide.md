@@ -34,16 +34,20 @@ Developer          # same as: cd Developer
 
 ### Zoxide (smart cd)
 
-Zoxide learns which directories you visit and lets you jump to them with partial names.
+Zoxide replaces `cd` with a smarter version. Regular `cd` behavior works as normal (`cd ..`, `cd ./folder`, `cd -`), but you can also jump to any previously visited directory by typing partial names.
 
 ```sh
-z dev              # jumps to ~/Developer (or best match from history)
-z scripts          # jumps to the most frequently visited dir matching "scripts"
-z dev scripts      # matches directories containing both "dev" and "scripts"
-zi                 # interactive mode — fuzzy pick from all known directories
+cd dev             # jumps to ~/Developer (or best match from history)
+cd scripts         # jumps to the most frequently visited dir matching "scripts"
+cd dev scripts     # matches directories containing both "dev" and "scripts"
+cd ../..           # regular cd still works as expected
 ```
 
 Zoxide ranks by **frequency** (how often) and **recency** (how recently). The more you visit a directory, the higher it ranks.
+
+### cdi (interactive mode)
+
+`cdi` opens an fzf-powered fuzzy picker of all directories zoxide knows about. You can type to filter, arrow through results, and press Enter to jump there. It's the best way to navigate when you can't remember the exact name — just type any fragment and pick from the matches.
 
 **Seed directories you care about:**
 
@@ -69,7 +73,9 @@ fzf provides fuzzy search everywhere. Three keybindings are active:
 |----------|-------------|
 | `Ctrl+R` | Fuzzy search through command history |
 | `Ctrl+T` | Fuzzy find a file and insert its path at the cursor |
-| `Alt+C`  | Fuzzy browse subdirectories and cd into the selected one |
+| `Alt+C`  | Fuzzy browse subdirectories and cd into the selected one (see note below) |
+
+> **macOS note:** `Alt+C` won't work by default because macOS uses Option to type special characters (e.g. `ç`). In iTerm2, go to Preferences → Profiles → Keys → General and set "Left Option key" to **Esc+**. In Terminal.app, check "Use Option as Meta key" in Profiles → Keyboard.
 
 **Inside any fzf picker:**
 
@@ -260,8 +266,8 @@ Per-machine customizations go in `~/.zshrc.local`. This file is sourced at the e
 
 | What you want | How to do it |
 |---------------|-------------|
-| Jump to a directory | `z <partial-name>` |
-| Browse and pick a directory | `zi` or `Alt+C` |
+| Jump to a directory | `cd <partial-name>` |
+| Browse and pick a directory | `cdi` or `Alt+C` |
 | Enter a directory without cd | Just type its name |
 | Search command history | `Ctrl+R` |
 | Find a file | `Ctrl+T` |

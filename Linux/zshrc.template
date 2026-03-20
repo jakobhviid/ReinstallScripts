@@ -68,7 +68,7 @@ bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
 # ─── Zoxide (smart cd) ───────────────────────────────────────────────────────
-eval "$(zoxide init zsh)"
+eval "$(zoxide init zsh --cmd cd)"
 
 # ─── NVM (if installed) ──────────────────────────────────────────────────────
 if [[ -d "$HOME/.nvm" ]]; then

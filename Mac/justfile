@@ -199,3 +199,6 @@ zsh:
 
     echo "✓ Zsh setup complete — restart your terminal to activate"
     echo "  Run 'p10k configure' to customize the prompt theme"
+    echo ""
+    echo "iTerm2: For Alt+C (fzf directory picker) to work, set"
+    echo "  Preferences → Profiles → Keys → General → Left Option key → Esc+"

@@ -128,7 +128,7 @@ bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
 # ─── Zoxide (smart cd) ───────────────────────────────────────────────────────
-eval "\$(zoxide init zsh)"
+eval "\$(zoxide init zsh --cmd cd)"
 
 # ─── Local bins ──────────────────────────────────────────────────────────────
 [[ -d "\$HOME/.local/bin" ]] && export PATH="\$HOME/.local/bin:\$PATH"

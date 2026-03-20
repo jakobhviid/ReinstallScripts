@@ -40,5 +40,10 @@ zsh:
         chsh -s "$(which zsh)"
     fi
 
+    echo "Configuring Git..."
+    git config --global user.name "Jakob Hviid, PhD"
+    git config --global user.email "jakob@hviid.phd"
+    git config --global pull.rebase true
+
     echo "✓ Zsh setup complete — restart your terminal to activate"
     echo "  Run 'p10k configure' to customize the prompt theme"

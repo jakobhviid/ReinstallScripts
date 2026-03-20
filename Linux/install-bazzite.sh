@@ -473,10 +473,9 @@ setopt HIST_VERIFY
 
 # ─── Git aliases ──────────────────────────────────────────────────────────────
 alias gs='git status'
-alias gss='git status'
 alias gp='git pull'
 alias ga='git add .'
-gcm() { git commit -m "\$*" }
+gc() { git commit -m "\$*" }
 gcp() { git commit -am "\$*" && git push }
 
 # ─── Podman aliases ──────────────────────────────────────────────────────────
@@ -520,6 +519,11 @@ ZSHRC
         info "Setting Zsh as default shell"
         sudo usermod -s "$(which zsh)" "$USER"
     fi
+
+    info "Configuring Git"
+    git config --global user.name "Jakob Hviid, PhD"
+    git config --global user.email "jakob@hviid.phd"
+    git config --global pull.rebase true
 
     ok "Zsh setup complete (restart your terminal to activate)"
 }

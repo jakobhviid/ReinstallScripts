@@ -490,9 +490,6 @@ alias lt='eza --tree --level=2 --icons --group-directories-first'
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
-# ─── Zoxide (smart cd) ───────────────────────────────────────────────────────
-eval "\$(zoxide init zsh --cmd cd)"
-
 # ─── NVM (if installed) ──────────────────────────────────────────────────────
 if [[ -d "\$HOME/.nvm" ]]; then
     export NVM_DIR="\$HOME/.nvm"
@@ -502,6 +499,9 @@ fi
 # ─── Local bins ──────────────────────────────────────────────────────────────
 [[ -d "\$HOME/.local/bin" ]] && export PATH="\$HOME/.local/bin:\$PATH"
 [[ -d "\$HOME/.local/npm/bin" ]] && export PATH="\$HOME/.local/npm/bin:\$PATH"
+
+# ─── Zoxide (smart cd — must be last) ────────────────────────────────────────
+eval "\$(zoxide init zsh --cmd cd)"
 
 ZSHRC
 

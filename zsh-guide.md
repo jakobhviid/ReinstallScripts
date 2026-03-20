@@ -4,19 +4,17 @@ A guide to the plugins and tools installed by the setup scripts. Everything is m
 
 ---
 
-## Prompt: Powerlevel10k
+## Prompt: Starship
 
-Your terminal prompt shows useful context at a glance:
+Your terminal prompt is powered by [Starship](https://starship.rs/), a fast cross-platform prompt that works in Zsh and PowerShell:
 
-- **Left side:** current directory + git branch/status
-- **Right side:** last command duration + timestamp
+- **Left side:** OS icon, current directory, git branch/status
+- **Right side:** exit status, last command duration, background jobs
 - **Second line:** `>` prompt character (green = last command succeeded, red = failed)
 
-**Reconfigure anytime:**
+**Customize anytime:**
 
-```sh
-p10k configure
-```
+Edit `~/.config/starship.toml` or see the [Starship configuration docs](https://starship.rs/config/).
 
 ---
 
@@ -280,6 +278,6 @@ Per-machine customizations go in `~/.zshrc.local`. This file is sourced at the e
 | Accept one word of suggestion | `Ctrl+Right arrow` |
 | Git status | `gs` |
 | Git add, commit, push | `ga && gcp message` |
-| Reconfigure prompt theme | `p10k configure` |
+| Customize prompt theme | Edit `~/.config/starship.toml` |
 | Per-machine zsh overrides | `~/.zshrc.local` |
 | Hide a command from history | Prefix with a space |

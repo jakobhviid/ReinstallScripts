@@ -1,8 +1,5 @@
-# ─── oh-my-posh prompt ────────────────────────────────────────────────────────
-oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/honukai.omp.json" | Invoke-Expression
-
-# ─── posh-git ─────────────────────────────────────────────────────────────────
-Import-Module posh-git
+# ─── Prompt (Starship) ────────────────────────────────────────────────────────
+Invoke-Expression (&starship init powershell)
 
 # ─── PSReadLine (autosuggestions, syntax highlighting, history search) ────────
 Set-PSReadLineOption -PredictionSource History

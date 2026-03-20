@@ -11,12 +11,11 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `Mac/Brewfile.<machine>` — Per-machine Homebrew bundle (Chronos, Helios, huginn)
 - `Mac/justfile` — Recipes for installing/backing up Brewfiles and Zsh setup
 - `Mac/zshrc.template` — Zsh config template for macOS (uses `BREW_PREFIX` placeholder)
-- `Mac/p10k.zsh` — Powerlevel10k prompt config for macOS
 - `Mac/brave-debloat.mobileconfig` — macOS configuration profile to debloat Brave browser
 - `Linux/justfile` — Recipe for installing/updating Zsh setup
 - `Linux/zshrc.template` — Zsh config template for Linux (uses `BREW_PREFIX` placeholder)
-- `Linux/p10k.zsh` — Powerlevel10k prompt config for Linux
-- `Windows/bootstrap.ps1` — One-time admin setup (Scoop, just, oh-my-posh, WSL, ssh-agent)
+- `Windows/bootstrap.ps1` — One-time admin setup (Scoop, just, WSL, ssh-agent)
+- `starship.toml` — Starship prompt config (shared across all platforms, lives at repo root)
 - `Windows/justfile` — Recipes for installing apps and setting up the shell
 - `Windows/profile.template.ps1` — PowerShell profile template (equivalent to zshrc.template)
 - `Windows/brave-policy.json` — Brave browser policy (same policies as Mac/Linux)
@@ -57,14 +56,14 @@ First-time setup still uses `install-ubuntu-server.sh` or `install-bazzite.sh`. 
 
 Both `just zsh` (Mac and Linux) fully overwrite `~/.zshrc` from the platform's `zshrc.template`. Per-machine customizations go in `~/.zshrc.local`, which is sourced at the end of `.zshrc` if it exists.
 
-The templates use `BREW_PREFIX` as a placeholder, substituted at install time via `sed`. The `p10k.zsh` configs are intentionally different per platform (different nerd font versions and icon sizes).
+The templates use `BREW_PREFIX` as a placeholder, substituted at install time via `sed`. The `starship.toml` config at the repo root is shared across all platforms and deployed to `~/.config/starship.toml` by each platform's `just zsh` recipe.
 
 ## Windows Workflow
 
 Requires a one-time bootstrap (as admin), then uses [just](https://github.com/casey/just) for everything else. Run from `Windows/`:
 
 ```powershell
-# First time only (as admin) — installs Scoop, just, oh-my-posh, WSL, ssh-agent
+# First time only (as admin) — installs Scoop, just, WSL, ssh-agent
 .\bootstrap.ps1
 # Reboot here
 

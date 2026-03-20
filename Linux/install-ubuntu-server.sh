@@ -35,7 +35,7 @@ fi
 
 info "Installing Zsh plugins via Homebrew"
 brew install \
-    romkatv/powerlevel10k/powerlevel10k \
+    starship \
     zsh-autosuggestions \
     zsh-syntax-highlighting \
     zsh-completions \
@@ -65,13 +65,8 @@ elif [[ -d /opt/homebrew ]]; then
     eval "\$(/opt/homebrew/bin/brew shellenv zsh)"
 fi
 
-# ─── Powerlevel10k instant prompt ─────────────────────────────────────────────
-if [[ -r "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh" ]]; then
-    source "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh"
-fi
-
-# ─── Prompt ───────────────────────────────────────────────────────────────────
-source $brew_prefix/share/powerlevel10k/powerlevel10k.zsh-theme
+# ─── Prompt (Starship) ──────────────────────────────────────────────────────
+eval "\$(starship init zsh)"
 
 # ─── Plugins ──────────────────────────────────────────────────────────────────
 source $brew_prefix/share/zsh-autosuggestions/zsh-autosuggestions.zsh
@@ -141,13 +136,19 @@ if [[ -d "\$HOME/.nvm" ]]; then
     [ -s "\$NVM_DIR/nvm.sh" ] && . "\$NVM_DIR/nvm.sh"
 fi
 
-# ─── Powerlevel10k config ────────────────────────────────────────────────────
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 ZSHRC
 
-# ─── Deploy p10k config ──────────────────────────────────────────────────────
+# ─── Deploy Starship config ─────────────────────────────────────────────────
 
-cp "$SCRIPT_DIR/p10k.zsh" ~/.p10k.zsh
+mkdir -p ~/.config
+cp "$SCRIPT_DIR/../starship.toml" ~/.config/starship.toml
+
+# ─── Clean up old Powerlevel10k artifacts ────────────────────────────────────
+
+rm -f ~/.p10k.zsh
+rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/p10k-instant-prompt-*.zsh
+brew uninstall powerlevel10k 2>/dev/null || true
+brew untap romkatv/powerlevel10k 2>/dev/null || true
 
 # ─── Set Zsh as default shell ────────────────────────────────────────────────
 

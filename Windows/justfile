@@ -22,7 +22,7 @@ install: _require-admin _install-apps brave zsh
 _install-apps:
     Write-Output "Installing applications (winget)..."; \
     winget install --id=BraveSoftware.BraveBrowser -e --silent; \
-    winget install --id=JanDeDobbeleer.OhMyPosh -e --silent; \
+    winget install --id=Starship.Starship -e --silent; \
     winget install --id=AgileBits.1Password -e --silent; \
     winget install --id=Logitech.OptionsPlus -e --silent; \
     winget install --id=Microsoft.Teams -e --silent; \
@@ -61,7 +61,6 @@ zsh:
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope CurrentUser | Out-Null; \
     \
     Write-Output "Installing PowerShell modules..."; \
-    Install-Module -Name posh-git -Scope CurrentUser -Force; \
     Install-Module -Name PSFzf -Scope CurrentUser -Force; \
     \
     Write-Output "Configuring Git..."; \
@@ -78,6 +77,15 @@ zsh:
     $profileDir = Split-Path -Parent $PROFILE; \
     if (-not (Test-Path $profileDir)) { New-Item -ItemType Directory -Path $profileDir -Force | Out-Null }; \
     Copy-Item "{{justfile_directory()}}\profile.template.ps1" $PROFILE; \
+    \
+    Write-Output "Deploying Starship config..."; \
+    $starshipDir = "$env:USERPROFILE\.config"; \
+    if (-not (Test-Path $starshipDir)) { New-Item -ItemType Directory -Path $starshipDir -Force | Out-Null }; \
+    Copy-Item "{{justfile_directory()}}\..\starship.toml" "$starshipDir\starship.toml"; \
+    \
+    Write-Output "Cleaning up old oh-my-posh artifacts..."; \
+    winget uninstall --id=JanDeDobbeleer.OhMyPosh --silent 2>$null; \
+    Remove-Module posh-git -ErrorAction SilentlyContinue; \
     \
     Write-Output "Deploying Windows Terminal settings..."; \
     $wtSettingsDir = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"; \

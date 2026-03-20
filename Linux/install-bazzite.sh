@@ -96,7 +96,7 @@ GNOME_INSTALL=(
 
 CLI_TOOLS=(
     "brew"       "Homebrew"
-    "zsh-setup"  "Zsh Plugins + Powerlevel10k"
+    "zsh-setup"  "Zsh Plugins + Starship"
     "nvm"        "NVM + Node LTS"
     "claude"     "Claude Code"
     "codex"      "Codex CLI"
@@ -115,7 +115,7 @@ is_gext_installed()    { gnome-extensions list 2>/dev/null | grep -qF "$1"; }
 is_cli_installed() {
     case "$1" in
         brew)      command -v brew &>/dev/null || [[ -d /home/linuxbrew/.linuxbrew ]] ;;
-        zsh-setup) [[ -f "$HOME/.zshrc" ]] && command -v brew &>/dev/null && brew list powerlevel10k &>/dev/null ;;
+        zsh-setup) [[ -f "$HOME/.zshrc" ]] && command -v brew &>/dev/null && brew list starship &>/dev/null ;;
         nvm)       [[ -d "$HOME/.nvm" ]] ;;
         claude)    command -v claude &>/dev/null ;;
         codex)     command -v codex &>/dev/null ;;
@@ -402,7 +402,7 @@ install_zsh_setup() {
 
     info "Installing Zsh plugins via Homebrew"
     brew install \
-        romkatv/powerlevel10k/powerlevel10k \
+        starship \
         zsh-autosuggestions \
         zsh-syntax-highlighting \
         zsh-completions \
@@ -432,13 +432,8 @@ elif [[ -d /opt/homebrew ]]; then
     eval "\$(/opt/homebrew/bin/brew shellenv zsh)"
 fi
 
-# ─── Powerlevel10k instant prompt ─────────────────────────────────────────────
-if [[ -r "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh" ]]; then
-    source "\${XDG_CACHE_HOME:-\$HOME/.cache}/p10k-instant-prompt-\${(%):-%n}.zsh"
-fi
-
-# ─── Prompt ───────────────────────────────────────────────────────────────────
-source $brew_prefix/share/powerlevel10k/powerlevel10k.zsh-theme
+# ─── Prompt (Starship) ──────────────────────────────────────────────────────
+eval "\$(starship init zsh)"
 
 # ─── Plugins ──────────────────────────────────────────────────────────────────
 source $brew_prefix/share/zsh-autosuggestions/zsh-autosuggestions.zsh
@@ -508,12 +503,17 @@ fi
 [[ -d "\$HOME/.local/bin" ]] && export PATH="\$HOME/.local/bin:\$PATH"
 [[ -d "\$HOME/.local/npm/bin" ]] && export PATH="\$HOME/.local/npm/bin:\$PATH"
 
-# ─── Powerlevel10k config ────────────────────────────────────────────────────
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 ZSHRC
 
-    # Install p10k config
-    cp "$SCRIPT_DIR/p10k.zsh" ~/.p10k.zsh
+    # Deploy Starship config
+    mkdir -p ~/.config
+    cp "$SCRIPT_DIR/../starship.toml" ~/.config/starship.toml
+
+    # Clean up old Powerlevel10k artifacts
+    rm -f ~/.p10k.zsh
+    rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/p10k-instant-prompt-*.zsh
+    brew uninstall powerlevel10k 2>/dev/null || true
+    brew untap romkatv/powerlevel10k 2>/dev/null || true
 
     # Set zsh as default shell
     if [[ "$(basename "$SHELL")" != "zsh" ]]; then
@@ -565,7 +565,7 @@ install_cli_tool() {
             curl -fsSL https://claude.ai/install.sh | bash
             # Ensure ~/.local/bin is in PATH for current and future sessions
             if ! grep -q '\.local/bin' ~/.zshrc 2>/dev/null; then
-                sed -i '/# ─── Powerlevel10k config/i # ─── Local bins ──────────────────────────────────────────────────────────────\n[[ -d "$HOME/.local/bin" ]] \&\& export PATH="$HOME/.local/bin:$PATH"\n' ~/.zshrc 2>/dev/null || true
+                sed -i '/# ─── Local overrides/i # ─── Local bins ──────────────────────────────────────────────────────────────\n[[ -d "$HOME/.local/bin" ]] \&\& export PATH="$HOME/.local/bin:$PATH"\n' ~/.zshrc 2>/dev/null || true
             fi
             export PATH="$HOME/.local/bin:$PATH"
             ;;
@@ -591,7 +591,7 @@ uninstall_cli_tool() {
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
             ;;
         zsh-setup)
-            warn "Zsh setup removal: manually clean ~/.zshrc, ~/.zsh_plugins.txt, and ~/.p10k.zsh"
+            warn "Zsh setup removal: manually clean ~/.zshrc and ~/.config/starship.toml"
             ;;
         nvm)
             rm -rf "$HOME/.nvm"

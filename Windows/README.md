@@ -2,7 +2,7 @@
 
 ## First-time setup
 
-Run `bootstrap.ps1` as admin to install Scoop, just, oh-my-posh, WSL, and ssh-agent:
+Run `bootstrap.ps1` as admin to install Scoop, just, WSL, and ssh-agent:
 
 ```powershell
 .\bootstrap.ps1

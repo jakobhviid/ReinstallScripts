@@ -15,7 +15,7 @@ default:
     @echo "  just backup [machine]     Dump current Homebrew state to a Brewfile (or create new)"
     @echo "  just cleanup [machine]    Uninstall packages not listed in a machine's Brewfile"
     @echo "  just profile [name]       Install a macOS configuration profile (.mobileconfig)"
-    @echo "  just zsh                  Set up Zsh with plugins, Powerlevel10k, and config"
+    @echo "  just zsh                  Set up Zsh with plugins, Starship prompt, and config"
     @echo ""
     @echo "Available machines: {{_machines}}"
     @echo "Available profiles: {{_profiles}}"
@@ -164,7 +164,7 @@ cleanup machine="":
     echo "To uninstall these:"
     echo "  brew bundle cleanup --file=Brewfile.$machine --force"
 
-# Set up Zsh with plugins, Powerlevel10k, and configuration
+# Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
     #!/usr/bin/env zsh
     echo "Installing Zsh plugins via Homebrew..."
@@ -180,7 +180,7 @@ zsh:
         fzf \
         fzf-tab \
         zoxide \
-        romkatv/powerlevel10k/powerlevel10k
+        starship
 
     if [[ -f ~/.zshrc ]]; then
         cp ~/.zshrc ~/.zshrc.bak
@@ -190,7 +190,14 @@ zsh:
     brew_prefix="$(brew --prefix)"
     chmod -R go-w "$brew_prefix/share" "$brew_prefix/share/zsh" 2>/dev/null || true
     sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/zshrc.template" > ~/.zshrc
-    cp "{{justfile_directory()}}/p10k.zsh" ~/.p10k.zsh
+    mkdir -p ~/.config
+    cp "{{justfile_directory()}}/../starship.toml" ~/.config/starship.toml
+
+    echo "Cleaning up old Powerlevel10k artifacts..."
+    rm -f ~/.p10k.zsh
+    rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/p10k-instant-prompt-*.zsh
+    brew uninstall powerlevel10k 2>/dev/null || true
+    brew untap romkatv/powerlevel10k 2>/dev/null || true
 
     echo "Configuring Git..."
     git config --global user.name "Jakob Hviid, PhD"
@@ -198,7 +205,7 @@ zsh:
     git config --global pull.rebase true
 
     echo "✓ Zsh setup complete — restart your terminal to activate"
-    echo "  Run 'p10k configure' to customize the prompt theme"
+    echo "  Edit ~/.config/starship.toml to customize the prompt"
     echo ""
     echo "iTerm2: For Alt+C (fzf directory picker) to work, set"
     echo "  Preferences → Profiles → Keys → General → Left Option key → Esc+"

@@ -48,8 +48,8 @@ setopt HIST_VERIFY
 alias gs='git status'
 alias gp='git pull'
 alias ga='git add .'
-gc() { git commit -m "$*" }
-gcp() { git commit -am "$*" && git push }
+gc() { [[ -z "$*" ]] && echo "Commit message required" && return 1; git commit -m "$*" }
+gcp() { [[ -z "$*" ]] && echo "Commit message required" && return 1; git commit -am "$*" && git push }
 
 # ─── Podman aliases ──────────────────────────────────────────────────────────
 alias pc='podman compose'

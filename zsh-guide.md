@@ -237,6 +237,7 @@ Your shell history is configured with:
 |-------|---------|
 | `gs` | `git status` |
 | `gp` | `git pull` |
+| `gpp` | `git push` |
 | `ga` | `git add .` |
 | `gc message` | `git commit -m "message"` |
 | `gcp message` | `git commit -am "message" && git push` |

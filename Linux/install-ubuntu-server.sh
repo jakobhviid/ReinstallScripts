@@ -107,6 +107,7 @@ setopt HIST_VERIFY
 # ─── Git aliases ──────────────────────────────────────────────────────────────
 alias gs='git status'
 alias gp='git pull'
+alias gpp='git push'
 alias ga='git add .'
 gc() { [[ -z "\$*" ]] && echo "Commit message required" && return 1; git commit -m "\$*" }
 gcp() { [[ -z "\$*" ]] && echo "Commit message required" && return 1; git commit -am "\$*" && git push }

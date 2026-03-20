@@ -30,6 +30,7 @@ Invoke-Expression (& { zoxide init powershell --cmd cd | Out-String })
 Remove-Item Alias:gc -Force -ErrorAction SilentlyContinue
 function gs  { git status }
 function gp  { git pull }
+function gpp { git push }
 function ga  { git add . }
 function gc  {
     param([Parameter(ValueFromRemainingArguments)]$m)

@@ -11,6 +11,8 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `Mac/Brewfile.<machine>` — Per-machine Homebrew bundle (Chronos, Helios, huginn)
 - `Mac/justfile` — Recipes for installing and backing up Brewfiles
 - `Mac/brave-debloat.mobileconfig` — macOS configuration profile to debloat Brave browser
+- `Linux/justfile` — Recipe for installing/updating Zsh setup
+- `Linux/zshrc.template` — Zsh config template for Linux (uses `BREW_PREFIX` placeholder)
 - `Windows/` — Numbered PowerShell scripts meant to be run in order
 - `Linux/Bazzite.md` — Notes for Bazzite Linux setup
 
@@ -33,6 +35,17 @@ just                       # Show available commands/machines/profiles
 ```
 
 Machines: Chronos (personal laptop), Helios (server), huginn (work laptop).
+
+## Linux Zsh Sync
+
+Requires [just](https://github.com/casey/just) (`brew install just`). Run from `Linux/`:
+
+```sh
+just zsh    # Install/update Zsh plugins, config, and prompt theme
+just        # Show available commands
+```
+
+First-time setup still uses `install-ubuntu-server.sh` or `install-bazzite.sh`. The justfile is for re-syncing config after the initial install.
 
 ## Windows Workflow
 

@@ -81,3 +81,6 @@ fi
 
 # ─── Powerlevel10k config ────────────────────────────────────────────────────
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+
+# ─── Local overrides (not tracked by git) ───────────────────────────────────
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local

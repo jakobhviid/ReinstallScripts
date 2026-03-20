@@ -36,12 +36,12 @@ color_fg0 = '#fbf1c7'
 color_bg1 = '#3c3836'
 color_bg3 = '#665c54'
 color_blue = '#458588'
-color_aqua = '#689d6a'
+color_aqua = '#427b58'
 color_green = '#98971a'
-color_orange = '#d65d0e'
+color_orange = '#af3a03'
 color_purple = '#b16286'
 color_red = '#cc241d'
-color_yellow = '#d79921'
+color_yellow = '#b57614'
 
 [os]
 disabled = false
@@ -97,7 +97,17 @@ format = '[[ $symbol $branch ](fg:color_fg0 bg:color_aqua)]($style)'
 
 [git_status]
 style = "bg:color_aqua"
-format = '[[($all_status$ahead_behind )](fg:color_fg0 bg:color_aqua)]($style)'
+format = '[[($all_status$ahead_behind )](bg:color_aqua)]($style)'
+ahead = '[⇡${count}](fg:#b8bb26 bg:color_aqua)'
+behind = '[⇣${count}](fg:#fb4934 bg:color_aqua)'
+diverged = '[⇕⇡${ahead_count}⇣${behind_count}](fg:#fabd2f bg:color_aqua)'
+staged = '[+${count}](fg:#b8bb26 bg:color_aqua)'
+modified = '[!${count}](fg:#fabd2f bg:color_aqua)'
+untracked = '[?${count}](fg:#83a598 bg:color_aqua)'
+deleted = '[✘${count}](fg:#fb4934 bg:color_aqua)'
+renamed = '[»${count}](fg:#d3869b bg:color_aqua)'
+stashed = '[$${count}](fg:color_fg0 bg:color_aqua)'
+conflicted = '[=${count}](bold fg:#fb4934 bg:color_aqua)'
 
 [nodejs]
 symbol = ""

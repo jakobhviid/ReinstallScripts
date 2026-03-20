@@ -48,10 +48,10 @@ function pcd { podman compose down @args }
 function pcl { podman compose ps @args }
 
 # ─── eza aliases (modern ls) ─────────────────────────────────────────────────
-function ls { eza @args }
-function ll { eza -l --git @args }
-function la { eza -la --git @args }
-function lt { eza --tree --level=2 @args }
+function ls { eza --icons --group-directories-first @args }
+function ll { eza -l --git --icons --group-directories-first @args }
+function la { eza -la --git --icons --group-directories-first @args }
+function lt { eza --tree --level=2 --icons --group-directories-first @args }
 
 # ─── Local overrides (not tracked by git) ───────────────────────────────────
 $localProfile = Join-Path (Split-Path $PROFILE) "profile.local.ps1"

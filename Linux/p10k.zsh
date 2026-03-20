@@ -188,8 +188,10 @@
   #################################[ os_icon: os identifier ]##################################
   # OS identifier color.
   typeset -g POWERLEVEL9K_OS_ICON_FOREGROUND=
-  # Custom icon.
-  # typeset -g POWERLEVEL9K_OS_ICON_CONTENT_EXPANSION='⭐'
+  # Custom icon. Use Fedora icon on Fedora-based distros (e.g. Bazzite/Silverblue).
+  if [[ -e /etc/os-release ]] && grep -q 'ID_LIKE=.*fedora\|ID=fedora' /etc/os-release 2>/dev/null; then
+    typeset -g POWERLEVEL9K_OS_ICON_CONTENT_EXPANSION=$'\uF30a '
+  fi
 
   ################################[ prompt_char: prompt symbol ]################################
   # Green prompt symbol if the last command succeeded.

@@ -482,8 +482,8 @@ alias pcl='podman compose ps'
 
 # ─── eza aliases (modern ls) ─────────────────────────────────────────────────
 alias ls='eza --icons --group-directories-first'
-alias ll='eza -l --git --icons --group-directories-first'
-alias la='eza -la --git --icons --group-directories-first'
+alias ll='eza -l --git --icons --group-directories-first --time-style=relative'
+alias la='eza -la --git --icons --group-directories-first --time-style=relative'
 alias lt='eza --tree --level=2 --icons --group-directories-first'
 
 # ─── Key bindings ─────────────────────────────────────────────────────────────

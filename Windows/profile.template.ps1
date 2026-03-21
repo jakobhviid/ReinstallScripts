@@ -49,8 +49,8 @@ function pcl { podman compose ps @args }
 
 # ─── eza aliases (modern ls) ─────────────────────────────────────────────────
 function ls { eza --icons --group-directories-first @args }
-function ll { eza -l --git --icons --group-directories-first @args }
-function la { eza -la --git --icons --group-directories-first @args }
+function ll { eza -l --git --icons --group-directories-first --time-style=relative @args }
+function la { eza -la --git --icons --group-directories-first --time-style=relative @args }
 function lt { eza --tree --level=2 --icons --group-directories-first @args }
 
 # ─── Local overrides (not tracked by git) ───────────────────────────────────

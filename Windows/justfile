@@ -45,7 +45,7 @@ _install-apps:
     scoop bucket add extras; \
     scoop bucket add nerd-fonts; \
     scoop bucket add specialized https://github.com/jakobhviid/scoop-specialized; \
-    scoop install grep nano vim make coreutils ssh-copy-id micro fzf zoxide eza bat; \
+    scoop install grep nano vim make coreutils ssh-copy-id micro fzf zoxide eza bat lazygit; \
     scoop install nerd-fonts/CascadiaCode-NF nerd-fonts/Delugia-Nerd-Font; \
     \
     Write-Output "Installing VS Code extensions..."; \
@@ -62,6 +62,9 @@ zsh:
     \
     Write-Output "Installing PowerShell modules..."; \
     Install-Module -Name PSFzf -Scope CurrentUser -Force; \
+    \
+    Write-Output "Installing CLI tools..."; \
+    scoop install lazygit 2>$null; \
     \
     Write-Output "Configuring Git..."; \
     git config --global user.name "Jakob Hviid, PhD"; \

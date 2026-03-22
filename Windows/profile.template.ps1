@@ -47,11 +47,14 @@ function pcu { podman compose up -d @args }
 function pcd { podman compose down @args }
 function pcl { podman compose ps @args }
 
+# ─── Lazygit alias ──────────────────────────────────────────────────────────
+function lg { lazygit @args }
+
 # ─── eza aliases (modern ls) ─────────────────────────────────────────────────
-function ls { eza --icons --group-directories-first @args }
-function ll { eza -l --git --icons --group-directories-first --time-style=relative @args }
-function la { eza -la --git --icons --group-directories-first --time-style=relative @args }
-function lt { eza --tree --level=2 --icons --group-directories-first @args }
+function ls { eza --icons --hyperlink --group-directories-first @args }
+function ll { eza -l --git --icons --hyperlink --group-directories-first --time-style=relative @args }
+function la { eza -la --git --icons --hyperlink --group-directories-first --time-style=relative @args }
+function lt { eza --tree --level=2 --icons --hyperlink --group-directories-first @args }
 
 # ─── Local overrides (not tracked by git) ───────────────────────────────────
 $localProfile = Join-Path (Split-Path $PROFILE) "profile.local.ps1"

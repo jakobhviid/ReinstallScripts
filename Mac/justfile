@@ -167,7 +167,8 @@ cleanup machine="":
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
     #!/usr/bin/env zsh
-    echo "Installing Zsh plugins via Homebrew..."
+    echo "Installing Zsh plugins and CLI tools via Homebrew..."
+    brew tap joshmedeski/sesh 2>/dev/null || true
     brew install \
         zsh-autosuggestions \
         zsh-syntax-highlighting \
@@ -180,7 +181,10 @@ zsh:
         fzf \
         fzf-tab \
         zoxide \
-        starship
+        starship \
+        tmux \
+        lazygit \
+        sesh
 
     if [[ -f ~/.zshrc ]]; then
         cp ~/.zshrc ~/.zshrc.bak
@@ -192,6 +196,16 @@ zsh:
     sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/zshrc.template" > ~/.zshrc
     mkdir -p ~/.config
     cp "{{justfile_directory()}}/../starship.toml" ~/.config/starship.toml
+    cp "{{justfile_directory()}}/../tmux.conf" ~/.tmux.conf
+
+    echo "Setting up tmux plugin manager..."
+    if [[ -d ~/.tmux/plugins/tpm ]]; then
+        git -C ~/.tmux/plugins/tpm pull -q
+    else
+        git clone -q https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+    fi
+    ~/.tmux/plugins/tpm/bin/install_plugins
+    ~/.tmux/plugins/tpm/bin/update_plugins all
 
     echo "Cleaning up old Powerlevel10k artifacts..."
     rm -f ~/.p10k.zsh

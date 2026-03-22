@@ -113,11 +113,14 @@ alias pcu='podman compose up -d'
 alias pcd='podman compose down'
 alias pcl='podman compose ps'
 
+# ─── Lazygit alias ──────────────────────────────────────────────────────────
+alias lg='lazygit'
+
 # ─── eza aliases (modern ls) ─────────────────────────────────────────────────
-alias ls='eza --icons --group-directories-first'
-alias ll='eza -l --git --icons --group-directories-first --time-style=relative'
-alias la='eza -la --git --icons --group-directories-first --time-style=relative'
-alias lt='eza --tree --level=2 --icons --group-directories-first'
+alias ls='eza --icons --hyperlink --group-directories-first'
+alias ll='eza -l --git --icons --hyperlink --group-directories-first --time-style=relative'
+alias la='eza -la --git --icons --hyperlink --group-directories-first --time-style=relative'
+alias lt='eza --tree --level=2 --icons --hyperlink --group-directories-first'
 
 # ─── Key bindings ─────────────────────────────────────────────────────────────
 bindkey '^[[A' history-substring-search-up

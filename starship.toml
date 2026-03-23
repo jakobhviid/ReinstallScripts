@@ -83,6 +83,7 @@ truncation_length = 3
 truncation_symbol = "…/"
 
 [directory.substitutions]
+"/var/home/jakob" = "~" # atomic desktops (Bazzite) resolve /home symlink
 "Documents" = "󰈙 "
 "Downloads" = " "
 "Music" = "󰝚 "

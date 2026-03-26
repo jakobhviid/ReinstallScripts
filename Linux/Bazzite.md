@@ -249,7 +249,7 @@ curl -fsSL https://cli.kiro.dev/install | bash
 ### Claude Code
 
 ```sh
-curl -fsSL https://claude.ai/install.sh | bash
+brew install claude-code
 ```
 
 ### Codex CLI

@@ -565,12 +565,7 @@ install_cli_tool() {
             nvm install --lts
             ;;
         claude)
-            curl -fsSL https://claude.ai/install.sh | bash
-            # Ensure ~/.local/bin is in PATH for current and future sessions
-            if ! grep -q '\.local/bin' ~/.zshrc 2>/dev/null; then
-                sed -i '/# ─── Local overrides/i # ─── Local bins ──────────────────────────────────────────────────────────────\n[[ -d "$HOME/.local/bin" ]] \&\& export PATH="$HOME/.local/bin:$PATH"\n' ~/.zshrc 2>/dev/null || true
-            fi
-            export PATH="$HOME/.local/bin:$PATH"
+            brew install claude-code
             ;;
         codex)
             if ! command -v npm &>/dev/null; then
@@ -602,7 +597,7 @@ uninstall_cli_tool() {
             sed -i '/nvm.sh/d' ~/.bashrc 2>/dev/null || true
             ;;
         claude)
-            rm -f ~/.local/bin/claude
+            brew uninstall claude-code 2>/dev/null || true
             ;;
         codex)
             export PATH="$HOME/.local/npm/bin:$PATH"

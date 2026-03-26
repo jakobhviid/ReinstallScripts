@@ -65,6 +65,7 @@ zsh:
     \
     Write-Output "Installing CLI tools..."; \
     scoop install lazygit 2>$null; \
+    winget install --id=Anthropic.ClaudeCode -e --silent; \
     \
     Write-Output "Configuring Git..."; \
     git config --global user.name "Jakob Hviid, PhD"; \

@@ -60,8 +60,8 @@ alias lg='lazygit'
 t() {
   local session
   session=$(sesh list | fzf --no-sort --ansi --prompt '⚡  ' \
-    --header '  ^j all ^t tmux ^x zoxide ^d kill ^f find' \
-    --bind 'ctrl-j:change-prompt(⚡  )+reload(sesh list)' \
+    --header '  ^b all ^t tmux ^x zoxide ^d kill ^f find' \
+    --bind 'ctrl-b:change-prompt(⚡  )+reload(sesh list)' \
     --bind 'ctrl-t:change-prompt(🪟  )+reload(sesh list -t)' \
     --bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z)' \
     --bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)' \
@@ -70,7 +70,7 @@ t() {
 }
 _sesh_picker_widget() { BUFFER='t'; zle accept-line }
 zle -N _sesh_picker_widget
-bindkey '^j' _sesh_picker_widget
+bindkey '^b' _sesh_picker_widget
 
 # ─── eza aliases (modern ls) ─────────────────────────────────────────────────
 alias ls='eza --icons --hyperlink --group-directories-first'

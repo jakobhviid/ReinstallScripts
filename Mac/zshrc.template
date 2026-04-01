@@ -53,8 +53,86 @@ alias pcu='podman compose up -d'
 alias pcd='podman compose down'
 alias pcl='podman compose ps'
 
-# ─── Lazygit alias ──────────────────────────────────────────────────────────
-alias lg='lazygit'
+# ─── Lazygit alias (lz) ─────────────────────────────────────────────────────
+alias lz='lazygit'
+
+# ─── Git repo overview (fetch + status for all repos in subdirs) ────────────
+lg() {
+  local dir="${1:-.}"
+  setopt LOCAL_OPTIONS NO_MONITOR NO_NOTIFY
+  local repos=()
+  for d in "$dir"/*/; do [[ -d "$d/.git" ]] && repos+=("$d"); done
+  [[ ${#repos[@]} -eq 0 ]] && echo "No git repos found." && return
+  for r in "${repos[@]}"; do
+    [[ "$(git -C "$r" remote get-url origin 2>/dev/null)" != https://* ]] && git -C "$r" fetch --quiet 2>/dev/null &
+  done
+  wait
+  printf "\n\e[1m  %-25s %-14s %s\e[0m\n" "Repository" "Branch" "Status"
+  printf "  \e[90m%-25s %-14s %s\e[0m\n" "─────────────────────────" "──────────────" "──────"
+  for r in "${repos[@]}"; do
+    local name="${r%/}"; name="${name##*/}"
+    local branch=$(git -C "$r" branch --show-current 2>/dev/null)
+    [[ -z "$branch" ]] && branch="detached"
+    if [[ "$(git -C "$r" remote get-url origin 2>/dev/null)" == https://* ]]; then
+      printf "  %-25s \e[34m%-14s\e[0m \e[31m%s\e[0m\n" "$name" "$branch" "HTTPS — switch to SSH"
+      continue
+    fi
+    local sync="" color="32"
+    if git -C "$r" rev-parse --abbrev-ref '@{upstream}' &>/dev/null; then
+      local counts=$(git -C "$r" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
+      local ahead="${counts%%$'\t'*}" behind="${counts##*$'\t'}"
+      if (( ahead > 0 && behind > 0 )); then sync="↑${ahead} ↓${behind}"; color="33"
+      elif (( ahead > 0 )); then sync="↑${ahead}"; color="33"
+      elif (( behind > 0 )); then sync="↓${behind}"; color="31"
+      else sync="✓"; color="32"
+      fi
+    else
+      sync="—"; color="37"
+    fi
+    local staged=0 modified=0 untracked=0
+    local porcelain=$(git -C "$r" status --porcelain 2>/dev/null)
+    if [[ -n "$porcelain" ]]; then
+      staged=$(echo "$porcelain" | grep -c '^[MADRC]')
+      modified=$(echo "$porcelain" | grep -c '^.[MD]')
+      untracked=$(echo "$porcelain" | grep -c '^??')
+    fi
+    printf "  %-25s \e[34m%-14s\e[0m \e[${color}m%s\e[0m" "$name" "$branch" "$sync"
+    (( staged > 0 )) && printf " \e[32m+%s\e[0m" "$staged"
+    (( modified > 0 )) && printf " \e[33m!%s\e[0m" "$modified"
+    (( untracked > 0 )) && printf " \e[34m?%s\e[0m" "$untracked"
+    printf "\n"
+  done
+  echo
+}
+lgp() {
+  local dir="${1:-.}"
+  setopt LOCAL_OPTIONS NO_MONITOR NO_NOTIFY
+  local repos=()
+  for d in "$dir"/*/; do [[ -d "$d/.git" ]] && repos+=("$d"); done
+  [[ ${#repos[@]} -eq 0 ]] && echo "No git repos found." && return
+  printf "\n\e[90m  Fetching...\e[0m\n"
+  for r in "${repos[@]}"; do
+    [[ "$(git -C "$r" remote get-url origin 2>/dev/null)" != https://* ]] && git -C "$r" fetch --quiet 2>/dev/null &
+  done
+  wait
+  for r in "${repos[@]}"; do
+    local name="${r%/}"; name="${name##*/}"
+    [[ "$(git -C "$r" remote get-url origin 2>/dev/null)" == https://* ]] && continue
+    [[ -n "$(git -C "$r" status --porcelain 2>/dev/null)" ]] && continue
+    git -C "$r" rev-parse --abbrev-ref '@{upstream}' &>/dev/null || continue
+    local counts=$(git -C "$r" rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)
+    local ahead="${counts%%$'\t'*}" behind="${counts##*$'\t'}"
+    if (( behind > 0 && ahead == 0 )); then
+      printf "  \e[32m↓\e[0m %s\n" "$name"
+      git -C "$r" pull --quiet 2>/dev/null
+    fi
+    if (( ahead > 0 && behind == 0 )); then
+      printf "  \e[32m↑\e[0m %s\n" "$name"
+      git -C "$r" push --quiet 2>/dev/null
+    fi
+  done
+  lg "$dir"
+}
 
 # ─── tmux session picker (via sesh) ─────────────────────────────────────────
 t() {

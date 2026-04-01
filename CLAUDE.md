@@ -15,7 +15,9 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `Linux/justfile` — Recipe for installing/updating Zsh setup
 - `Linux/zshrc.template` — Zsh config template for Linux (uses `BREW_PREFIX` placeholder)
 - `Windows/bootstrap.ps1` — One-time admin setup (Scoop, just, WSL, ssh-agent)
-- `starship.toml` — Starship prompt config (shared across all platforms, lives at repo root)
+- `shared/starship.toml` — Starship prompt config (shared across all platforms)
+- `shared/tmux.conf` — Tmux config (shared across Mac and Linux)
+- `shared/zsh-guide.md` — Zsh keybindings and workflow reference
 - `Windows/justfile` — Recipes for installing apps and setting up the shell
 - `Windows/profile.template.ps1` — PowerShell profile template (equivalent to zshrc.template)
 - `Windows/brave-policy.json` — Brave browser policy (same policies as Mac/Linux)
@@ -56,7 +58,7 @@ First-time setup still uses `install-ubuntu-server.sh` or `install-bazzite.sh`. 
 
 Both `just zsh` (Mac and Linux) fully overwrite `~/.zshrc` from the platform's `zshrc.template`. Per-machine customizations go in `~/.zshrc.local`, which is sourced at the end of `.zshrc` if it exists.
 
-The templates use `BREW_PREFIX` as a placeholder, substituted at install time via `sed`. The `starship.toml` config at the repo root is shared across all platforms and deployed to `~/.config/starship.toml` by each platform's `just zsh` recipe.
+The templates use `BREW_PREFIX` as a placeholder, substituted at install time via `sed`. The `shared/starship.toml` config is shared across all platforms and deployed to `~/.config/starship.toml` by each platform's `just zsh` recipe.
 
 ## Windows Workflow
 

@@ -52,8 +52,8 @@ zsh:
     chmod -R go-w "$brew_prefix/share" "$brew_prefix/share/zsh" 2>/dev/null || true
     sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/zshrc.template" > ~/.zshrc
     mkdir -p ~/.config
-    cp "{{justfile_directory()}}/../starship.toml" ~/.config/starship.toml
-    cp "{{justfile_directory()}}/../tmux.conf" ~/.tmux.conf
+    cp "{{justfile_directory()}}/../shared/starship.toml" ~/.config/starship.toml
+    cp "{{justfile_directory()}}/../shared/tmux.conf" ~/.tmux.conf
 
     echo "Setting up tmux plugin manager..."
     if [[ -d ~/.tmux/plugins/tpm ]]; then

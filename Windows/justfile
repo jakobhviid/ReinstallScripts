@@ -85,7 +85,7 @@ zsh:
     Write-Output "Deploying Starship config..."; \
     $starshipDir = "$env:USERPROFILE\.config"; \
     if (-not (Test-Path $starshipDir)) { New-Item -ItemType Directory -Path $starshipDir -Force | Out-Null }; \
-    Copy-Item "{{justfile_directory()}}\..\starship.toml" "$starshipDir\starship.toml"; \
+    Copy-Item "{{justfile_directory()}}\..\shared\starship.toml" "$starshipDir\starship.toml"; \
     \
     Write-Output "Cleaning up old oh-my-posh artifacts..."; \
     winget uninstall --id=JanDeDobbeleer.OhMyPosh --silent 2>$null; \

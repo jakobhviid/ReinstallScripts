@@ -1,43 +1,36 @@
+tap "joshmedeski/sesh"
 tap "mongodb/brew"
 brew "jpeg-xl"
-brew "webp"
 brew "aom"
 brew "asitop"
 brew "ata"
+brew "bat"
 brew "butane"
-brew "gnutls"
-brew "cask"
-brew "container"
-brew "convmv"
 brew "exiftool"
+brew "eza"
 brew "ffmpeg"
-brew "fish"
 brew "fzf"
 brew "fzf-tab"
-brew "gcc"
-brew "geometry"
+brew "webp"
 brew "gh"
 brew "openjpeg"
 brew "leptonica"
 brew "ghostscript"
 brew "git"
-brew "gnu-getopt"
+brew "gnutls"
 brew "librsvg"
 brew "graphviz"
-brew "gyb"
-brew "helm"
 brew "htop"
 brew "libheif"
 brew "imagemagick"
 brew "iperf3"
 brew "jq"
 brew "just"
+brew "lazygit"
 brew "librdkafka"
-brew "kcat"
 brew "mactop"
 brew "marp-cli"
 brew "mas"
-brew "midnight-commander"
 brew "uchardet"
 brew "yt-dlp"
 brew "mpv"
@@ -54,9 +47,9 @@ brew "podman"
 brew "podman-compose"
 brew "poppler"
 brew "postgresql@17"
-brew "speedtest-cli"
+brew "sesh"
 brew "starship"
-brew "stow"
+brew "tmux"
 brew "transmission-cli"
 brew "tree"
 brew "typst"
@@ -64,7 +57,6 @@ brew "unar"
 brew "watch"
 brew "wifi-password"
 brew "ykman"
-brew "z"
 brew "zoxide"
 brew "zsh"
 brew "zsh-autopair"
@@ -76,7 +68,6 @@ brew "zsh-you-should-use"
 brew "mongodb/brew/mongodb-community"
 cask "1password"
 cask "1password-cli"
-cask "arc"
 cask "brave-browser"
 cask "calibre"
 cask "chatgpt"
@@ -84,19 +75,20 @@ cask "claude"
 cask "claude-code"
 cask "cleanmymac"
 cask "cleanshot"
-cask "codex"
-cask "diffusionbee"
 cask "discord"
 cask "dockdoor"
 cask "dotnet-sdk"
 cask "downie"
 cask "drawio"
+cask "font-carlito"
 cask "font-fira-code-nerd-font"
+cask "font-fontawesome"
 cask "font-hack-nerd-font"
 cask "font-jetbrains-mono"
 cask "font-meslo-lg-nerd-font"
+cask "font-roboto"
+cask "font-source-sans-3"
 cask "forklift"
-cask "github"
 cask "gitkraken"
 cask "gitkraken-cli"
 cask "grandperspective"
@@ -110,11 +102,11 @@ cask "linearmouse"
 cask "logitech-g-hub"
 cask "mactex"
 cask "macwhisper"
-cask "microsoft-edge"
 cask "microsoft-teams"
 cask "mission-control-plus"
 cask "mongodb-compass"
 cask "nextcloud"
+cask "obsidian"
 cask "ollama-app"
 cask "pdf-expert"
 cask "pearcleaner"
@@ -124,17 +116,13 @@ cask "proton-mail"
 cask "proton-mail-bridge"
 cask "protonvpn"
 cask "raycast"
-cask "readdle-spark"
 cask "signal"
-cask "sony-ps-remote-play"
-cask "sparkle"
 cask "steam"
 cask "tableplus"
 cask "teamviewer"
 cask "texifier"
 cask "transmission"
 cask "visual-studio-code"
-cask "vivaldi"
 cask "warp"
 cask "zoom"
 cask "zotero"
@@ -142,13 +130,12 @@ mas "1Password for Safari", id: 1569813296
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
 mas "Base", id: 6744867438
-mas "Blackmagic Disk Speed Test", id: 425264550
+mas "Bear", id: 1091189122
 mas "ClickClack", id: 6740695697
-mas "Compressor", id: 424390742
-mas "Copilot", id: 6738511300
 mas "Craft", id: 1487937127
 mas "Craft Web Clipper", id: 6748613311
 mas "DaisyDisk", id: 411643860
+mas "Draw Things", id: 6444050820
 mas "Easy CSV Editor", id: 1171346381
 mas "Final Cut Pro", id: 424389933
 mas "Folder Preview", id: 6698876601
@@ -159,7 +146,6 @@ mas "Kaleidoscope", id: 1575557335
 mas "Keynote", id: 409183694
 mas "LocalSend", id: 1661733229
 mas "Magnet", id: 441258766
-mas "MainStage", id: 634159523
 mas "Markdown Preview", id: 6739955340
 mas "Mela", id: 1568924476
 mas "Microsoft Excel", id: 462058435
@@ -167,23 +153,22 @@ mas "Microsoft Outlook", id: 985367838
 mas "Microsoft PowerPoint", id: 462062816
 mas "Microsoft Word", id: 462054704
 mas "MindNode Classic", id: 1289197285
-mas "Motion", id: 434290957
 mas "Native SQLite Manager", id: 1416282836
 mas "Noir", id: 1592917505
 mas "OmniGraffle", id: 1142578753
 mas "Open Markdown", id: 6758868093
-mas "OpenSpeedTest-Server", id: 1579499874
 mas "Parcel", id: 375589283
 mas "Paste", id: 967805235
 mas "Patterns", id: 429449079
 mas "Permute 3", id: 1444998321
 mas "Photomator", id: 1444636541
+mas "PixelColorPick", id: 6754412788
 mas "Pixelmator Pro", id: 1289583905
+mas "PixelsMeasure", id: 1638740542
 mas "PLIST Editor", id: 1157491961
 mas "Postico", id: 6446933691
 mas "Reeder", id: 6475002485
 mas "Shazam", id: 897118787
-mas "Speedtest", id: 1153157709
 mas "SSH Config Editor", id: 1109319285
 mas "Super Agent", id: 1568262835
 mas "Symbolic Linker", id: 1435106536
@@ -194,82 +179,44 @@ mas "Transloader", id: 572281534
 mas "WhatsApp", id: 310633997
 mas "Windows App", id: 1295203466
 mas "Xcode", id: 497799835
-vscode "aaron-bond.better-comments"
 vscode "adpyke.codesnap"
+vscode "anthropic.claude-code"
 vscode "be5invis.toml"
-vscode "bierner.emojisense"
-vscode "bierner.markdown-checkbox"
-vscode "bierner.markdown-emoji"
 vscode "bierner.markdown-mermaid"
+vscode "bradymholt.pgformatter"
 vscode "britesnow.vscode-toggle-quotes"
 vscode "chrischinchilla.vscode-pandoc"
-vscode "christian-kohler.path-intellisense"
 vscode "codesmith.markdown-inline-editor-vscode"
-vscode "codezombiech.gitignore"
 vscode "cweijan.dbclient-jdbc"
 vscode "cweijan.vscode-postgresql-client2"
-vscode "davidanson.vscode-markdownlint"
 vscode "dbaeumer.vscode-eslint"
-vscode "docsmsft.docs-markdown"
 vscode "esbenp.prettier-vscode"
 vscode "github.copilot-chat"
+vscode "github.github-vscode-theme"
 vscode "grapecity.gc-excelviewer"
-vscode "gruntfuggly.todo-tree"
-vscode "gydunhn.vsc-essentials-core"
 vscode "hediet.vscode-drawio"
-vscode "ibm.output-colorizer"
-vscode "idleberg.icon-fonts"
-vscode "ionide.ionide-fsharp"
+vscode "huacat.office-theme"
 vscode "james-yu.latex-workshop"
 vscode "jebbs.plantuml"
 vscode "jerryhong.autofilename"
 vscode "liamhammett.inline-parameters"
 vscode "matthewpi.caddyfile-support"
 vscode "mechatroner.rainbow-csv"
-vscode "mermaidchart.vscode-mermaid-chart"
+vscode "melishev.feather-vscode"
 vscode "ms-azuretools.vscode-containers"
-vscode "ms-dotnettools.csdevkit"
-vscode "ms-dotnettools.csharp"
-vscode "ms-dotnettools.dotnet-interactive-vscode"
-vscode "ms-dotnettools.vscode-dotnet-pack"
-vscode "ms-dotnettools.vscode-dotnet-runtime"
-vscode "ms-ossdata.vscode-pgsql"
-vscode "ms-toolsai.jupyter"
-vscode "ms-toolsai.jupyter-keymap"
-vscode "ms-toolsai.jupyter-renderers"
-vscode "ms-toolsai.vscode-jupyter-cell-tags"
-vscode "ms-toolsai.vscode-jupyter-slideshow"
-vscode "ms-vscode-remote.remote-containers"
 vscode "ms-vscode-remote.remote-ssh"
 vscode "ms-vscode-remote.remote-ssh-edit"
-vscode "ms-vscode-remote.remote-wsl"
-vscode "ms-vscode-remote.vscode-remote-extensionpack"
-vscode "ms-vscode.azure-repos"
-vscode "ms-vscode.remote-repositories"
-vscode "oderwat.indent-rainbow"
-vscode "openai.chatgpt"
-vscode "orangex4.vscode-typst-sync"
-vscode "patcx.vscode-nuget-gallery"
+vscode "myriad-dreamin.tinymist"
 vscode "piotrpalarz.vscode-gitignore-generator"
 vscode "pkief.material-icon-theme"
-vscode "pnp.polacode"
 vscode "quicktype.quicktype"
 vscode "redhat.vscode-yaml"
-vscode "reflectiondm.classynaming"
 vscode "renesaarsoo.sql-formatter-vsc"
 vscode "richie5um2.vscode-sort-json"
 vscode "slashmd.slashmd"
 vscode "spikespaz.vscode-smoothtype"
 vscode "streetsidesoftware.code-spell-checker"
 vscode "streetsidesoftware.code-spell-checker-danish"
-vscode "surv.typst-math"
-vscode "tintoy.msbuild-project-tools"
-vscode "tombonnike.vscode-status-bar-format-toggle"
-vscode "tomoki1207.pdf"
-vscode "usernamehw.errorlens"
 vscode "vscode-icons-team.vscode-icons"
-vscode "vstirbu.vscode-mermaid-preview"
 vscode "yzane.markdown-pdf"
 vscode "yzhang.dictionary-completion"
-vscode "yzhang.markdown-all-in-one"
-vscode "zamerick.vscode-caddyfile-syntax"

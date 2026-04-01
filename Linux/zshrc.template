@@ -171,6 +171,7 @@ fi
 [[ -d "$HOME/.local/npm/bin" ]] && export PATH="$HOME/.local/npm/bin:$PATH"
 
 # ─── Zoxide (smart cd — must be last) ────────────────────────────────────────
+export _ZO_DOCTOR=0
 eval "$(zoxide init zsh --cmd cd)"
 
 # ─── Local overrides (not tracked by git) ───────────────────────────────────

@@ -130,7 +130,7 @@ cleanup machine="":
         echo "Error: Brewfile.$machine not found"
         exit 1
     fi
-    output=$(brew bundle cleanup --file="Brewfile.$machine" 2>&1)
+    output=$(brew bundle cleanup --file="Brewfile.$machine" --formula --cask --tap --mas 2>&1)
     if [[ -z "$output" ]]; then
         echo "Brewfile.$machine is in sync — nothing to clean up."
         exit 0
@@ -162,7 +162,7 @@ cleanup machine="":
     done
     echo ""
     echo "To uninstall these:"
-    echo "  brew bundle cleanup --file=Brewfile.$machine --force"
+    echo "  brew bundle cleanup --file=Brewfile.$machine --formula --cask --tap --mas --force"
 
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:

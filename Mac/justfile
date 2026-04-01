@@ -231,8 +231,5 @@ zsh:
     git config --global user.email "jakob@hviid.phd"
     git config --global pull.rebase true
 
-    echo "✓ Zsh setup complete — restart your terminal to activate"
-    echo "  Edit ~/.config/starship.toml to customize the prompt"
-    echo ""
-    echo "iTerm2: For Alt+C (fzf directory picker) to work, set"
-    echo "  Preferences → Profiles → Keys → General → Left Option key → Esc+"
+    echo "✓ Zsh setup complete"
+    echo "  Run 'exec zsh' to load changes"

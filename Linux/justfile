@@ -80,8 +80,8 @@ zsh:
     git config --global user.email "jakob@hviid.phd"
     git config --global pull.rebase true
 
-    echo "✓ Zsh setup complete — restart your terminal to activate"
-    echo "  Edit ~/.config/starship.toml to customize the prompt"
+    echo "✓ Zsh setup complete"
+    echo "  Run 'exec zsh' to load changes"
 
 # Deploy Brave browser policy
 brave:

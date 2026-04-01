@@ -101,7 +101,7 @@ zsh:
     }; \
     \
     Write-Output ""; \
-    Write-Output "Done. Restart your terminal to activate."
+    Write-Output "Done. Run 'pwsh' to load changes."
 
 # Deploy Brave browser policy (requires admin)
 brave: _require-admin

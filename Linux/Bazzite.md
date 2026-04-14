@@ -79,11 +79,9 @@ sudo rpm-ostree install \
   libgda \
   libgda-sqlite \
   piper \
-  nodejs \
-  nodejs-npm \
   claude-desktop
   
-# removed: docker-compose \ vivaldi-stable \
+# removed: docker-compose \ vivaldi-stable \ nodejs \ nodejs-npm \
 ```
 
 On Silverblue, also install these GNOME extensions (they come standard on Bazzite):
@@ -229,17 +227,6 @@ sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/
 
 ## 4. CLI & Developer Tools
 
-### NVM + Node LTS
-
-```sh
-# install NVM (Node Version Manager) — always fetches the latest release
-curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | grep '"tag_name"' | cut -d'"' -f4)/install.sh" | bash
-# reload shell
-source ~/.nvm/nvm.sh
-# install Node LTS
-nvm install --lts
-```
-
 ### Kiro CLI ([kiro.dev/cli](https://kiro.dev/cli/))
 
 ```sh
@@ -250,17 +237,6 @@ curl -fsSL https://cli.kiro.dev/install | bash
 
 ```sh
 brew install claude-code
-```
-
-### Codex CLI
-
-```sh
-# Codex
-mkdir -p ~/.local/npm
-npm config set prefix ~/.local/npm
-echo 'export PATH="$HOME/.local/npm/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-npm install -g @openai/codex
 ```
 
 ---

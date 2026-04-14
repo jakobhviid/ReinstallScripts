@@ -35,7 +35,6 @@ DNF_PACKAGES=(
     "distrobox"                              "Distrobox"
     "libgda libgda-sqlite"                   "SQLite (libgda)"
     "piper"                                  "Piper (mouse config)"
-    "nodejs nodejs-npm"                      "Node.js + npm"
     "claude-desktop"                         "Claude Desktop"
     "nautilus-python"                        "Nautilus Python"
     "nautilus-gsconnect"                     "Nautilus GSConnect"
@@ -106,9 +105,7 @@ GNOME_INSTALL=(
 CLI_TOOLS=(
     "brew"       "Homebrew"
     "zsh-setup"  "Zsh Plugins + Starship"
-    "nvm"        "NVM + Node LTS"
     "claude"     "Claude Code"
-    "codex"      "Codex CLI"
 )
 
 # ─── Detection ────────────────────────────────────────────────────────────────
@@ -125,9 +122,7 @@ is_cli_installed() {
     case "$1" in
         brew)      command -v brew &>/dev/null || [[ -d /home/linuxbrew/.linuxbrew ]] ;;
         zsh-setup) [[ -f "$HOME/.zshrc" ]] && command -v brew &>/dev/null && brew list starship &>/dev/null ;;
-        nvm)       [[ -d "$HOME/.nvm" ]] ;;
         claude)    command -v claude &>/dev/null ;;
-        codex)     command -v codex &>/dev/null ;;
     esac
 }
 
@@ -472,32 +467,8 @@ install_cli_tool() {
         zsh-setup)
             install_zsh_setup
             ;;
-        nvm)
-            if [[ ! -d "$HOME/.nvm" ]]; then
-                local nvm_version
-                nvm_version="$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | grep '"tag_name"' | cut -d'"' -f4)"
-                curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${nvm_version}/install.sh" | bash
-            fi
-            export NVM_DIR="$HOME/.nvm"
-            # shellcheck source=/dev/null
-            [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
-            nvm install --lts
-            ;;
         claude)
             brew install claude-code
-            ;;
-        codex)
-            if ! command -v npm &>/dev/null; then
-                err "npm is required for Codex. Select 'Node.js + npm' in System Packages first."
-                return 1
-            fi
-            mkdir -p ~/.local/npm
-            npm config set prefix ~/.local/npm
-            if ! grep -q '.local/npm/bin' ~/.bashrc 2>/dev/null; then
-                echo 'export PATH="$HOME/.local/npm/bin:$PATH"' >> ~/.bashrc
-            fi
-            export PATH="$HOME/.local/npm/bin:$PATH"
-            npm install -g @openai/codex
             ;;
     esac
 }
@@ -510,17 +481,8 @@ uninstall_cli_tool() {
         zsh-setup)
             warn "Zsh setup removal: manually clean ~/.zshrc and ~/.config/starship.toml"
             ;;
-        nvm)
-            rm -rf "$HOME/.nvm"
-            sed -i '/NVM_DIR/d' ~/.bashrc 2>/dev/null || true
-            sed -i '/nvm.sh/d' ~/.bashrc 2>/dev/null || true
-            ;;
         claude)
             brew uninstall claude-code 2>/dev/null || true
-            ;;
-        codex)
-            export PATH="$HOME/.local/npm/bin:$PATH"
-            npm uninstall -g @openai/codex 2>/dev/null || true
             ;;
     esac
 }

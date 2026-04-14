@@ -428,6 +428,23 @@ run_config_audio() {
     fi
 }
 
+run_config_speaker_eq() {
+    mkdir -p ~/.config/pipewire/pipewire.conf.d/
+    local dest=~/.config/pipewire/pipewire.conf.d/speaker-eq.conf
+    if [[ -f "$SCRIPT_DIR/speaker-eq.conf" ]] && ! diff -q "$SCRIPT_DIR/speaker-eq.conf" "$dest" &>/dev/null; then
+        info "Installing speaker EQ"
+        cp "$SCRIPT_DIR/speaker-eq.conf" "$dest"
+        systemctl --user restart pipewire pipewire-pulse
+        sleep 1
+        local node_id
+        node_id=$(wpctl status 2>/dev/null | grep 'effect_input.speaker_eq' | head -1 | grep -o '[0-9]\+' | head -1)
+        if [[ -n "$node_id" ]]; then
+            wpctl set-default "$node_id"
+        fi
+        ok "Speaker EQ active"
+    fi
+}
+
 run_config_newelle() {
     info "Configuring Newelle"
 
@@ -725,8 +742,9 @@ main() {
         ok "Zsh set as default shell (takes effect on next login)"
     fi
 
-    # Audio device renaming (always applied)
+    # Audio config (always applied)
     run_config_audio
+    run_config_speaker_eq
 
     # ── Done ──────────────────────────────────────────────────────────────────
 

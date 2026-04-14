@@ -5,8 +5,9 @@ default:
     @echo "Linux setup — run from the Linux/ directory"
     @echo ""
     @echo "Commands:"
-    @echo "  just zsh      Install/update Zsh plugins, config, and prompt theme"
-    @echo "  just brave    Deploy Brave browser policy"
+    @echo "  just zsh         Install/update Zsh plugins, config, and prompt theme"
+    @echo "  just speaker-eq  Install speaker EQ for thin laptop speakers"
+    @echo "  just brave       Deploy Brave browser policy"
 
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
@@ -95,6 +96,23 @@ zsh:
 
     echo "✓ Zsh setup complete"
     echo "  Run 'exec zsh' to load changes"
+
+# Install speaker EQ for thin laptop speakers (PipeWire filter-chain)
+speaker-eq:
+    #!/usr/bin/env bash
+    echo "Installing speaker EQ..."
+    mkdir -p ~/.config/pipewire/pipewire.conf.d
+    cp "{{justfile_directory()}}/speaker-eq.conf" ~/.config/pipewire/pipewire.conf.d/speaker-eq.conf
+    systemctl --user restart pipewire pipewire-pulse
+    sleep 1
+    # Set the EQ sink as default output
+    node_id=$(wpctl status 2>/dev/null | grep 'effect_input.speaker_eq' | head -1 | grep -o '[0-9]\+' | head -1)
+    if [[ -n "$node_id" ]]; then
+        wpctl set-default "$node_id"
+        echo "✓ Speaker EQ active (node $node_id)"
+    else
+        echo "⚠ Filter loaded but could not find node ID — select 'Internal Speakers' in sound settings"
+    fi
 
 # Deploy Brave browser policy
 brave:

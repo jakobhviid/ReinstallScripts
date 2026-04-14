@@ -99,7 +99,7 @@ sudo rpm-ostree install \
 On traditional Fedora (not Bazzite/Silverblue), also install:
 
 ```sh
-gnome-sushi sushi nautilus-python file-roller-nautilus gnome-terminal-nautilus seahorse-nautilus
+gnome-sushi sushi nautilus-python file-roller-nautilus papers-nautilus
 ```
 
 **Reboot required before continuing.**
@@ -222,7 +222,7 @@ printf '%s\n' vivaldi-bin | sudo tee /etc/1password/custom_allowed_browsers >/de
 sudo chown root:root /etc/1password/custom_allowed_browsers
 sudo chmod 0755 /etc/1password/custom_allowed_browsers
 # fixing the theme
-sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=WebContentsForceDark %U|' ~/.local/share/applications/1password.desktop
+sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=UseOzonePlatform --ozone-platform=wayland %U|' ~/.local/share/applications/1password.desktop
 ```
 
 ---
@@ -288,12 +288,6 @@ npm install -g @openai/codex
 
 - Tiling Shell (important)
 - Copyous (clipboard manager) (important)
-- Desktop Clock
-- Search Light
-- Advanced Alt-Tab Window Switcher (AATWS)
-- [Desktop Icons NG (DING)](https://extensions.gnome.org/extension/2087/desktop-icons-ng-ding/)
-- Arc Menu (Windows-like start menu)
-- Vitals
 
 ---
 

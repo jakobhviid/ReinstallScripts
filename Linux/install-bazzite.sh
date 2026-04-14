@@ -86,12 +86,6 @@ FLATPAK_PACKAGES=(
 GNOME_INSTALL=(
     "tilingshell@ferrarodomenico.com"        "Tiling Shell"
     "copyous@boerdereinar.dev"               "Copyous (clipboard)"
-    "azclock@azclock.gitlab.com"             "Desktop Clock"
-    "search-light@icedman.github.com"        "Search Light"
-    "advanced-alt-tab@G-dH.github.com"       "AATWS (Alt-Tab)"
-    "ding@rastersoft.com"                    "Desktop Icons NG"
-    "arcmenu@arcmenu.com"                    "Arc Menu"
-    "Vitals@CoreCoding.com"                  "Vitals"
 )
 
 CLI_TOOLS=(
@@ -365,7 +359,7 @@ run_config_1password() {
     sudo chmod 0755 /etc/1password/custom_allowed_browsers
 
     if [[ -f ~/.local/share/applications/1password.desktop ]]; then
-        sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=WebContentsForceDark %U|' \
+        sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=UseOzonePlatform --ozone-platform=wayland %U|' \
           ~/.local/share/applications/1password.desktop
     fi
 

@@ -104,7 +104,7 @@ GNOME_INSTALL=(
 
 CLI_TOOLS=(
     "brew"       "Homebrew"
-    "zsh-setup"  "Zsh Plugins + Starship"
+    "zsh-setup"  "Zsh Setup (just zsh)"
     "claude"     "Claude Code"
 )
 

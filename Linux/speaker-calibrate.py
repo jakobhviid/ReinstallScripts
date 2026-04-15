@@ -276,9 +276,26 @@ def print_response(freqs, db, label):
 
 
 def main():
-    print("Speaker Calibration — ThinkPad X1 Carbon Gen 13")
-    print("=" * 50)
-    print(f"Will run {ITERATIONS} measurement/correction iterations.\n")
+    import argparse
+    parser = argparse.ArgumentParser(description="Speaker calibration for ThinkPad X1 Carbon Gen 13")
+    parser.add_argument("--measure-only", action="store_true",
+                        help="Only measure and display response — do not change EQ config")
+    parser.add_argument("--iterations", type=int, default=ITERATIONS,
+                        help=f"Number of measurement passes (default: {ITERATIONS})")
+    args = parser.parse_args()
+
+    measure_only = args.measure_only
+    iterations = args.iterations
+
+    if measure_only:
+        print("Speaker Response Measurement — ThinkPad X1 Carbon Gen 13")
+        print("=" * 55)
+        print(f"Will run {iterations} measurement passes (no changes will be made).\n")
+    else:
+        print("Speaker Calibration — ThinkPad X1 Carbon Gen 13")
+        print("=" * 50)
+        print(f"Will run {iterations} measurement/correction iterations.\n")
+
     print("IMPORTANT: Keep the room quiet during measurement!")
     print("The sweep will play through the speakers and record via the mic.\n")
 
@@ -287,8 +304,10 @@ def main():
         print("Generating sweep signal...")
         n_settle, n_sweep = generate_sweep(sweep_file)
 
-        for iteration in range(1, ITERATIONS + 1):
-            print(f"\n--- Iteration {iteration}/{ITERATIONS} ---")
+        all_measurements = []
+
+        for iteration in range(1, iterations + 1):
+            print(f"\n--- Pass {iteration}/{iterations} ---")
 
             rec_file = os.path.join(tmpdir, f"recording_{iteration}.wav")
 
@@ -299,34 +318,47 @@ def main():
             freqs, measured_db = analyze_response(sweep_file, rec_file, n_settle, n_sweep)
 
             if freqs is None:
-                print("  Measurement failed, skipping iteration.")
+                print("  Measurement failed, skipping.")
                 continue
 
-            print_response(freqs, measured_db, "Measured response (relative)")
+            all_measurements.append(measured_db)
+            print_response(freqs, measured_db, f"Measured response pass {iteration} (relative)")
 
-            print("  Computing EQ correction...")
-            bands, _, error_db = design_eq(freqs, measured_db, iteration)
+            if not measure_only:
+                print("  Computing EQ correction...")
+                bands, _, error_db = design_eq(freqs, measured_db, iteration)
 
-            if not bands:
-                print("  Response looks good — no correction needed!")
-                break
+                if not bands:
+                    print("  Response looks good — no correction needed!")
+                    break
 
-            print(f"  Applying {len(bands)} EQ bands:")
-            for b in bands:
-                print(f"    {b['type']:15s} @ {b['freq']:>5.0f} Hz: {b['gain']:>+5.1f} dB")
+                print(f"  Applying {len(bands)} EQ bands:")
+                for b in bands:
+                    print(f"    {b['type']:15s} @ {b['freq']:>5.0f} Hz: {b['gain']:>+5.1f} dB")
 
-            write_pipewire_config(bands)
+                write_pipewire_config(bands)
 
-            print("  Restarting PipeWire...")
-            restart_pipewire()
+                print("  Restarting PipeWire...")
+                restart_pipewire()
 
-            if iteration < ITERATIONS:
-                print("  Waiting for PipeWire to settle...")
-                time.sleep(2)
+                if iteration < iterations:
+                    print("  Waiting for PipeWire to settle...")
+                    time.sleep(2)
+            else:
+                if iteration < iterations:
+                    time.sleep(1)
 
-    print(f"\nDone! EQ config written to:\n  {EQ_CONFIG}")
-    print("\nIf it sounds wrong, delete that file and run:")
-    print("  systemctl --user restart pipewire pipewire-pulse")
+        # Print averaged result if multiple passes
+        if measure_only and len(all_measurements) > 1:
+            avg_db = np.mean(all_measurements, axis=0)
+            print_response(freqs, avg_db, f"AVERAGED response ({len(all_measurements)} passes)")
+
+    if measure_only:
+        print("\nMeasurement complete — no changes were made.")
+    else:
+        print(f"\nDone! EQ config written to:\n  {EQ_CONFIG}")
+        print("\nIf it sounds wrong, delete that file and run:")
+        print("  systemctl --user restart pipewire pipewire-pulse")
 
 
 if __name__ == "__main__":

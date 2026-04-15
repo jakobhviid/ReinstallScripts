@@ -6,4 +6,4 @@ Scripts and configuration files for setting up machines from scratch.
 
 - [Mac](Mac/README.md) — uses [Homebrew](https://brew.sh/) Brewfiles, one per machine
 - [Windows](Windows/README.md) — uses [Scoop](https://scoop.sh/) and [winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
-- [Linux](Linux/Bazzite.md) — Bazzite setup notes
+- [Linux](Linux/Bazzite.md) — Bazzite setup notes, [Fedora Workstation](Linux/install-fedora-workstation.sh), [Speaker EQ](Linux/speaker-calibrate.md)

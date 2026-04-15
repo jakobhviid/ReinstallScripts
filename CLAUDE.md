@@ -22,6 +22,9 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `Windows/profile.template.ps1` — PowerShell profile template (equivalent to zshrc.template)
 - `Windows/brave-policy.json` — Brave browser policy (same policies as Mac/Linux)
 - `Linux/Bazzite.md` — Notes for Bazzite Linux setup
+- `Linux/speaker-eq.conf` — PipeWire filter-chain EQ for ThinkPad X1 Carbon speakers (deployed by `just speaker-eq` or `install-fedora-workstation.sh`)
+- `Linux/speaker-calibrate.py` — Speaker frequency response measurement tool (auto-detects devices)
+- `Linux/speaker-calibrate.md` — Calibration tool docs (full docs at [public repo](https://github.com/jakobhviid/thinkpad-x1-carbon-pipewire-eq))
 
 ## Mac Workflow
 

@@ -1,698 +1,150 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-# Bazzite / Silverblue interactive setup script
-# Re-runnable — detects installed state, lets you add/remove packages.
-# Requires: gum (pre-installed on Bazzite)
+# Bazzite / Silverblue setup script.
+# Re-runnable, idempotent, add-only. Desired state lives in the arrays below;
+# edit them and commit to change what a fresh install looks like.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# ─── Helpers ──────────────────────────────────────────────────────────────────
-
-info()  { printf '\033[1;34m▸ %s\033[0m\n' "$*"; }
-ok()    { printf '\033[1;32m✓ %s\033[0m\n' "$*"; }
-warn()  { printf '\033[1;33m⚠ %s\033[0m\n' "$*"; }
-err()   { printf '\033[1;31m✗ %s\033[0m\n' "$*"; }
-
-needs_reboot=false
+source "$SCRIPT_DIR/lib/common.sh"
+source "$SCRIPT_DIR/lib/install.sh"
+source "$SCRIPT_DIR/lib/repos.sh"
+source "$SCRIPT_DIR/lib/config.sh"
 
 # ─── Package Lists ────────────────────────────────────────────────────────────
-# Paired arrays: "key" "Display Name" ...
 
 RPM_PACKAGES=(
-    "podman-compose"                         "Podman Compose"
-    "brave-browser"                          "Brave Browser"
-    "1password"                              "1Password"
-    "code"                                   "VS Code"
-    "proton-vpn-gnome-desktop"               "Proton VPN"
-    "gnome-shell-extension-dash-to-panel"    "Dash to Panel"
-    "gnome-shell-extension-dash-to-dock"     "Dash to Dock"
-    "zsh"                                    "Zsh"
-    "libgda libgda-sqlite"                   "SQLite (libgda)"
-    "piper"                                  "Piper (mouse config)"
-    "claude-desktop"                         "Claude Desktop"
+    "podman-compose"
+    "brave-browser"
+    "1password"
+    "code"
+    "proton-vpn-gnome-desktop"
+    "gnome-shell-extension-dash-to-panel"
+    "gnome-shell-extension-dash-to-dock"
+    "zsh"
+    "libgda libgda-sqlite"
+    "piper"
+    "claude-desktop"
 )
 
 FLATPAK_PACKAGES=(
-    "com.discordapp.Discord"                 "Discord"
-    "org.gnome.baobab"                       "Disk Usage Analyzer"
-    "com.ranfdev.DistroShelf"                "DistroShelf"
-    "com.mattjakeman.ExtensionManager"       "Extension Manager"
-    "com.github.tchx84.Flatseal"            "Flatseal"
-    "org.gimp.GIMP"                          "GIMP"
-    "be.alexandervanhee.gradia"              "Gradia"
-    "org.libreoffice.LibreOffice"            "LibreOffice"
-    "io.missioncenter.MissionCenter"         "Mission Center"
-    "io.github.qwersyk.Newelle"              "Newelle"
-    "com.nextcloud.desktopclient.nextcloud"  "Nextcloud"
-    "org.gnome.World.PikaBackup"             "Pika Backup"
-    "io.github.fabrialberio.pinapp"          "PinApp"
-    "me.proton.Mail"                         "Proton Mail"
-    "ch.protonmail.protonmail-bridge"        "Proton Bridge"
-    "dev.dergs.Tonearm"                      "Tonearm"
-    "io.github.flattool.Warehouse"           "Warehouse"
-    "io.gitlab.news_flash.NewsFlash"         "NewsFlash"
-    "it.mijorus.gearlever"                   "Gear Lever"
-    "io.gitlab.adhami3310.Converter"         "Converter"
-    "io.github.alainm23.planify"             "Planify"
-    "com.bilingify.readest"                  "Readest"
-    "com.github.johnfactotum.Foliate"        "Foliate"
-    "com.calibre_ebook.calibre"              "Calibre"
-    "com.collaboraoffice.Office"             "Collabora Office"
-    "com.github.IsmaelMartinez.teams_for_linux" "Portal for Teams"
-    "com.github.Matoking.protontricks"       "Protontricks"
-    "com.vysp3r.ProtonPlus"                  "ProtonPlus"
-    "fr.handbrake.ghb"                       "HandBrake"
-    "im.riot.Riot"                           "Element"
-    "io.github.cleomenezesjr.aurea"          "Aurea"
-    "io.github.shonebinu.Brief"              "Brief"
-    "io.github.sitraorg.sitra"               "Sitra"
-    "io.github.wartybix.Constrict"           "Constrict"
-    "io.gitlab.theevilskeleton.Upscaler"     "Upscaler"
-    "me.proton.Pass"                         "Proton Pass"
-    "net.retrodeck.retrodeck"                "RetroDECK"
-    "net.trowell.typesetter"                 "Typesetter"
-    "org.altlinux.Tuner"                     "Tuner"
-    "org.fedoraproject.MediaWriter"          "Fedora Media Writer"
-    "org.gnome.Firmware"                     "Firmware"
-    "org.gnome.Fractal"                      "Fractal"
-    "org.localsend.localsend_app"            "LocalSend"
-    "org.signal.Signal"                      "Signal"
-    "org.zotero.Zotero"                      "Zotero"
+    "com.discordapp.Discord"
+    "org.gnome.baobab"
+    "com.ranfdev.DistroShelf"
+    "com.mattjakeman.ExtensionManager"
+    "com.github.tchx84.Flatseal"
+    "org.gimp.GIMP"
+    "be.alexandervanhee.gradia"
+    "org.libreoffice.LibreOffice"
+    "io.missioncenter.MissionCenter"
+    "io.github.qwersyk.Newelle"
+    "com.nextcloud.desktopclient.nextcloud"
+    "org.gnome.World.PikaBackup"
+    "io.github.fabrialberio.pinapp"
+    "me.proton.Mail"
+    "ch.protonmail.protonmail-bridge"
+    "dev.dergs.Tonearm"
+    "io.github.flattool.Warehouse"
+    "io.gitlab.news_flash.NewsFlash"
+    "it.mijorus.gearlever"
+    "io.gitlab.adhami3310.Converter"
+    "io.github.alainm23.planify"
+    "com.bilingify.readest"
+    "com.github.johnfactotum.Foliate"
+    "com.calibre_ebook.calibre"
+    "com.collaboraoffice.Office"
+    "com.github.IsmaelMartinez.teams_for_linux"
+    "com.github.Matoking.protontricks"
+    "com.vysp3r.ProtonPlus"
+    "fr.handbrake.ghb"
+    "im.riot.Riot"
+    "io.github.cleomenezesjr.aurea"
+    "io.github.shonebinu.Brief"
+    "io.github.sitraorg.sitra"
+    "io.github.wartybix.Constrict"
+    "io.gitlab.theevilskeleton.Upscaler"
+    "me.proton.Pass"
+    "net.retrodeck.retrodeck"
+    "net.trowell.typesetter"
+    "org.altlinux.Tuner"
+    "org.fedoraproject.MediaWriter"
+    "org.gnome.Firmware"
+    "org.gnome.Fractal"
+    "org.localsend.localsend_app"
+    "org.signal.Signal"
+    "org.zotero.Zotero"
 )
 
-# Install from extensions.gnome.org
-GNOME_INSTALL=(
-    "tilingshell@ferrarodomenico.com"        "Tiling Shell"
-    "copyous@boerdereinar.dev"               "Copyous (clipboard)"
+GNOME_EXTENSIONS=(
+    "tilingshell@ferrarodomenico.com"
+    "copyous@boerdereinar.dev"
 )
 
 CLI_TOOLS=(
-    "brew"       "Homebrew"
-    "zsh-setup"  "Zsh Setup (just zsh)"
-    "claude"     "Claude Code"
+    "brew"
+    "zsh-setup"
+    "claude"
 )
 
-# ─── Detection ────────────────────────────────────────────────────────────────
-
-is_rpm_installed() {
-    local pkg
-    for pkg in $1; do
-        rpm -q "$pkg" &>/dev/null || return 1
-    done
-}
-is_flatpak_installed() { flatpak info "$1" &>/dev/null 2>&1; }
-is_gext_installed()    { gnome-extensions list 2>/dev/null | grep -qF "$1"; }
-is_cli_installed() {
-    case "$1" in
-        brew)      command -v brew &>/dev/null || [[ -d /home/linuxbrew/.linuxbrew ]] ;;
-        zsh-setup) [[ -f "$HOME/.zshrc" ]] && command -v brew &>/dev/null && brew list starship &>/dev/null ;;
-        claude)    command -v claude &>/dev/null ;;
-    esac
-}
-
-# ─── Interactive Checklist ────────────────────────────────────────────────────
-
-# show_checklist "Header" check_fn "key1" "label1" "key2" "label2" ...
-# Outputs selected labels (one per line)
-# Returns 1 if user cancelled (Ctrl+C / Esc)
-show_checklist() {
-    local header="$1" check_fn="$2"
-    shift 2
-
-    local options=() selected=()
-
-    info "Detecting installed: $header..."
-    while [[ $# -ge 2 ]]; do
-        local key="$1" label="$2"
-        shift 2
-        options+=("$label")
-        if "$check_fn" "$key"; then
-            selected+=("$label")
-        fi
-    done
-
-    local -a gum_args=(--no-limit --header="$header  |  ↑↓ navigate · x/space toggle · enter confirm")
-    for sel in "${selected[@]+"${selected[@]}"}"; do
-        gum_args+=(--selected="$sel")
-    done
-
-    local result
-    result=$(printf '%s\n' "${options[@]}" | gum choose "${gum_args[@]}") || return 1
-
-    echo "$result"
-}
-
-# Map a key back to its display label in a paired array
-key_to_label() {
-    local key="$1"
-    shift
-    while [[ $# -ge 2 ]]; do
-        if [[ "$1" == "$key" ]]; then
-            echo "$2"
-            return 0
-        fi
-        shift 2
-    done
-    echo "$key"  # fallback to key itself
-}
-
-# Compute diff between selected and currently installed
-# Sets: to_install[@] to_remove[@]
-compute_diff() {
-    local check_fn="$1"
-    shift
-    # remaining args: selected_labels... -- key1 label1 key2 label2 ...
-    local -a selected_labels=()
-    while [[ $# -gt 0 && "$1" != "--" ]]; do
-        selected_labels+=("$1")
-        shift
-    done
-    shift # skip --
-
-    local -a all_keys=() all_labels=()
-    while [[ $# -ge 2 ]]; do
-        all_keys+=("$1")
-        all_labels+=("$2")
-        shift 2
-    done
-
-    to_install=()
-    to_remove=()
-
-    for i in "${!all_keys[@]}"; do
-        local key="${all_keys[$i]}"
-        local label="${all_labels[$i]}"
-        local is_selected=false
-        local is_installed=false
-
-        for sel in "${selected_labels[@]+"${selected_labels[@]}"}"; do
-            if [[ "$sel" == "$label" ]]; then
-                is_selected=true
-                break
-            fi
-        done
-
-        if "$check_fn" "$key"; then
-            is_installed=true
-        fi
-
-        if $is_selected && ! $is_installed; then
-            to_install+=("$key")
-        elif ! $is_selected && $is_installed; then
-            to_remove+=("$key")
-        fi
-    done
-}
-
-# ─── Config Step Implementations ─────────────────────────────────────────────
-
-# Per-package repo setup — called automatically when installing a package that needs one
-ensure_repo() {
-    case "$1" in
-        brave-browser)
-            if [[ ! -f /etc/yum.repos.d/brave-browser.repo ]]; then
-                info "Adding Brave repository"
-                sudo curl -fsSLo /etc/yum.repos.d/brave-browser.repo \
-                  https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-            fi
-            ;;
-        1password)
-            if [[ ! -f /etc/yum.repos.d/1password.repo ]]; then
-                info "Adding 1Password repository"
-                sudo tee /etc/yum.repos.d/1password.repo >/dev/null <<'EOF'
-[1password]
-name=1Password Stable Channel
-baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://downloads.1password.com/linux/keys/1password.asc
-EOF
-            fi
-            ;;
-        code)
-            if [[ ! -f /etc/yum.repos.d/vscode.repo ]]; then
-                info "Adding VS Code repository"
-                sudo tee /etc/yum.repos.d/vscode.repo >/dev/null <<'EOF'
-[code]
-name=Visual Studio Code
-baseurl=https://packages.microsoft.com/yumrepos/vscode
-enabled=1
-type=rpm-md
-gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc
-EOF
-            fi
-            ;;
-        proton-vpn-gnome-desktop)
-            if [[ ! -f /etc/yum.repos.d/protonvpn-stable.repo ]]; then
-                info "Adding Proton VPN repository"
-                local fedora_release
-                fedora_release="$(rpm -E %fedora)"
-                sudo curl -fsSLo "/etc/pki/rpm-gpg/RPM-GPG-KEY-protonvpn-${fedora_release}-stable" \
-                  "https://repo.protonvpn.com/fedora-${fedora_release}-stable/public_key.asc"
-                sudo tee /etc/yum.repos.d/protonvpn-stable.repo >/dev/null <<EOF
-[protonvpn-fedora-stable]
-name=Proton VPN Fedora Stable repository
-baseurl=https://repo.protonvpn.com/fedora-${fedora_release}-stable/
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-protonvpn-${fedora_release}-stable
-EOF
-            fi
-            ;;
-        claude-desktop)
-            if [[ ! -f /etc/yum.repos.d/claude-desktop.repo ]]; then
-                info "Adding Claude Desktop repository"
-                sudo curl -fsSLo /etc/yum.repos.d/claude-desktop.repo \
-                  https://aaddrick.github.io/claude-desktop-debian/rpm/claude-desktop.repo
-            fi
-            ;;
-    esac
-}
-
-run_config_brave_policy() {
-    info "Applying Brave browser policy"
-
-    sudo mkdir -p /etc/brave/policies/managed
-    sudo tee /etc/brave/policies/managed/brave-policy.json >/dev/null <<'EOF'
-{
-  "BraveWalletDisabled": true,
-  "BraveRewardsDisabled": true,
-  "BraveVPNDisabled": true,
-  "BraveAIChatEnabled": false,
-  "TorDisabled": true,
-  "BraveNewsDisabled": true,
-  "BraveTalkDisabled": true,
-  "BravePlaylistEnabled": false,
-  "BraveSpeedreaderEnabled": false,
-  "BraveWaybackMachineEnabled": false,
-  "BraveP3AEnabled": false,
-
-  "PasswordManagerEnabled": false,
-  "AutofillAddressEnabled": false,
-  "AutofillCreditCardEnabled": false,
-  "PaymentMethodQueryEnabled": false,
-  "ImportSavedPasswords": false,
-
-  "BraveWebDiscoveryEnabled": false,
-  "MetricsReportingEnabled": false,
-  "BraveStatsPingEnabled": false,
-  "UrlKeyedAnonymizedDataCollectionEnabled": false,
-  "UserFeedbackAllowed": false,
-
-  "SafeBrowsingEnabled": true,
-  "SafeBrowsingExtendedReportingEnabled": false,
-
-  "HttpsUpgradesEnabled": true,
-  "SSLVersionMin": "tls1.2",
-
-  "SpellCheckServiceEnabled": false,
-  "AlternateErrorPagesEnabled": false,
-  "PromotionalTabsEnabled": false,
-
-  "PrivacySandboxPromptEnabled": false,
-  "PrivacySandboxAdMeasurementEnabled": false,
-  "PrivacySandboxAdTopicsEnabled": false,
-  "PrivacySandboxSiteEnabledAdsEnabled": false,
-
-  "ShoppingListEnabled": false,
-  "IPFSEnabled": false,
-
-  "DnsOverHttpsMode": "secure",
-  "DnsOverHttpsTemplates": "https://dns0.eu/dns-query https://dns.quad9.net/dns-query",
-
-  "DefaultSearchProviderEnabled": true,
-  "DefaultSearchProviderName": "Qwant",
-  "DefaultSearchProviderSearchURL": "https://www.qwant.com/?q={searchTerms}",
-  "DefaultSearchProviderSuggestURL": "https://api.qwant.com/api/suggest/?q={searchTerms}",
-  "DefaultSearchProviderKeyword": "qwant",
-  "DefaultSearchProviderEncodings": ["UTF-8"]
-}
-EOF
-
-    ok "Brave policy applied"
-}
-
-run_config_1password() {
-    info "Configuring 1Password"
-
-    gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings \
-      "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/']"
-    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ \
-      name "1Password Quick Search"
-    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ \
-      command "1password --quick-access"
-    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ \
-      binding "<Alt><Shift>2"
-
-    sudo install -d -m 0755 /etc/1password
-    printf '%s\n' vivaldi-bin | sudo tee /etc/1password/custom_allowed_browsers >/dev/null
-    sudo chown root:root /etc/1password/custom_allowed_browsers
-    sudo chmod 0755 /etc/1password/custom_allowed_browsers
-
-    # Fix dark titlebar and enable native Wayland
-    mkdir -p ~/.local/share/applications
-    if [[ ! -f ~/.local/share/applications/1password.desktop ]]; then
-        cp /usr/share/applications/1password.desktop ~/.local/share/applications/1password.desktop
-    fi
-    sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=UseOzonePlatform --ozone-platform=wayland %U|' \
-      ~/.local/share/applications/1password.desktop
-
-    ok "1Password configured"
-}
-
-run_config_desktop_overrides() {
-    info "Deploying custom app icons and .desktop overrides"
-
-    local icon_dir=~/.local/share/icons/reinstall-scripts
-    local app_dir=~/.local/share/applications
-    mkdir -p "$icon_dir" "$app_dir"
-
-    cp -u "$SCRIPT_DIR/../shared/app-icons/"* "$icon_dir/"
-
-    # name | source .desktop | icon filename (under shared/app-icons)
-    local overrides=(
-        "brave-browser.desktop|/usr/share/applications/brave-browser.desktop|brave-browser.webp"
-        "code.desktop|/usr/share/applications/code.desktop|code.webp"
-        "1password.desktop|/usr/share/applications/1password.desktop|1password.webp"
-        "org.gnome.Nautilus.desktop|/usr/share/applications/org.gnome.Nautilus.desktop|org.gnome.Nautilus.png"
-        "org.gnome.Ptyxis.desktop|/usr/share/applications/org.gnome.Ptyxis.desktop|org.gnome.Ptyxis.webp"
-        "com.discordapp.Discord.desktop|/var/lib/flatpak/exports/share/applications/com.discordapp.Discord.desktop|com.discordapp.Discord.webp"
-        "proton.vpn.app.gtk.desktop|/usr/share/applications/proton.vpn.app.gtk.desktop|proton.vpn.app.gtk.png"
-    )
-
-    for row in "${overrides[@]}"; do
-        IFS='|' read -r name src icon <<<"$row"
-        if [[ ! -f "$src" ]]; then
-            warn "Skipping $name — source $src not found"
-            continue
-        fi
-        [[ -f "$app_dir/$name" ]] || cp "$src" "$app_dir/$name"
-        sed -i "s|^Icon=.*|Icon=$icon_dir/$icon|" "$app_dir/$name"
-    done
-
-    # Brave: enable touchpad overscroll history nav + native Wayland hint
-    # Patches all three Exec= forms (main, New Window action, New Private Window action)
-    if [[ -f "$app_dir/brave-browser.desktop" ]]; then
-        sed -i \
-          -e 's|^Exec=/usr/bin/brave-browser-stable %U|Exec=/usr/bin/brave-browser-stable --enable-features=TouchpadOverscrollHistoryNavigation --ozone-platform-hint=auto %U|' \
-          -e 's|^Exec=/usr/bin/brave-browser-stable$|Exec=/usr/bin/brave-browser-stable --enable-features=TouchpadOverscrollHistoryNavigation --ozone-platform-hint=auto|' \
-          -e 's|^Exec=/usr/bin/brave-browser-stable --incognito$|Exec=/usr/bin/brave-browser-stable --enable-features=TouchpadOverscrollHistoryNavigation --ozone-platform-hint=auto --incognito|' \
-          "$app_dir/brave-browser.desktop"
-    fi
-
-    update-desktop-database ~/.local/share/applications &>/dev/null || true
-
-    ok "Desktop overrides applied"
-}
-
-run_config_autostart() {
-    info "Configuring autostart entries"
-
-    local autostart_dir=~/.config/autostart
-    local user_apps_dir=~/.local/share/applications
-    mkdir -p "$autostart_dir"
-
-    # name | fallback source (used if the user-level override isn't present)
-    local entries=(
-        "1password.desktop|/usr/share/applications/1password.desktop"
-        "com.nextcloud.desktopclient.nextcloud.desktop|/var/lib/flatpak/exports/share/applications/com.nextcloud.desktopclient.nextcloud.desktop"
-        "org.localsend.localsend_app.desktop|/var/lib/flatpak/exports/share/applications/org.localsend.localsend_app.desktop"
-    )
-
-    for row in "${entries[@]}"; do
-        IFS='|' read -r name fallback <<<"$row"
-        local src
-        if [[ -f "$user_apps_dir/$name" ]]; then
-            src="$user_apps_dir/$name"
-        elif [[ -f "$fallback" ]]; then
-            src="$fallback"
-        else
-            warn "Skipping autostart $name — no .desktop found"
-            continue
-        fi
-        cp "$src" "$autostart_dir/$name"
-    done
-
-    ok "Autostart entries configured"
-}
-
-run_config_audio() {
-    mkdir -p ~/.config/wireplumber/wireplumber.conf.d/
-    local dest=~/.config/wireplumber/wireplumber.conf.d/rename-devices.conf
-    if ! diff -q "$SCRIPT_DIR/rename-devices.conf" "$dest" &>/dev/null; then
-        info "Updating audio device names"
-        cp "$SCRIPT_DIR/rename-devices.conf" "$dest"
-        systemctl --user restart wireplumber pipewire pipewire-pulse
-        ok "Audio device names configured"
-    fi
-}
+# ─── Newelle post-install config ──────────────────────────────────────────────
+# Bazzite-local because only Bazzite's Flatpak list currently needs it.
+# (Fedora's installer has the same logic; kept duplicated until more than one
+# Flatpak needs bespoke config.)
 
 run_config_newelle() {
     info "Configuring Newelle"
-
     flatpak override --user io.github.qwersyk.Newelle \
       --talk-name=org.freedesktop.Flatpak --filesystem=home
-
     ok "Newelle configured (remember to disable Command Virtualization in Settings)"
-}
-
-# ─── Zsh Setup ────────────────────────────────────────────────────────────────
-
-install_zsh_setup() {
-    if ! command -v brew &>/dev/null; then
-        err "Homebrew is required for Zsh setup. Select 'Homebrew' first."
-        return 1
-    fi
-
-    brew install just
-    just -f "$SCRIPT_DIR/justfile" zsh
-
-    ok "Zsh setup complete (restart your terminal to activate)"
-}
-
-# ─── CLI Tool Install/Uninstall ───────────────────────────────────────────────
-
-install_cli_tool() {
-    case "$1" in
-        brew)
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            if [[ -d /home/linuxbrew/.linuxbrew ]]; then
-                eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-                # Add to .bashrc
-                if ! grep -q 'linuxbrew' ~/.bashrc 2>/dev/null; then
-                    printf '\neval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv bash)"\n' >> ~/.bashrc
-                fi
-                # Add to .zshrc if zsh is present
-                if [[ -f ~/.zshrc ]] && ! grep -q 'linuxbrew' ~/.zshrc 2>/dev/null; then
-                    printf '\neval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"\n' >> ~/.zshrc
-                fi
-            fi
-            ;;
-        zsh-setup)
-            install_zsh_setup
-            ;;
-        claude)
-            brew install claude-code
-            ;;
-    esac
-}
-
-uninstall_cli_tool() {
-    case "$1" in
-        brew)
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
-            ;;
-        zsh-setup)
-            warn "Zsh setup removal: manually clean ~/.zshrc and ~/.config/starship.toml"
-            ;;
-        claude)
-            brew uninstall claude-code 2>/dev/null || true
-            ;;
-    esac
-}
-
-# ─── Ensure gext is available ─────────────────────────────────────────────────
-
-ensure_gext() {
-    if ! command -v gext &>/dev/null; then
-        info "Installing gnome-extensions-cli (gext)"
-        pip install --user gnome-extensions-cli
-        export PATH="$HOME/.local/bin:$PATH"
-    fi
 }
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 main() {
-    if ! command -v gum &>/dev/null; then
-        err "gum is required but not installed. Install it with: sudo rpm-ostree install gum"
-        exit 1
-    fi
-
     info "Bazzite Setup"
-    echo ""
 
-    # ── 1. System Packages ────────────────────────────────────────────────────
-
-    local rpm_selected
-    rpm_selected=$(show_checklist "System Packages (rpm-ostree)" is_rpm_installed "${RPM_PACKAGES[@]}") || true
-
-    local -a rpm_selected_arr=()
-    if [[ -n "$rpm_selected" ]]; then
-        mapfile -t rpm_selected_arr <<< "$rpm_selected"
+    # Preflight
+    if [[ -r /etc/os-release ]]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        if [[ "${ID:-}" != "bazzite" && "${VARIANT_ID:-}" != "bazzite" ]]; then
+            warn "Not running on Bazzite (ID=${ID:-?} VARIANT_ID=${VARIANT_ID:-?})."
+            confirm "Continue anyway?" || exit 1
+        fi
     fi
 
-    compute_diff is_rpm_installed "${rpm_selected_arr[@]+"${rpm_selected_arr[@]}"}" -- "${RPM_PACKAGES[@]}"
-    local -a rpm_to_install=("${to_install[@]+"${to_install[@]}"}")
-    local -a rpm_to_remove=("${to_remove[@]+"${to_remove[@]}"}")
+    mapfile -t rpm_to_install   < <(filter_to_install is_rpm_installed     "${RPM_PACKAGES[@]}")
+    mapfile -t flatpak_to_install < <(filter_to_install is_flatpak_installed "${FLATPAK_PACKAGES[@]}")
+    mapfile -t gext_to_install  < <(filter_to_install is_gext_installed    "${GNOME_EXTENSIONS[@]}")
+    mapfile -t cli_to_install   < <(filter_to_install is_cli_installed     "${CLI_TOOLS[@]}")
 
-    # ── 2. Flatpaks ───────────────────────────────────────────────────────────
+    echo
+    info "Plan:"
+    printf '  %-22s %s\n' "RPM (rpm-ostree):"   "${rpm_to_install[*]:-(nothing to install)}"
+    printf '  %-22s %s\n' "Flatpaks:"           "${flatpak_to_install[*]:-(nothing to install)}"
+    printf '  %-22s %s\n' "GNOME extensions:"   "${gext_to_install[*]:-(nothing to install)}"
+    printf '  %-22s %s\n' "CLI tools:"          "${cli_to_install[*]:-(nothing to install)}"
+    printf '  %-22s %s\n' "Configs:"            "brave policy, 1password, desktop overrides, autostart, audio, newelle"
+    echo
 
-    local flatpak_selected
-    flatpak_selected=$(show_checklist "Flatpak Apps" is_flatpak_installed "${FLATPAK_PACKAGES[@]}") || true
+    confirm "Proceed?" || { warn "Cancelled."; exit 0; }
 
-    local -a flatpak_selected_arr=()
-    if [[ -n "$flatpak_selected" ]]; then
-        mapfile -t flatpak_selected_arr <<< "$flatpak_selected"
-    fi
+    local needs_reboot=false
 
-    compute_diff is_flatpak_installed "${flatpak_selected_arr[@]+"${flatpak_selected_arr[@]}"}" -- "${FLATPAK_PACKAGES[@]}"
-    local -a flatpak_to_install=("${to_install[@]+"${to_install[@]}"}")
-    local -a flatpak_to_remove=("${to_remove[@]+"${to_remove[@]}"}")
-
-    # ── 3. GNOME Extensions ───────────────────────────────────────────────────
-
-    local gext_install_selected
-    gext_install_selected=$(show_checklist "GNOME Extensions (from extensions.gnome.org)" is_gext_installed "${GNOME_INSTALL[@]}") || true
-
-    local -a gext_install_selected_arr=()
-    if [[ -n "$gext_install_selected" ]]; then
-        mapfile -t gext_install_selected_arr <<< "$gext_install_selected"
-    fi
-
-    compute_diff is_gext_installed "${gext_install_selected_arr[@]+"${gext_install_selected_arr[@]}"}" -- "${GNOME_INSTALL[@]}"
-    local -a gext_to_install=("${to_install[@]+"${to_install[@]}"}")
-    local -a gext_to_remove=("${to_remove[@]+"${to_remove[@]}"}")
-
-    # ── 4. CLI Tools ──────────────────────────────────────────────────────────
-
-    local cli_selected
-    cli_selected=$(show_checklist "CLI & Developer Tools" is_cli_installed "${CLI_TOOLS[@]}") || true
-
-    local -a cli_selected_arr=()
-    if [[ -n "$cli_selected" ]]; then
-        mapfile -t cli_selected_arr <<< "$cli_selected"
-    fi
-
-    compute_diff is_cli_installed "${cli_selected_arr[@]+"${cli_selected_arr[@]}"}" -- "${CLI_TOOLS[@]}"
-    local -a cli_to_install=("${to_install[@]+"${to_install[@]}"}")
-    local -a cli_to_remove=("${to_remove[@]+"${to_remove[@]}"}")
-
-    # ── Summary ───────────────────────────────────────────────────────────────
-
-    echo ""
-    info "Summary of changes:"
-    local has_changes=false
-
+    # RPM via rpm-ostree — expand grouped keys (e.g. "libgda libgda-sqlite")
     if [[ ${#rpm_to_install[@]} -gt 0 ]]; then
-        local -a rpm_install_labels=()
-        for key in "${rpm_to_install[@]}"; do rpm_install_labels+=("$(key_to_label "$key" "${RPM_PACKAGES[@]}")"); done
-        printf '  %-22s %s\n' "Install (rpm-ostree):" "${rpm_install_labels[*]}"
-        has_changes=true
-    fi
-    if [[ ${#rpm_to_remove[@]} -gt 0 ]]; then
-        local -a rpm_remove_labels=()
-        for key in "${rpm_to_remove[@]}"; do rpm_remove_labels+=("$(key_to_label "$key" "${RPM_PACKAGES[@]}")"); done
-        printf '  %-22s %s\n' "Remove (rpm-ostree):" "${rpm_remove_labels[*]}"
-        has_changes=true
-    fi
-    if [[ ${#flatpak_to_install[@]} -gt 0 ]]; then
-        local -a fp_install_labels=()
-        for key in "${flatpak_to_install[@]}"; do fp_install_labels+=("$(key_to_label "$key" "${FLATPAK_PACKAGES[@]}")"); done
-        printf '  %-22s %s\n' "Install (flatpak):" "${fp_install_labels[*]}"
-        has_changes=true
-    fi
-    if [[ ${#flatpak_to_remove[@]} -gt 0 ]]; then
-        local -a fp_remove_labels=()
-        for key in "${flatpak_to_remove[@]}"; do fp_remove_labels+=("$(key_to_label "$key" "${FLATPAK_PACKAGES[@]}")"); done
-        printf '  %-22s %s\n' "Remove (flatpak):" "${fp_remove_labels[*]}"
-        has_changes=true
-    fi
-    if [[ ${#gext_to_install[@]} -gt 0 ]]; then
-        local -a gei_labels=()
-        for key in "${gext_to_install[@]}"; do gei_labels+=("$(key_to_label "$key" "${GNOME_INSTALL[@]}")"); done
-        printf '  %-22s %s\n' "Install (extensions):" "${gei_labels[*]}"
-        has_changes=true
-    fi
-    if [[ ${#gext_to_remove[@]} -gt 0 ]]; then
-        local -a ger_labels=()
-        for key in "${gext_to_remove[@]}"; do ger_labels+=("$(key_to_label "$key" "${GNOME_INSTALL[@]}")"); done
-        printf '  %-22s %s\n' "Remove (extensions):" "${ger_labels[*]}"
-        has_changes=true
-    fi
-    if [[ ${#cli_to_install[@]} -gt 0 ]]; then
-        local -a cli_i_labels=()
-        for key in "${cli_to_install[@]}"; do cli_i_labels+=("$(key_to_label "$key" "${CLI_TOOLS[@]}")"); done
-        printf '  %-22s %s\n' "Install (CLI):" "${cli_i_labels[*]}"
-        has_changes=true
-    fi
-    if [[ ${#cli_to_remove[@]} -gt 0 ]]; then
-        local -a cli_r_labels=()
-        for key in "${cli_to_remove[@]}"; do cli_r_labels+=("$(key_to_label "$key" "${CLI_TOOLS[@]}")"); done
-        printf '  %-22s %s\n' "Remove (CLI):" "${cli_r_labels[*]}"
-        has_changes=true
-    fi
-
-    if ! $has_changes; then
-        ok "No changes selected."
-        exit 0
-    fi
-
-    echo ""
-    if ! gum confirm "Apply these changes?"; then
-        warn "Cancelled."
-        exit 0
-    fi
-
-    # ── Execute ───────────────────────────────────────────────────────────────
-
-    # rpm-ostree — expand grouped keys (e.g. "nodejs nodejs-npm") into individual packages
-    local -a rpm_pkgs_install=() rpm_pkgs_remove=()
-    for group in "${rpm_to_install[@]+"${rpm_to_install[@]}"}"; do
-        for pkg in $group; do
-            ensure_repo "$pkg"
-            rpm_pkgs_install+=("$pkg")
+        local -a rpm_pkgs=()
+        local group pkg
+        for group in "${rpm_to_install[@]}"; do
+            for pkg in $group; do
+                ensure_repo "$pkg"
+                rpm_pkgs+=("$pkg")
+            done
         done
-    done
-    for group in "${rpm_to_remove[@]+"${rpm_to_remove[@]}"}"; do
-        for pkg in $group; do
-            rpm_pkgs_remove+=("$pkg")
-        done
-    done
-
-    if [[ ${#rpm_pkgs_install[@]} -gt 0 ]]; then
-        info "Installing system packages"
-        sudo rpm-ostree install --idempotent "${rpm_pkgs_install[@]}"
+        info "Layering system packages"
+        sudo rpm-ostree install --idempotent "${rpm_pkgs[@]}"
         needs_reboot=true
         ok "System packages layered"
-    fi
-    if [[ ${#rpm_pkgs_remove[@]} -gt 0 ]]; then
-        info "Removing system packages"
-        sudo rpm-ostree uninstall "${rpm_pkgs_remove[@]}"
-        needs_reboot=true
-        ok "System packages removed"
-    fi
-
-    # App-specific config — only apply if app was just installed
-    if printf '%s\n' "${rpm_to_install[@]+"${rpm_to_install[@]}"}" | grep -qF "brave-browser"; then
-        run_config_brave_policy
-    fi
-    if printf '%s\n' "${rpm_to_install[@]+"${rpm_to_install[@]}"}" | grep -qF "1password"; then
-        run_config_1password
     fi
 
     # Flatpaks
@@ -701,61 +153,49 @@ main() {
         flatpak install -y --noninteractive flathub "${flatpak_to_install[@]}"
         ok "Flatpaks installed"
     fi
-    if [[ ${#flatpak_to_remove[@]} -gt 0 ]]; then
-        info "Removing Flatpaks"
-        flatpak uninstall -y --noninteractive "${flatpak_to_remove[@]}"
-        ok "Flatpaks removed"
-    fi
-
-    # Newelle config — apply if Newelle is selected
-    if is_flatpak_installed io.github.qwersyk.Newelle || printf '%s\n' "${flatpak_to_install[@]+"${flatpak_to_install[@]}"}" | grep -qF "io.github.qwersyk.Newelle"; then
-        run_config_newelle
-    fi
 
     # GNOME extensions
-    if [[ ${#gext_to_install[@]} -gt 0 ]] || [[ ${#gext_to_remove[@]} -gt 0 ]]; then
+    if [[ ${#gext_to_install[@]} -gt 0 ]]; then
         ensure_gext
+        local ext
+        for ext in "${gext_to_install[@]}"; do
+            info "Installing extension $ext"
+            gext install "$ext"
+        done
     fi
-    for ext in "${gext_to_install[@]+"${gext_to_install[@]}"}"; do
-        info "Installing extension $ext"
-        gext install "$ext"
-    done
-    for ext in "${gext_to_remove[@]+"${gext_to_remove[@]}"}"; do
-        info "Removing extension $ext"
-        gext uninstall "$ext"
-    done
 
     # CLI tools
-    for tool in "${cli_to_install[@]+"${cli_to_install[@]}"}"; do
-        info "Installing $tool"
-        install_cli_tool "$tool"
-    done
-    for tool in "${cli_to_remove[@]+"${cli_to_remove[@]}"}"; do
-        info "Removing $tool"
-        uninstall_cli_tool "$tool"
-    done
+    if [[ ${#cli_to_install[@]} -gt 0 ]]; then
+        local tool
+        for tool in "${cli_to_install[@]}"; do
+            info "Installing $tool"
+            install_cli_tool "$tool"
+        done
+    fi
 
-    # Audio device renaming (always applied)
+    # ── Config steps — always applied, self-skip missing sources ──────────────
+    if is_rpm_installed brave-browser; then
+        run_config_brave_policy
+    fi
+    if is_rpm_installed 1password; then
+        run_config_1password
+    fi
+    if is_flatpak_installed io.github.qwersyk.Newelle; then
+        run_config_newelle
+    fi
     run_config_audio
-
-    # Desktop icon + Exec overrides (always applied; self-skips missing apps)
     run_config_desktop_overrides
-
-    # Autostart entries (always applied; self-skips missing apps)
     run_config_autostart
 
-    # ── Done ──────────────────────────────────────────────────────────────────
-
-    echo ""
+    echo
     ok "All done!"
 
     if $needs_reboot; then
-        echo ""
-        warn "rpm-ostree changes require a reboot."
-        if gum confirm "Reboot now?"; then
+        echo
+        warn "rpm-ostree changes require a reboot before layered packages become live."
+        warn "Re-run this script after reboot so config steps can touch the newly installed apps."
+        if confirm "Reboot now?"; then
             systemctl reboot
-        else
-            warn "Remember to reboot before changes take effect."
         fi
     fi
 }

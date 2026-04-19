@@ -18,6 +18,7 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `shared/starship.toml` — Starship prompt config (shared across all platforms)
 - `shared/tmux.conf` — Tmux config (shared across Mac and Linux)
 - `shared/zsh-guide.md` — Zsh keybindings and workflow reference
+- `shared/app-icons/` — Custom icons for `.desktop` overrides (deployed to `~/.local/share/icons/reinstall-scripts/` by the Fedora/Bazzite installers)
 - `Windows/justfile` — Recipes for installing apps and setting up the shell
 - `Windows/profile.template.ps1` — PowerShell profile template (equivalent to zshrc.template)
 - `Windows/brave-policy.json` — Brave browser policy (same policies as Mac/Linux)
@@ -97,4 +98,6 @@ From the `Mac/` directory, run `just backup <machinename>` to create `Brewfile.<
   - `Linux/install-bazzite.sh` (inline heredoc)
   - `Windows/profile.template.ps1` + `Windows/justfile` zsh recipe
 - **Mac Brewfiles are intentionally different per machine.** Each machine serves a different purpose (Chronos = personal laptop, Helios = server, huginn = work laptop). Do not flag cross-machine package inconsistencies as issues.
+- **Linux `.desktop` icon/Exec overrides live in `run_config_desktop_overrides`** (present in both `Linux/install-bazzite.sh` and `Linux/install-fedora-workstation.sh`). To add a new override: drop the icon file in `shared/app-icons/`, then add a `name|source|icon` row to the `overrides` array in **both** install scripts. Brave has an extra Exec patch in the same function for touchpad overscroll + Wayland.
+- **Linux autostart entries live in `run_config_autostart`** (same two install scripts). The function copies `.desktop` files into `~/.config/autostart/`, preferring the user-level override in `~/.local/share/applications/` over the system/Flatpak source so icon/Exec patches carry over. To add an app: append a `name|fallback-source` row to the `entries` array in **both** install scripts.
 - `Windows/supportfiles/` contains registry fixes (network drive warning) and Windows Terminal settings.

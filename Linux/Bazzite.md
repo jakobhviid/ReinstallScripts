@@ -289,7 +289,7 @@ Renames USB audio devices from their generic labels to proper names:
 
 ```sh
 mkdir -p ~/.config/wireplumber/wireplumber.conf.d/
-cp rename-devices.conf ~/.config/wireplumber/wireplumber.conf.d/
+cp assets/rename-devices.conf ~/.config/wireplumber/wireplumber.conf.d/
 systemctl --user restart wireplumber pipewire pipewire-pulse
 ```
 

@@ -13,7 +13,7 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `Mac/zshrc.template` — Zsh config template for macOS (uses `BREW_PREFIX` placeholder)
 - `Mac/brave-debloat.mobileconfig` — macOS configuration profile to debloat Brave browser
 - `Linux/justfile` — Recipe for installing/updating Zsh setup
-- `Linux/zshrc.template` — Zsh config template for Linux (uses `BREW_PREFIX` placeholder)
+- `Linux/assets/zshrc.template` — Zsh config template for Linux (uses `BREW_PREFIX` placeholder)
 - `Linux/install-bazzite.sh` — Thin setup script for Bazzite (rpm-ostree + Flatpak)
 - `Linux/install-fedora-workstation.sh` — Thin setup script for Fedora Workstation (dnf + Flatpak)
 - `Linux/lib/{common,install,repos,config}.sh` — Shared library sourced by both install scripts
@@ -26,7 +26,7 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `Windows/profile.template.ps1` — PowerShell profile template (equivalent to zshrc.template)
 - `Windows/brave-policy.json` — Brave browser policy (same policies as Mac/Linux)
 - `Linux/Bazzite.md` — Notes for Bazzite Linux setup
-- `Linux/speaker-eq.conf` — PipeWire filter-chain EQ for ThinkPad X1 Carbon speakers (deployed by `just speaker-eq` or `install-fedora-workstation.sh`)
+- `Linux/assets/{brave-policy.json,rename-devices.conf,speaker-eq.conf,zshrc.template}` — Data assets deployed by the Linux installers / justfile recipes. Scripts resolve them via `$SCRIPT_DIR/assets/…` (or `{{justfile_directory()}}/assets/…`).
 
 ## Mac Workflow
 
@@ -90,13 +90,13 @@ From the `Mac/` directory, run `just backup <machinename>` to create `Brewfile.<
 - **Never run justfile recipes, install scripts, or other destructive commands without explicit user consent.** These scripts install packages, modify system state, and open configuration profiles. When testing justfile changes, always use `just --dry-run <recipe>` to inspect the generated script. Only run a recipe live if the user explicitly asks for it.
 - **Brave browser policies must stay in sync across all platforms.** The same set of policies exists in these locations:
   - **Mac:** `Mac/brave-debloat.mobileconfig` (plist format)
-  - **Linux:** `Linux/brave-policy.json` (single source of truth — deployed by `run_config_brave_policy` in `Linux/lib/config.sh` for both Bazzite and Fedora Workstation)
+  - **Linux:** `Linux/assets/brave-policy.json` (single source of truth — deployed by `run_config_brave_policy` in `Linux/lib/config.sh` for both Bazzite and Fedora Workstation)
   - **Windows:** `Windows/brave-policy.json`
   When adding, removing, or changing a Brave policy, update all locations.
 - **Git identity across all platforms is "Jakob Hviid, PhD" / jakob@hviid.phd** with `pull.rebase true`. Set by `just zsh` on Mac/Linux.
 - **Shell config changes must be applied to all locations.** Each platform has its own template:
   - `Mac/zshrc.template` + `Mac/justfile` zsh recipe
-  - `Linux/zshrc.template` + `Linux/justfile` zsh recipe (invoked by the Fedora/Bazzite installers via the shared `install_zsh_setup` helper)
+  - `Linux/assets/zshrc.template` + `Linux/justfile` zsh recipe (invoked by the Fedora/Bazzite installers via the shared `install_zsh_setup` helper)
   - `Linux/install-ubuntu-server.sh` (inline heredoc — server is out of the shared-lib flow)
   - `Windows/profile.template.ps1` + `Windows/justfile` zsh recipe
 - **Mac Brewfiles are intentionally different per machine.** Each machine serves a different purpose (Chronos = personal laptop, Helios = server, huginn = work laptop). Do not flag cross-machine package inconsistencies as issues.

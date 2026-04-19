@@ -125,9 +125,9 @@ setup_multimedia_codecs() {
 run_config_speaker_eq() {
     mkdir -p ~/.config/pipewire/pipewire.conf.d/
     local dest=~/.config/pipewire/pipewire.conf.d/speaker-eq.conf
-    if [[ -f "$SCRIPT_DIR/speaker-eq.conf" ]] && ! diff -q "$SCRIPT_DIR/speaker-eq.conf" "$dest" &>/dev/null; then
+    if [[ -f "$SCRIPT_DIR/assets/speaker-eq.conf" ]] && ! diff -q "$SCRIPT_DIR/assets/speaker-eq.conf" "$dest" &>/dev/null; then
         info "Installing speaker EQ"
-        cp "$SCRIPT_DIR/speaker-eq.conf" "$dest"
+        cp "$SCRIPT_DIR/assets/speaker-eq.conf" "$dest"
         systemctl --user restart pipewire pipewire-pulse
         sleep 1
         local node_id

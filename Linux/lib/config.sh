@@ -2,18 +2,18 @@
 # Post-install configuration steps shared between Bazzite and Fedora Workstation.
 # Depends on common.sh (info/ok/warn) and caller having set SCRIPT_DIR to the
 # directory of the top-level install script (Linux/), so that references like
-# "$SCRIPT_DIR/brave-policy.json" and "$SCRIPT_DIR/../shared/app-icons/" resolve.
+# "$SCRIPT_DIR/assets/brave-policy.json" and "$SCRIPT_DIR/../shared/app-icons/" resolve.
 
 run_config_brave_policy() {
     info "Applying Brave browser policy"
 
-    sudo mkdir -p /etc/brave/policies/managed
-    if [[ -f "$SCRIPT_DIR/brave-policy.json" ]]; then
-        sudo cp "$SCRIPT_DIR/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
-    else
-        warn "brave-policy.json not found at $SCRIPT_DIR — skipping"
+    if [[ ! -f "$SCRIPT_DIR/assets/brave-policy.json" ]]; then
+        warn "brave-policy.json not found at $SCRIPT_DIR/assets — skipping"
         return
     fi
+
+    sudo mkdir -p /etc/brave/policies/managed
+    sudo cp "$SCRIPT_DIR/assets/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
 
     ok "Brave policy applied"
 }
@@ -129,9 +129,9 @@ run_config_autostart() {
 run_config_audio() {
     mkdir -p ~/.config/wireplumber/wireplumber.conf.d/
     local dest=~/.config/wireplumber/wireplumber.conf.d/rename-devices.conf
-    if [[ -f "$SCRIPT_DIR/rename-devices.conf" ]] && ! diff -q "$SCRIPT_DIR/rename-devices.conf" "$dest" &>/dev/null; then
+    if [[ -f "$SCRIPT_DIR/assets/rename-devices.conf" ]] && ! diff -q "$SCRIPT_DIR/assets/rename-devices.conf" "$dest" &>/dev/null; then
         info "Updating audio device names"
-        cp "$SCRIPT_DIR/rename-devices.conf" "$dest"
+        cp "$SCRIPT_DIR/assets/rename-devices.conf" "$dest"
         systemctl --user restart wireplumber pipewire pipewire-pulse
         ok "Audio device names configured"
     fi

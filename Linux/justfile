@@ -64,7 +64,7 @@ zsh:
 
     brew_prefix="$(brew --prefix)"
     chmod -R go-w "$brew_prefix/share" "$brew_prefix/share/zsh" 2>/dev/null || true
-    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/zshrc.template" > ~/.zshrc
+    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/assets/zshrc.template" > ~/.zshrc
     mkdir -p ~/.config
     cp "{{justfile_directory()}}/../shared/starship.toml" ~/.config/starship.toml
     cp "{{justfile_directory()}}/../shared/tmux.conf" ~/.tmux.conf
@@ -102,7 +102,7 @@ speaker-eq:
     #!/usr/bin/env bash
     echo "Installing speaker EQ..."
     mkdir -p ~/.config/pipewire/pipewire.conf.d
-    cp "{{justfile_directory()}}/speaker-eq.conf" ~/.config/pipewire/pipewire.conf.d/speaker-eq.conf
+    cp "{{justfile_directory()}}/assets/speaker-eq.conf" ~/.config/pipewire/pipewire.conf.d/speaker-eq.conf
     systemctl --user restart pipewire pipewire-pulse
     sleep 1
     # Set the EQ sink as default output
@@ -119,5 +119,5 @@ brave:
     #!/usr/bin/env bash
     echo "Deploying Brave browser policy..."
     sudo mkdir -p /etc/brave/policies/managed
-    sudo cp "{{justfile_directory()}}/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
+    sudo cp "{{justfile_directory()}}/assets/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
     echo "✓ Brave policy applied"

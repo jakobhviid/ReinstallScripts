@@ -21,13 +21,26 @@ run_config_brave_policy() {
 run_config_1password() {
     info "Configuring 1Password"
 
-    gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings \
-      "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/']"
-    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ \
+    # Register our custom keybinding path in the global list WITHOUT clobbering
+    # any other custom shortcuts the user has configured. Only add if missing.
+    local kb_path="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/"
+    local current
+    current=$(gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings)
+    if [[ "$current" != *"$kb_path"* ]]; then
+        if [[ "$current" == "@as []" || "$current" == "[]" ]]; then
+            gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['$kb_path']"
+        else
+            gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "${current%]}, '$kb_path']"
+        fi
+    fi
+
+    # Per-keybinding name/command/binding can be set unconditionally — they're
+    # under our own sub-schema and don't affect anyone else's shortcuts.
+    gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
       name "1Password Quick Search"
-    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ \
+    gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
       command "1password --quick-access"
-    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/ \
+    gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
       binding "<Alt><Shift>2"
 
     # Vivaldi browser compat (no-op on machines without Vivaldi; harmless)

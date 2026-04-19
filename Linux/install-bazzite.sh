@@ -353,10 +353,13 @@ run_config_1password() {
     sudo chown root:root /etc/1password/custom_allowed_browsers
     sudo chmod 0755 /etc/1password/custom_allowed_browsers
 
-    if [[ -f ~/.local/share/applications/1password.desktop ]]; then
-        sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=UseOzonePlatform --ozone-platform=wayland %U|' \
-          ~/.local/share/applications/1password.desktop
+    # Fix dark titlebar and enable native Wayland
+    mkdir -p ~/.local/share/applications
+    if [[ ! -f ~/.local/share/applications/1password.desktop ]]; then
+        cp /usr/share/applications/1password.desktop ~/.local/share/applications/1password.desktop
     fi
+    sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=UseOzonePlatform --ozone-platform=wayland %U|' \
+      ~/.local/share/applications/1password.desktop
 
     ok "1Password configured"
 }

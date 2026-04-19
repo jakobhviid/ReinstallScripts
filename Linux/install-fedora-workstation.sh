@@ -22,10 +22,8 @@ DNF_PACKAGES=(
     "proton-vpn-gnome-desktop"
     "zsh"
     "distrobox"
-    "libgda libgda-sqlite"
     "piper"
     "claude-desktop"
-    "nautilus-python"
     "nautilus-gsconnect"
     "file-roller-nautilus"
     "papers-nautilus"
@@ -44,14 +42,11 @@ DNF_PACKAGES=(
 FLATPAK_PACKAGES=(
     "com.discordapp.Discord"
     "org.gnome.baobab"
-    "com.ranfdev.DistroShelf"
     "com.mattjakeman.ExtensionManager"
     "com.github.tchx84.Flatseal"
     "org.gimp.GIMP"
-    "be.alexandervanhee.gradia"
     "org.libreoffice.LibreOffice"
     "io.missioncenter.MissionCenter"
-    "io.github.qwersyk.Newelle"
     "com.nextcloud.desktopclient.nextcloud"
     "org.gnome.World.PikaBackup"
     "io.github.fabrialberio.pinapp"
@@ -66,21 +61,13 @@ FLATPAK_PACKAGES=(
     "com.bilingify.readest"
     "com.github.johnfactotum.Foliate"
     "com.calibre_ebook.calibre"
-    "com.collaboraoffice.Office"
     "com.github.IsmaelMartinez.teams_for_linux"
     "fr.handbrake.ghb"
     "im.riot.Riot"
-    "io.github.cleomenezesjr.aurea"
-    "io.github.shonebinu.Brief"
-    "io.github.sitraorg.sitra"
     "io.github.wartybix.Constrict"
-    "io.gitlab.theevilskeleton.Upscaler"
     "me.proton.Pass"
-    "net.trowell.typesetter"
-    "org.altlinux.Tuner"
     "org.fedoraproject.MediaWriter"
     "org.gnome.Firmware"
-    "org.gnome.Fractal"
     "org.localsend.localsend_app"
     "org.signal.Signal"
     "org.zotero.Zotero"
@@ -152,13 +139,6 @@ run_config_speaker_eq() {
     fi
 }
 
-run_config_newelle() {
-    info "Configuring Newelle"
-    flatpak override --user io.github.qwersyk.Newelle \
-      --talk-name=org.freedesktop.Flatpak --filesystem=home
-    ok "Newelle configured (remember to disable Command Virtualization in Settings)"
-}
-
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 main() {
@@ -188,7 +168,7 @@ main() {
     printf '  %-22s %s\n' "Flatpaks:"           "${flatpak_to_install[*]:-(nothing to install)}"
     printf '  %-22s %s\n' "GNOME extensions:"   "${gext_to_install[*]:-(nothing to install)}"
     printf '  %-22s %s\n' "CLI tools:"          "${cli_to_install[*]:-(nothing to install)}"
-    printf '  %-22s %s\n' "Configs:"            "brave policy, 1password, desktop overrides, autostart, audio, speaker EQ, newelle"
+    printf '  %-22s %s\n' "Configs:"            "brave policy, 1password, desktop overrides, autostart, audio, speaker EQ"
     echo
 
     confirm "Proceed?" || { warn "Cancelled."; exit 0; }
@@ -247,9 +227,6 @@ main() {
     fi
     if rpm -q 1password &>/dev/null; then
         run_config_1password
-    fi
-    if is_flatpak_installed io.github.qwersyk.Newelle; then
-        run_config_newelle
     fi
     run_config_audio
     run_config_speaker_eq

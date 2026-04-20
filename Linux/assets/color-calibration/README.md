@@ -18,14 +18,16 @@ Extracted from Lenovo's official Linux color calibration tool (`linux-color-cali
 
 ## Installation
 
-Copy the `.icm` files to `~/.local/share/icc/`:
+1. Copy the `.icm` files to `~/.local/share/icc/`:
 
 ```bash
 mkdir -p ~/.local/share/icc
 cp TPLCD_0A2D_*.icm ~/.local/share/icc/
 ```
 
-The profiles will appear in **GNOME Settings > Color > Built-in display**, where you can select the active profile.
+2. The profiles will appear in **GNOME Settings > Color > Built-in display**. Click the display, then **Add Profile**, and select the desired profile (e.g. "X1 Carbon 13th OLED - Default").
+
+The ICC `desc` tags have been patched to show human-readable names (e.g. "X1 Carbon 13th OLED - sRGB") instead of the original Windows paths ("C:/DisplayProfiles/...") that Lenovo's tooling embedded. colormgr may cache old metadata — if stale entries appear alongside the correct ones, just pick the ones with the "X1 Carbon 13th OLED" prefix.
 
 ## Notes
 

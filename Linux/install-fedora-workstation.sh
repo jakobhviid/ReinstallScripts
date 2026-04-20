@@ -164,7 +164,7 @@ main() {
     printf '  %-22s %s\n' "Flatpaks:"           "${flatpak_to_install[*]:-(nothing to install)}"
     printf '  %-22s %s\n' "GNOME extensions:"   "${gext_to_install[*]:-(nothing to install)}"
     printf '  %-22s %s\n' "CLI tools:"          "${cli_to_install[*]:-(nothing to install)}"
-    printf '  %-22s %s\n' "Configs:"            "brave policy, 1password, desktop overrides, autostart, audio, speaker EQ"
+    printf '  %-22s %s\n' "Configs:"            "brave policy, 1password, desktop overrides, PWAs, autostart, audio, speaker EQ"
     echo
 
     confirm "Proceed?" || { warn "Cancelled."; exit 0; }
@@ -227,6 +227,7 @@ main() {
     run_config_audio
     run_config_speaker_eq
     run_config_desktop_overrides
+    run_config_pwa
     run_config_autostart
 
     echo

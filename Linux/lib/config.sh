@@ -80,6 +80,7 @@ run_config_desktop_overrides() {
         "org.gnome.Nautilus.desktop|/usr/share/applications/org.gnome.Nautilus.desktop|org.gnome.Nautilus.png"
         "org.gnome.Ptyxis.desktop|/usr/share/applications/org.gnome.Ptyxis.desktop|org.gnome.Ptyxis.webp"
         "com.discordapp.Discord.desktop|/var/lib/flatpak/exports/share/applications/com.discordapp.Discord.desktop|com.discordapp.Discord.webp"
+        "org.signal.Signal.desktop|/var/lib/flatpak/exports/share/applications/org.signal.Signal.desktop|org.signal.Signal.webp"
         "proton.vpn.app.gtk.desktop|/usr/share/applications/proton.vpn.app.gtk.desktop|proton.vpn.app.gtk.png"
     )
 
@@ -106,6 +107,46 @@ run_config_desktop_overrides() {
     update-desktop-database ~/.local/share/applications &>/dev/null || true
 
     ok "Desktop overrides applied"
+}
+
+run_config_pwa() {
+    info "Deploying Brave PWAs"
+
+    local src_dir="$SCRIPT_DIR/assets/pwa"
+    if [[ ! -d "$src_dir" ]]; then
+        warn "PWA assets directory missing — skipping"
+        return
+    fi
+
+    local app_dir=~/.local/share/applications
+    local icon_dir=~/.local/share/icons/reinstall-scripts/pwa
+    mkdir -p "$app_dir" "$icon_dir"
+
+    cp -u "$src_dir/icons/"* "$icon_dir/"
+
+    local desktop stem icon_file ext
+    for desktop in "$src_dir"/*.desktop; do
+        [[ -f "$desktop" ]] || continue
+        stem=$(basename "$desktop" .desktop)
+
+        # Find the icon we deployed for this PWA (png or webp)
+        icon_file=""
+        for ext in png webp; do
+            if [[ -f "$icon_dir/$stem.$ext" ]]; then
+                icon_file="$icon_dir/$stem.$ext"
+                break
+            fi
+        done
+
+        cp "$desktop" "$app_dir/$(basename "$desktop")"
+        if [[ -n "$icon_file" ]]; then
+            sed -i "s|^Icon=.*|Icon=$icon_file|" "$app_dir/$(basename "$desktop")"
+        fi
+    done
+
+    update-desktop-database ~/.local/share/applications &>/dev/null || true
+
+    ok "Brave PWAs deployed"
 }
 
 run_config_autostart() {

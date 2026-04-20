@@ -1,0 +1,23 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Terminal=false
+Type=Application
+Name=Outlook
+MimeType=x-scheme-handler/mailto;x-scheme-handler/chromium;
+Exec=/usr/lib/opt/brave.com/brave/brave-browser --profile-directory=Default --app-id=eoficlgicibekocmfdomjbfnjmehnhcd %U
+Icon=brave-eoficlgicibekocmfdomjbfnjmehnhcd-Default
+StartupWMClass=crx_eoficlgicibekocmfdomjbfnjmehnhcd
+Actions=New-event;New-message;Open-calendar
+
+[Desktop Action New-event]
+Name=New event
+Exec=/usr/lib/opt/brave.com/brave/brave-browser --profile-directory=Default --app-id=eoficlgicibekocmfdomjbfnjmehnhcd --app-launch-url-for-shortcuts-menu-item=https://outlook.cloud.microsoft/calendar/deeplink/compose
+
+[Desktop Action New-message]
+Name=New message
+Exec=/usr/lib/opt/brave.com/brave/brave-browser --profile-directory=Default --app-id=eoficlgicibekocmfdomjbfnjmehnhcd --app-launch-url-for-shortcuts-menu-item=https://outlook.cloud.microsoft/mail/deeplink/compose
+
+[Desktop Action Open-calendar]
+Name=Open calendar
+Exec=/usr/lib/opt/brave.com/brave/brave-browser --profile-directory=Default --app-id=eoficlgicibekocmfdomjbfnjmehnhcd --app-launch-url-for-shortcuts-menu-item=https://outlook.cloud.microsoft/calendar

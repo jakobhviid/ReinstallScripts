@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Terminal=false
+Type=Application
+Name=Apple Music
+Exec=/usr/lib/opt/brave.com/brave/brave-browser --profile-directory=Default --app-id=blgdilankhbcpipclgpdndahbehalgkh
+Icon=brave-blgdilankhbcpipclgpdndahbehalgkh-Default
+StartupWMClass=crx_blgdilankhbcpipclgpdndahbehalgkh

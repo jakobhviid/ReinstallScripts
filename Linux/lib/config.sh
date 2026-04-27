@@ -180,6 +180,22 @@ run_config_autostart() {
     ok "Autostart entries configured"
 }
 
+run_config_gnome_shell() {
+    local src="$SCRIPT_DIR/assets/gnome/shell.dconf"
+    if [[ ! -f "$src" ]]; then
+        warn "shell.dconf not found at $src — skipping"
+        return
+    fi
+    if ! command -v dconf &>/dev/null; then
+        warn "dconf not available — skipping GNOME shell settings"
+        return
+    fi
+
+    info "Applying GNOME shell settings (extensions on/off + dash-to-panel/blur-my-shell/hotedge)"
+    dconf load /org/gnome/shell/ < "$src"
+    ok "GNOME shell settings applied"
+}
+
 run_config_audio() {
     mkdir -p ~/.config/wireplumber/wireplumber.conf.d/
     local dest=~/.config/wireplumber/wireplumber.conf.d/rename-devices.conf

@@ -27,6 +27,7 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `Windows/brave-policy.json` — Brave browser policy (same policies as Mac/Linux)
 - `Linux/Bazzite.md` — Notes for Bazzite Linux setup
 - `Linux/assets/{brave-policy.json,rename-devices.conf,speaker-eq.conf,zshrc.template}` — Data assets deployed by the Linux installers / justfile recipes. Scripts resolve them via `$SCRIPT_DIR/assets/…` (or `{{justfile_directory()}}/assets/…`).
+- `Linux/assets/gnome/shell.dconf` — Snapshot of the GNOME shell config (enabled-extensions + dash-to-panel/blur-my-shell/hotedge settings) loaded into `/org/gnome/shell/` by `run_config_gnome_shell`. **Regenerate with `just gnome-backup`** — that recipe re-dumps the live state and strips bookkeeping keys (prefs-opened, extension-version, rounded-blur-found, settings-version) and per-monitor panel layout (panel-anchors/positions/sizes/lengths/element-positions, which encode this machine's display connector ID and don't transfer). After tweaking dash-to-panel etc., re-run the recipe and commit so the next install matches.
 
 ## Mac Workflow
 
@@ -105,7 +106,7 @@ From the `Mac/` directory, run `just backup <machinename>` to create `Brewfile.<
   - `common.sh` — `info`/`ok`/`warn`/`err` loggers + `confirm` prompt
   - `install.sh` — detection helpers, `filter_to_install`, CLI-tool install/uninstall, `ensure_gext`
   - `repos.sh` — `ensure_repo` for Brave, 1Password, VS Code, Proton VPN, Claude Desktop
-  - `config.sh` — all shared `run_config_*` (brave policy, 1password, desktop overrides, autostart, audio)
+  - `config.sh` — all shared `run_config_*` (brave policy, 1password, desktop overrides, autostart, audio, GNOME shell)
   Distro-specific bits (`run_config_speaker_eq`, `setup_rpmfusion`, `setup_multimedia_codecs`) stay inline in `install-fedora-workstation.sh`.
 - **Linux `.desktop` icon/Exec overrides and autostart are configured once in `Linux/lib/config.sh`**. To add a new icon override: drop the file in `shared/app-icons/`, then add a `name|source|icon` row to the `overrides` array in `run_config_desktop_overrides`. To add an autostart app: add a `name|fallback-source` row to the `entries` array in `run_config_autostart`. Both edits are single-source now — no duplication.
 - `Windows/supportfiles/` contains registry fixes (network drive warning) and Windows Terminal settings.

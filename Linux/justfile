@@ -5,9 +5,10 @@ default:
     @echo "Linux setup — run from the Linux/ directory"
     @echo ""
     @echo "Commands:"
-    @echo "  just zsh         Install/update Zsh plugins, config, and prompt theme"
-    @echo "  just speaker-eq  Install speaker EQ for thin laptop speakers"
-    @echo "  just brave       Deploy Brave browser policy"
+    @echo "  just zsh           Install/update Zsh plugins, config, and prompt theme"
+    @echo "  just speaker-eq    Install speaker EQ for thin laptop speakers"
+    @echo "  just brave         Deploy Brave browser policy"
+    @echo "  just gnome-backup  Snapshot current GNOME shell settings to assets/gnome/shell.dconf"
 
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
@@ -113,6 +114,30 @@ speaker-eq:
     else
         echo "⚠ Filter loaded but could not find node ID — select 'Internal Speakers' in sound settings"
     fi
+
+# Snapshot current GNOME shell settings to assets/gnome/shell.dconf.
+# Captures only enabled-extensions + dash-to-panel/blur-my-shell/hotedge,
+# strips transient bookkeeping (prefs-opened, *-version, rounded-blur-found)
+# and per-monitor panel layout (panel-anchors/positions/sizes/lengths/
+# element-positions) — those are tied to a specific display connector ID
+# and don't transfer between machines.
+gnome-backup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    out="{{justfile_directory()}}/assets/gnome/shell.dconf"
+    mkdir -p "$(dirname "$out")"
+    dconf dump /org/gnome/shell/ | awk '
+      /^\[\/\]$/                          { sect="root";  print; next }
+      /^\[extensions\/dash-to-panel\]$/   { sect="keep";  print; next }
+      /^\[extensions\/blur-my-shell\]$/   { sect="keep";  print; next }
+      /^\[extensions\/blur-my-shell\//    { sect="keep";  print; next }
+      /^\[extensions\/hotedge\]$/         { sect="keep";  print; next }
+      /^\[/                                { sect="skip"; next }
+      sect=="root" && /^enabled-extensions=/ { print; next }
+      sect=="keep" && /^(prefs-opened|extension-version|rounded-blur-found|settings-version|panel-anchors|panel-element-positions|panel-lengths|panel-positions|panel-sizes)=/ { next }
+      sect=="keep" { print }
+    ' > "$out"
+    echo "✓ Wrote $out ($(wc -l < "$out") lines)"
 
 # Deploy Brave browser policy
 brave:

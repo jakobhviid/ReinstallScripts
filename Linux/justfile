@@ -9,6 +9,7 @@ default:
     @echo "  just speaker-eq    Install speaker EQ for thin laptop speakers"
     @echo "  just brave         Deploy Brave browser policy"
     @echo "  just gnome-backup  Snapshot current GNOME shell settings to assets/gnome/shell.dconf"
+    @echo "  just ptyxis-backup Snapshot current Ptyxis settings to assets/ptyxis.dconf"
 
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
@@ -137,6 +138,17 @@ gnome-backup:
       sect=="keep" && /^(prefs-opened|extension-version|rounded-blur-found|settings-version|panel-anchors|panel-element-positions|panel-lengths|panel-positions|panel-sizes)=/ { next }
       sect=="keep" { print }
     ' > "$out"
+    echo "✓ Wrote $out ($(wc -l < "$out") lines)"
+
+# Snapshot current Ptyxis settings (profiles, shortcuts, window prefs) to
+# assets/ptyxis.dconf. Whole subtree — no filtering needed; profile UUIDs
+# are just identifiers and carry across machines fine.
+ptyxis-backup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    out="{{justfile_directory()}}/assets/ptyxis.dconf"
+    mkdir -p "$(dirname "$out")"
+    dconf dump /org/gnome/Ptyxis/ > "$out"
     echo "✓ Wrote $out ($(wc -l < "$out") lines)"
 
 # Deploy Brave browser policy

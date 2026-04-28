@@ -28,6 +28,7 @@ A collection of OS reinstall/setup scripts organized by platform and machine. No
 - `Linux/Bazzite.md` — Notes for Bazzite Linux setup
 - `Linux/assets/{brave-policy.json,rename-devices.conf,speaker-eq.conf,zshrc.template}` — Data assets deployed by the Linux installers / justfile recipes. Scripts resolve them via `$SCRIPT_DIR/assets/…` (or `{{justfile_directory()}}/assets/…`).
 - `Linux/assets/gnome/shell.dconf` — Snapshot of the GNOME shell config (enabled-extensions + dash-to-panel/blur-my-shell/hotedge settings) loaded into `/org/gnome/shell/` by `run_config_gnome_shell`. **Regenerate with `just gnome-backup`** — that recipe re-dumps the live state and strips bookkeeping keys (prefs-opened, extension-version, rounded-blur-found, settings-version) and per-monitor panel layout (panel-anchors/positions/sizes/lengths/element-positions, which encode this machine's display connector ID and don't transfer). After tweaking dash-to-panel etc., re-run the recipe and commit so the next install matches.
+- `Linux/assets/ptyxis.dconf` — Snapshot of the Ptyxis terminal config (profiles, keybindings, window prefs) loaded into `/org/gnome/Ptyxis/` by `run_config_ptyxis`. **Regenerate with `just ptyxis-backup`** — full subtree dump, no filtering. Profile UUIDs are just identifiers and carry across machines. After changing shortcuts or profile settings, re-run the recipe and commit.
 
 ## Mac Workflow
 

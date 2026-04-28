@@ -1,5 +1,5 @@
 [/]
-enabled-extensions=['appindicatorsupport@rgcjonas.gmail.com', 'quick-settings-audio-panel@rayzeq.github.io', 'quicksettings-audio-devices-renamer@marcinjahn.com', 'dash-to-panel@jderose9.github.com', 'blur-my-shell@aunetx', 'hide-minimized@danigm.net', 'copyous@boerdereinar.dev', 'caffeine@patapon.info']
+enabled-extensions=['appindicatorsupport@rgcjonas.gmail.com', 'quick-settings-audio-panel@rayzeq.github.io', 'dash-to-panel@jderose9.github.com', 'blur-my-shell@aunetx', 'hide-minimized@danigm.net', 'copyous@boerdereinar.dev', 'caffeine@patapon.info', 'quicksettings-audio-devices-renamer@marcinjahn.com']
 [extensions/blur-my-shell]
 
 [extensions/blur-my-shell/appfolder]
@@ -57,11 +57,15 @@ animate-appicon-hover-animation-extent={'RIPPLE': 4, 'PLANK': 4, 'SIMPLE': 1}
 animate-appicon-hover-animation-type='SIMPLE'
 appicon-margin=8
 appicon-padding=2
+dot-color-dominant=false
+dot-color-override=false
 dot-position='BOTTOM'
 dot-style-focused='DOTS'
 dot-style-unfocused='DOTS'
+focus-highlight=true
+focus-highlight-color='#ffffff'
 focus-highlight-dominant=false
-focus-highlight-opacity=45
+focus-highlight-opacity=20
 global-border-radius=4
 hotkeys-overlay-combo='TEMPORARILY'
 intellihide=true

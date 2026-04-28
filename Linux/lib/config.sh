@@ -196,6 +196,22 @@ run_config_gnome_shell() {
     ok "GNOME shell settings applied"
 }
 
+run_config_ptyxis() {
+    local src="$SCRIPT_DIR/assets/ptyxis.dconf"
+    if [[ ! -f "$src" ]]; then
+        warn "ptyxis.dconf not found at $src — skipping"
+        return
+    fi
+    if ! command -v dconf &>/dev/null; then
+        warn "dconf not available — skipping Ptyxis settings"
+        return
+    fi
+
+    info "Applying Ptyxis settings (profiles, shortcuts, window prefs)"
+    dconf load /org/gnome/Ptyxis/ < "$src"
+    ok "Ptyxis settings applied"
+}
+
 run_config_audio() {
     mkdir -p ~/.config/wireplumber/wireplumber.conf.d/
     local dest=~/.config/wireplumber/wireplumber.conf.d/rename-devices.conf

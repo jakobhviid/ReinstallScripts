@@ -1,0 +1,31 @@
+[/]
+cursor-shape='underline'
+default-columns=uint32 120
+default-profile-uuid='d1c6162ff456d9b5bd69fd7169e0e96a'
+default-rows=uint32 32
+profile-uuids=['d1c6162ff456d9b5bd69fd7169e0e96a']
+restore-session=true
+restore-window-size=false
+window-size=(uint32 120, uint32 32)
+
+[Profiles/d1c6162ff456d9b5bd69fd7169e0e96a]
+bold-is-bright=true
+custom-command='zsh'
+label='Default (Bazzite ReinstallScripts)'
+login-shell=false
+palette='gnome'
+use-custom-command=true
+
+[Shortcuts]
+close-tab='<Control>w'
+close-window='<Control>q'
+copy-clipboard='<Control>c'
+move-next-tab='<Control>Tab'
+move-previous-tab='<Shift><Control>Tab'
+new-tab='<Control>t'
+new-window='<Control>n'
+paste-clipboard='<Control>v'
+search='<Control>f'
+select-all='<Control>a'
+tab-overview='<Control>o'
+undo-close-tab='<Shift><Control>t'

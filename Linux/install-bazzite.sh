@@ -98,7 +98,7 @@ main() {
     printf '  %-22s %s\n' "Flatpaks:"           "${flatpak_to_install[*]:-(nothing to install)}"
     printf '  %-22s %s\n' "GNOME extensions:"   "${gext_to_install[*]:-(nothing to install)}"
     printf '  %-22s %s\n' "CLI tools:"          "${cli_to_install[*]:-(nothing to install)}"
-    printf '  %-22s %s\n' "Configs:"            "brave policy, 1password, desktop overrides, PWAs, autostart, audio, GNOME shell"
+    printf '  %-22s %s\n' "Configs:"            "brave policy, 1password, desktop overrides, PWAs, autostart, audio, GNOME shell, Ptyxis"
     echo
 
     confirm "Proceed?" || { warn "Cancelled."; exit 0; }
@@ -159,6 +159,7 @@ main() {
     run_config_pwa
     run_config_autostart
     run_config_gnome_shell
+    run_config_ptyxis
 
     echo
     ok "All done!"

@@ -29,6 +29,10 @@
   "HttpsUpgradesEnabled": true,
   "SSLVersionMin": "tls1.2",
 
+  "BraveDeAmpEnabled": true,
+  "BraveDebounceEnabled": true,
+  "BraveReduceLanguageEnabled": true,
+
   "SpellCheckServiceEnabled": false,
   "AlternateErrorPagesEnabled": false,
   "PromotionalTabsEnabled": false,

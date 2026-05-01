@@ -83,6 +83,13 @@
         <key>SSLVersionMin</key>
         <string>tls1.2</string>
 
+        <key>BraveDeAmpEnabled</key>
+        <true/>
+        <key>BraveDebounceEnabled</key>
+        <true/>
+        <key>BraveReduceLanguageEnabled</key>
+        <true/>
+
         <key>SpellCheckServiceEnabled</key>
         <false/>
         <key>AlternateErrorPagesEnabled</key>

@@ -27,6 +27,7 @@ RPM_PACKAGES=(
     "gnome-shell-extension-dash-to-dock"
     "zsh"
     "claude-desktop"
+    "zen-browser"
 )
 
 GNOME_EXTENSIONS=(
@@ -35,6 +36,7 @@ GNOME_EXTENSIONS=(
     "hide-minimized@danigm.net"
     "quick-settings-audio-panel@rayzeq.github.io"
     "quicksettings-audio-devices-renamer@marcinjahn.com"
+    "CoverflowAltTab@palatis.blogspot.com"
 )
 
 # ─── Main ─────────────────────────────────────────────────────────────────────

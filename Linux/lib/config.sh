@@ -43,9 +43,11 @@ run_config_1password() {
     gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
       binding "<Alt><Shift>2"
 
-    # Vivaldi browser compat (no-op on machines without Vivaldi; harmless)
+    # Browser compat list — non-Chrome/Firefox browsers need to be allow-listed
+    # explicitly for the 1Password browser extension to talk to the desktop app.
+    # Listing browsers we don't have is harmless.
     sudo install -d -m 0755 /etc/1password
-    printf '%s\n' vivaldi-bin | sudo tee /etc/1password/custom_allowed_browsers >/dev/null
+    printf '%s\n' vivaldi-bin zen-bin | sudo tee /etc/1password/custom_allowed_browsers >/dev/null
     sudo chown root:root /etc/1password/custom_allowed_browsers
     sudo chmod 0755 /etc/1password/custom_allowed_browsers
 

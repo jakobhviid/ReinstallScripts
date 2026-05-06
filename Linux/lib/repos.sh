@@ -52,5 +52,15 @@ EOF
                   https://aaddrick.github.io/claude-desktop-debian/rpm/claude-desktop.repo
             fi
             ;;
+        zen-browser)
+            # Zen Browser ships via Fedora Copr (sneexy/zen-browser).
+            if [[ ! -f /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:sneexy:zen-browser.repo ]]; then
+                info "Adding Zen Browser repository (sneexy COPR)"
+                local fedora_release
+                fedora_release="$(rpm -E %fedora)"
+                sudo curl -fsSLo /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:sneexy:zen-browser.repo \
+                  "https://copr.fedorainfracloud.org/coprs/sneexy/zen-browser/repo/fedora-${fedora_release}/sneexy-zen-browser-fedora-${fedora_release}.repo"
+            fi
+            ;;
     esac
 }

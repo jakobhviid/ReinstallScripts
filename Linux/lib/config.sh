@@ -163,6 +163,7 @@ run_config_autostart() {
     # name | fallback source (used if the user-level override isn't present)
     local entries=(
         "1password.desktop|/usr/share/applications/1password.desktop"
+        "com.discordapp.Discord.desktop|/var/lib/flatpak/exports/share/applications/com.discordapp.Discord.desktop"
         "com.nextcloud.desktopclient.nextcloud.desktop|/var/lib/flatpak/exports/share/applications/com.nextcloud.desktopclient.nextcloud.desktop"
         "org.localsend.localsend_app.desktop|/var/lib/flatpak/exports/share/applications/org.localsend.localsend_app.desktop"
     )
@@ -179,9 +180,57 @@ run_config_autostart() {
             continue
         fi
         cp "$src" "$autostart_dir/$name"
+
+        # Inject background-launch flags into the autostart copy only — the
+        # user-level menu entry stays unchanged so manual launches still open
+        # the window. sed patterns are anchored to substrings the source files
+        # carry today; a second run is a no-op because the substring is gone.
+        case "$name" in
+            1password.desktop)
+                # Source can be the user-level override (carries
+                # --enable-features=…) or the system /usr/share fallback
+                # (just /1password %U). Patch both shapes; idempotent because
+                # post-injection the original substring no longer exists.
+                sed -i \
+                  -e 's|/1password --enable-features|/1password --silent --enable-features|' \
+                  -e 's|/1password %U|/1password --silent %U|' \
+                  "$autostart_dir/$name"
+                ;;
+            com.discordapp.Discord.desktop)
+                sed -i 's|com.discordapp.Discord @@u|com.discordapp.Discord --start-minimized @@u|' \
+                  "$autostart_dir/$name"
+                ;;
+            com.nextcloud.desktopclient.nextcloud.desktop)
+                # Only the main Exec line carries --file-forwarding; the "Quit
+                # Nextcloud" action Exec doesn't, so the address-match leaves
+                # it alone.
+                sed -i '/--file-forwarding/ s|com.nextcloud.desktopclient.nextcloud @@u|com.nextcloud.desktopclient.nextcloud --background @@u|' \
+                  "$autostart_dir/$name"
+                ;;
+            org.localsend.localsend_app.desktop)
+                sed -i 's|org.localsend.localsend_app @@u|org.localsend.localsend_app --hidden @@u|' \
+                  "$autostart_dir/$name"
+                ;;
+        esac
     done
 
     ok "Autostart entries configured"
+}
+
+# LocalSend's Flutter UI honors GTK_THEME for the system titlebar/decorations.
+# Flatpak override embeds the env var into every launch (autostart, app menu,
+# file-share callouts) without needing per-Exec sed patches.
+run_config_localsend() {
+    if ! command -v flatpak &>/dev/null; then
+        return
+    fi
+    if ! flatpak info org.localsend.localsend_app &>/dev/null; then
+        return
+    fi
+
+    info "Forcing dark titlebar on LocalSend"
+    flatpak override --user --env=GTK_THEME=Adwaita:dark org.localsend.localsend_app
+    ok "LocalSend dark titlebar applied"
 }
 
 run_config_gnome_shell() {

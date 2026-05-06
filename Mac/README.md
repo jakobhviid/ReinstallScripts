@@ -29,11 +29,12 @@ Run from the `Mac/` directory.
 | Command                          | What it does                                                                  |
 |----------------------------------|-------------------------------------------------------------------------------|
 | `just`                           | List recipes + available machines/profiles                                    |
-| `just install <machine>`         | `brew bundle --file=brewfiles/Brewfile.<machine>`, then `just zsh` + Brave profile |
+| `just install <machine>`         | `brew bundle --file=brewfiles/Brewfile.<machine>`, then `just zsh` + `just brave` |
 | `just install`                   | Interactive — pick a machine from a numbered menu                             |
 | `just backup <machine>`          | `brew bundle dump` current state into `brewfiles/Brewfile.<machine>`          |
 | `just backup`                    | Interactive — pick existing or type a new machine name                        |
 | `just cleanup <machine>`         | Show packages installed but not in the machine's Brewfile                     |
+| `just brave`                     | Apply Brave debloat profile + Cmd+W keyboard workaround                       |
 | `just profile <name>`            | Install `assets/<name>.mobileconfig` (opens System Settings)                  |
 | `just zsh`                       | Re-template `~/.zshrc`, configure git/tmux/starship, install zsh plugins      |
 
@@ -66,9 +67,14 @@ git add brewfiles/Brewfile.mynewmac && git commit
 
 Brewfiles intentionally diverge — Chronos is a personal laptop, Helios is a server, huginn is a work laptop. Don't flag cross-machine package differences as drift.
 
-## Brave policy
+## Brave configuration
 
-The Brave debloat profile (`assets/brave-debloat.mobileconfig`) is the macOS counterpart of `Linux/assets/brave-policy.json` and `Windows/brave-policy.json`. Keep them in sync — same set of policies, three formats.
+`just brave` does two things:
+
+1. **Opens `assets/brave-debloat.mobileconfig`** in System Settings → Profiles. This is the macOS counterpart of `Linux/assets/brave-policy.json` and `Windows/brave-policy.json` — keep all three in sync when changing Brave policies (same policy set, three formats).
+2. **Rebinds Brave's "Close Window" to ⌘⇧W** via `defaults write com.brave.Browser NSUserKeyEquivalents -dict-add "Close Window" '@$w'`. Workaround for an intermittent Chromium bug where Brave's File menu loses the "Close Tab" item and "Close Window" hijacks ⌘W. Restart Brave for the rebinding to take effect.
+
+To remove the keyboard rebinding: `defaults delete com.brave.Browser NSUserKeyEquivalents`.
 
 ## Reference
 

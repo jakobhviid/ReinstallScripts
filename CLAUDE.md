@@ -52,11 +52,12 @@ shared/
 Requires Homebrew + [just](https://github.com/casey/just). Run from `Mac/`:
 
 ```sh
-just install huginn        # brew bundle --file=brewfiles/Brewfile.huginn + just zsh + brave profile
+just install huginn        # brew bundle --file=brewfiles/Brewfile.huginn + just zsh + just brave
 just backup huginn         # brew bundle dump --file=brewfiles/Brewfile.huginn
 just cleanup huginn        # show packages installed but not in the Brewfile
 just backup mynewmac       # create a new machine's Brewfile (then hand-edit + commit)
-just profile brave-debloat # install assets/brave-debloat.mobileconfig
+just brave                 # apply assets/brave-debloat.mobileconfig + Cmd+W keyboard workaround
+just profile brave-debloat # install any assets/<name>.mobileconfig directly
 just install               # interactive picker
 just                       # list recipes + machines/profiles
 ```

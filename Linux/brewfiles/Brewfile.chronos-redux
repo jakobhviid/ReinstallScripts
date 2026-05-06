@@ -1,0 +1,80 @@
+# Userspace packages for chronos-redux (Bazzite).
+# rpm-ostree layered packages, custom RPM repos, and GNOME extensions live in
+# install-bazzite.sh and lib/ — this Brewfile only describes what brew bundle
+# can install on its own (formulae, casks, taps, and Flatpaks via the
+# brew-bundle Flatpak directive).
+#
+# Refresh with: just backup chronos-redux  (then hand-edit before commit —
+# the dump pulls in default GNOME flatpaks that ship with Bazzite).
+
+tap "joshmedeski/sesh"
+tap "ublue-os/tap"
+
+# Shell + CLI
+brew "bat"
+brew "btop"
+brew "butane"
+brew "dotnet"
+brew "eza"
+brew "fzf"
+brew "fzf-tab"
+brew "htop"
+brew "jq"
+brew "just"
+brew "lazygit"
+brew "sesh"
+brew "starship"
+brew "tmux"
+brew "typst"
+brew "zoxide"
+
+# Zsh plugins
+brew "zsh-autopair"
+brew "zsh-autosuggestions"
+brew "zsh-completions"
+brew "zsh-history-substring-search"
+brew "zsh-syntax-highlighting"
+brew "zsh-you-should-use"
+
+# GUI / desktop apps
+cask "claude-code"
+cask "ublue-os/tap/visual-studio-code-linux"
+
+# Fonts (Nerd Font set used by Ptyxis + Starship symbols)
+cask "font-fira-code-nerd-font"
+cask "font-hack-nerd-font"
+cask "font-meslo-lg-nerd-font"
+cask "font-symbols-only-nerd-font"
+
+# Flatpaks
+flatpak "com.bilingify.readest"
+flatpak "com.calibre_ebook.calibre"
+flatpak "com.discordapp.Discord"
+flatpak "com.github.johnfactotum.Foliate"
+flatpak "com.github.Matoking.protontricks"
+flatpak "com.github.tchx84.Flatseal"
+flatpak "com.mattjakeman.ExtensionManager"
+flatpak "com.nextcloud.desktopclient.nextcloud"
+flatpak "com.vysp3r.ProtonPlus"
+flatpak "dev.dergs.Tonearm"
+flatpak "fr.handbrake.ghb"
+flatpak "im.riot.Riot"
+flatpak "io.github.alainm23.planify"
+flatpak "io.github.fabrialberio.pinapp"
+flatpak "io.github.flattool.Warehouse"
+flatpak "io.github.wartybix.Constrict"
+flatpak "io.gitlab.adhami3310.Converter"
+flatpak "io.gitlab.news_flash.NewsFlash"
+flatpak "io.missioncenter.MissionCenter"
+flatpak "it.mijorus.gearlever"
+flatpak "org.fedoraproject.MediaWriter"
+flatpak "org.freedesktop.Piper"
+flatpak "org.gimp.GIMP"
+flatpak "org.gnome.baobab"
+flatpak "org.gnome.Firmware"
+flatpak "org.gnome.NautilusPreviewer"
+flatpak "org.gnome.World.PikaBackup"
+flatpak "org.libreoffice.LibreOffice"
+flatpak "org.localsend.localsend_app"
+flatpak "org.signal.Signal"
+flatpak "org.zotero.Zotero"

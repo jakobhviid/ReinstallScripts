@@ -2,8 +2,10 @@
 set -uo pipefail
 
 # Bazzite / Silverblue setup script.
-# Re-runnable, idempotent, add-only. Desired state lives in the arrays below;
-# edit them and commit to change what a fresh install looks like.
+# Re-runnable, idempotent, add-only. The system layer (rpm-ostree packages,
+# custom RPM repos, GNOME extensions) lives in the arrays below; the userspace
+# layer (formulae, casks, taps, flatpaks) lives in Brewfile.<machine> and is
+# applied via `brew bundle`.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
@@ -11,7 +13,10 @@ source "$SCRIPT_DIR/lib/install.sh"
 source "$SCRIPT_DIR/lib/repos.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 
-# ─── Package Lists ────────────────────────────────────────────────────────────
+MACHINE="${1:-chronos-redux}"
+BREWFILE="$SCRIPT_DIR/brewfiles/Brewfile.${MACHINE}"
+
+# ─── System Layer (rpm-ostree + GNOME extensions) ─────────────────────────────
 
 RPM_PACKAGES=(
     "podman-compose"
@@ -24,39 +29,6 @@ RPM_PACKAGES=(
     "claude-desktop"
 )
 
-FLATPAK_PACKAGES=(
-    "com.discordapp.Discord"
-    "org.gnome.baobab"
-    "com.mattjakeman.ExtensionManager"
-    "com.github.tchx84.Flatseal"
-    "org.gimp.GIMP"
-    "org.libreoffice.LibreOffice"
-    "io.missioncenter.MissionCenter"
-    "com.nextcloud.desktopclient.nextcloud"
-    "org.gnome.World.PikaBackup"
-    "io.github.fabrialberio.pinapp"
-    "dev.dergs.Tonearm"
-    "io.github.flattool.Warehouse"
-    "io.gitlab.news_flash.NewsFlash"
-    "it.mijorus.gearlever"
-    "io.gitlab.adhami3310.Converter"
-    "io.github.alainm23.planify"
-    "com.bilingify.readest"
-    "com.github.johnfactotum.Foliate"
-    "com.calibre_ebook.calibre"
-    "com.github.Matoking.protontricks"
-    "com.vysp3r.ProtonPlus"
-    "fr.handbrake.ghb"
-    "im.riot.Riot"
-    "io.github.wartybix.Constrict"
-    "org.fedoraproject.MediaWriter"
-    "org.freedesktop.Piper"
-    "org.gnome.Firmware"
-    "org.localsend.localsend_app"
-    "org.signal.Signal"
-    "org.zotero.Zotero"
-)
-
 GNOME_EXTENSIONS=(
     "tilingshell@ferrarodomenico.com"
     "copyous@boerdereinar.dev"
@@ -65,17 +37,10 @@ GNOME_EXTENSIONS=(
     "quicksettings-audio-devices-renamer@marcinjahn.com"
 )
 
-CLI_TOOLS=(
-    "brew"
-    "zsh-setup"
-    "claude"
-    "code"
-)
-
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 main() {
-    info "Bazzite Setup"
+    info "Bazzite Setup (machine: $MACHINE)"
 
     # Preflight
     if [[ -r /etc/os-release ]]; then
@@ -87,17 +52,27 @@ main() {
         fi
     fi
 
+    if [[ ! -f "$BREWFILE" ]]; then
+        err "Brewfile not found: $BREWFILE"
+        err "Pass machine name as first arg: $0 <machine>"
+        exit 1
+    fi
+
     mapfile -t rpm_to_install   < <(filter_to_install is_rpm_installed     "${RPM_PACKAGES[@]}")
-    mapfile -t flatpak_to_install < <(filter_to_install is_flatpak_installed "${FLATPAK_PACKAGES[@]}")
     mapfile -t gext_to_install  < <(filter_to_install is_gext_installed    "${GNOME_EXTENSIONS[@]}")
-    mapfile -t cli_to_install   < <(filter_to_install is_cli_installed     "${CLI_TOOLS[@]}")
+
+    local brew_action="present"
+    is_cli_installed brew      || brew_action="install Homebrew"
+    local zsh_action="present"
+    is_cli_installed zsh-setup || zsh_action="run just zsh"
 
     echo
     info "Plan:"
     printf '  %-22s %s\n' "RPM (rpm-ostree):"   "${rpm_to_install[*]:-(nothing to install)}"
-    printf '  %-22s %s\n' "Flatpaks:"           "${flatpak_to_install[*]:-(nothing to install)}"
     printf '  %-22s %s\n' "GNOME extensions:"   "${gext_to_install[*]:-(nothing to install)}"
-    printf '  %-22s %s\n' "CLI tools:"          "${cli_to_install[*]:-(nothing to install)}"
+    printf '  %-22s %s\n' "Homebrew:"           "$brew_action"
+    printf '  %-22s %s\n' "Brewfile:"           "$(basename "$BREWFILE")"
+    printf '  %-22s %s\n' "Zsh setup:"          "$zsh_action"
     printf '  %-22s %s\n' "Configs:"            "brave policy, 1password, desktop overrides, PWAs, autostart, localsend, audio, unlock services, GNOME shell, Ptyxis"
     echo
 
@@ -105,7 +80,7 @@ main() {
 
     local needs_reboot=false
 
-    # RPM via rpm-ostree — expand grouped keys (e.g. "libgda libgda-sqlite")
+    # rpm-ostree — expand grouped keys (e.g. "libgda libgda-sqlite")
     if [[ ${#rpm_to_install[@]} -gt 0 ]]; then
         local -a rpm_pkgs=()
         local group pkg
@@ -121,12 +96,16 @@ main() {
         ok "System packages layered"
     fi
 
-    # Flatpaks
-    if [[ ${#flatpak_to_install[@]} -gt 0 ]]; then
-        info "Installing Flatpaks"
-        flatpak install -y --noninteractive flathub "${flatpak_to_install[@]}"
-        ok "Flatpaks installed"
+    # Bootstrap brew if missing
+    if ! is_cli_installed brew; then
+        info "Installing Homebrew"
+        install_cli_tool brew
     fi
+
+    # Brewfile — userspace formulae, casks, taps, flatpaks
+    info "Applying Brewfile ($MACHINE)"
+    brew bundle --file="$BREWFILE"
+    ok "Brewfile applied"
 
     # GNOME extensions
     if [[ ${#gext_to_install[@]} -gt 0 ]]; then
@@ -138,13 +117,10 @@ main() {
         done
     fi
 
-    # CLI tools
-    if [[ ${#cli_to_install[@]} -gt 0 ]]; then
-        local tool
-        for tool in "${cli_to_install[@]}"; do
-            info "Installing $tool"
-            install_cli_tool "$tool"
-        done
+    # Zsh setup (config templating + git identity + tmux/tpm)
+    if ! is_cli_installed zsh-setup; then
+        info "Setting up Zsh"
+        install_cli_tool zsh-setup
     fi
 
     # ── Config steps — always applied, self-skip missing sources ──────────────
@@ -176,4 +152,4 @@ main() {
     fi
 }
 
-main "$@"
+main

@@ -1,15 +1,89 @@
 # Linux setup recipes — run from the Linux/ directory
 
+# List available machines (Brewfile.* without the prefix)
+_machines := `ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//' | tr '\n' ' '`
+
 # Show available commands
 default:
     @echo "Linux setup — run from the Linux/ directory"
     @echo ""
     @echo "Commands:"
-    @echo "  just zsh           Install/update Zsh plugins, config, and prompt theme"
-    @echo "  just speaker-eq    Install speaker EQ for thin laptop speakers"
-    @echo "  just brave         Deploy Brave browser policy"
-    @echo "  just gnome-backup  Snapshot current GNOME shell settings to assets/gnome/shell.dconf"
-    @echo "  just ptyxis-backup Snapshot current Ptyxis settings to assets/ptyxis.dconf"
+    @echo "  just install [machine]   Run install-bazzite.sh with the given machine's Brewfile"
+    @echo "  just backup [machine]    Dump current Homebrew + Flatpak state to Brewfile.<machine>"
+    @echo "  just cleanup [machine]   Show Homebrew + cask drift vs the machine's Brewfile"
+    @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
+    @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
+    @echo "  just brave               Deploy Brave browser policy"
+    @echo "  just gnome-backup        Snapshot current GNOME shell settings"
+    @echo "  just ptyxis-backup       Snapshot current Ptyxis settings"
+    @echo ""
+    @echo "Available machines: {{_machines}}"
+
+# Run the full Bazzite installer for a machine. Re-runnable, idempotent.
+install machine="":
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
+        machine=$(pick_choice "Pick a machine (number or name): " "${choices[@]}")
+    fi
+    if [[ -z "$machine" ]]; then
+        warn "No machine selected, exiting."
+        exit 0
+    fi
+    if [[ ! -f "brewfiles/Brewfile.$machine" ]]; then
+        err "brewfiles/Brewfile.$machine not found"
+        exit 1
+    fi
+    "{{justfile_directory()}}/install-bazzite.sh" "$machine"
+
+# Dump current Homebrew + Flatpak state to brewfiles/Brewfile.<machine>. Hand-edit before commit — the dump pulls in default Bazzite flatpaks.
+backup machine="":
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
+        machine=$(pick_choice "Pick a machine (number, name, or new name): " "${choices[@]}")
+    fi
+    if [[ -z "$machine" ]]; then
+        warn "No machine selected, exiting."
+        exit 0
+    fi
+    mkdir -p brewfiles
+    if [[ -f "brewfiles/Brewfile.$machine" ]]; then
+        info "Overwriting brewfiles/Brewfile.$machine"
+    else
+        info "Creating new brewfiles/Brewfile.$machine"
+    fi
+    brew bundle dump --file="brewfiles/Brewfile.$machine" --force --no-vscode
+    ok "Saved to brewfiles/Brewfile.$machine"
+    warn "Hand-edit before commit — the dump pulls in default GNOME flatpaks and runtime extensions."
+
+# Show packages installed but not listed in a machine's Brewfile.
+cleanup machine="":
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
+        machine=$(pick_choice "Pick a machine (number or name): " "${choices[@]}")
+    fi
+    if [[ -z "$machine" ]]; then
+        warn "No machine selected, exiting."
+        exit 0
+    fi
+    if [[ ! -f "brewfiles/Brewfile.$machine" ]]; then
+        err "brewfiles/Brewfile.$machine not found"
+        exit 1
+    fi
+    brew bundle cleanup --file="brewfiles/Brewfile.$machine" --formula --cask --tap || true
+    echo
+    warn "To uninstall: brew bundle cleanup --file=brewfiles/Brewfile.$machine --formula --cask --tap --force"
 
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
@@ -116,12 +190,7 @@ speaker-eq:
         echo "⚠ Filter loaded but could not find node ID — select 'Internal Speakers' in sound settings"
     fi
 
-# Snapshot current GNOME shell settings to assets/gnome/shell.dconf.
-# Captures only enabled-extensions + dash-to-panel/blur-my-shell/hotedge,
-# strips transient bookkeeping (prefs-opened, *-version, rounded-blur-found)
-# and per-monitor panel layout (panel-anchors/positions/sizes/lengths/
-# element-positions) — those are tied to a specific display connector ID
-# and don't transfer between machines.
+# Snapshot GNOME shell settings to assets/gnome/shell.dconf — strips transient bookkeeping + per-monitor panel layout.
 gnome-backup:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -140,9 +209,7 @@ gnome-backup:
     ' > "$out"
     echo "✓ Wrote $out ($(wc -l < "$out") lines)"
 
-# Snapshot current Ptyxis settings (profiles, shortcuts, window prefs) to
-# assets/ptyxis.dconf. Whole subtree — no filtering needed; profile UUIDs
-# are just identifiers and carry across machines fine.
+# Snapshot Ptyxis settings (profiles, shortcuts, window prefs) to assets/ptyxis.dconf.
 ptyxis-backup:
     #!/usr/bin/env bash
     set -euo pipefail

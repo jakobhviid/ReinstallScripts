@@ -1,18 +1,11 @@
 # shellcheck shell=bash
-# Logging helpers, y/N confirmation prompt, interactive numbered picker.
-# Sourced by install-bazzite.sh and the Linux/justfile recipes.
+# Logging helpers + interactive menu picker.
+# Sourced by Mac/justfile recipes.
 
 info()  { printf '\033[1;34m▸ %s\033[0m\n' "$*"; }
 ok()    { printf '\033[1;32m✓ %s\033[0m\n' "$*"; }
 warn()  { printf '\033[1;33m⚠ %s\033[0m\n' "$*"; }
 err()   { printf '\033[1;31m✗ %s\033[0m\n' "$*"; }
-
-# confirm "Prompt" — default No. Returns 0 if user types y/Y (anything starting with y).
-confirm() {
-    local ans
-    read -rp "$1 [y/N] " ans
-    [[ "$ans" =~ ^[Yy] ]]
-}
 
 # pick_choice "Prompt: " choice1 choice2 ... — print numbered menu to stderr,
 # read selection from stdin, echo the chosen value to stdout. User may enter

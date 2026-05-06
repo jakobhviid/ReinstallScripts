@@ -1,10 +1,10 @@
 # Mac setup recipes — run from the Mac/ directory
 
 # List available machines (Brewfile.* without the prefix)
-_machines := `ls Brewfile.* 2>/dev/null | sed 's/Brewfile\.//' | tr '\n' ' '`
+_machines := `ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//' | tr '\n' ' '`
 
-# List available profiles (*.mobileconfig without the extension)
-_profiles := `ls *.mobileconfig 2>/dev/null | sed 's/\.mobileconfig//' | tr '\n' ' '`
+# List available profiles (assets/*.mobileconfig without the extension/path)
+_profiles := `ls assets/*.mobileconfig 2>/dev/null | xargs -n1 basename | sed 's/\.mobileconfig//' | tr '\n' ' '`
 
 # Show available commands
 default:
@@ -23,29 +23,22 @@ default:
 # Install Homebrew packages from a machine's Brewfile
 install machine="":
     #!/usr/bin/env zsh
+    source "{{justfile_directory()}}/lib/common.sh"
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
-        choices=( $(ls Brewfile.* 2>/dev/null | sed 's/Brewfile\.//') )
-        echo "Available machines:"
-        for i in {1..${#choices[@]}}; do echo "  $i) $choices[$i]"; done
-        echo -n "Pick a machine (number or name): "
-        read choice
-        if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#choices[@]} )); then
-            machine="$choices[$choice]"
-        else
-            machine="$choice"
-        fi
+        choices=( $(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//') )
+        machine=$(pick_choice "Pick a machine (number or name): " "${choices[@]}")
     fi
     if [[ -z "$machine" ]]; then
-        echo "No machine selected, exiting."
+        warn "No machine selected, exiting."
         exit 0
     fi
-    if [[ ! -f "Brewfile.$machine" ]]; then
-        echo "Error: Brewfile.$machine not found"
+    if [[ ! -f "brewfiles/Brewfile.$machine" ]]; then
+        err "brewfiles/Brewfile.$machine not found"
         exit 1
     fi
-    echo "Installing from Brewfile.$machine..."
-    brew bundle --file="Brewfile.$machine"
+    info "Installing from brewfiles/Brewfile.$machine..."
+    brew bundle --file="brewfiles/Brewfile.$machine"
 
     just zsh
     just profile brave-debloat
@@ -53,90 +46,70 @@ install machine="":
 # Dump current Homebrew state to a Brewfile (or create a new one)
 backup machine="":
     #!/usr/bin/env zsh
+    source "{{justfile_directory()}}/lib/common.sh"
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
-        choices=( $(ls Brewfile.* 2>/dev/null | sed 's/Brewfile\.//') )
-        echo "Existing machines:"
-        for i in {1..${#choices[@]}}; do echo "  $i) $choices[$i]"; done
-        echo -n "Pick a machine (number, name, or new name): "
-        read choice
-        if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#choices[@]} )); then
-            machine="$choices[$choice]"
-        else
-            machine="$choice"
-        fi
+        choices=( $(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//') )
+        machine=$(pick_choice "Pick a machine (number, name, or new name): " "${choices[@]}")
     fi
     if [[ -z "$machine" ]]; then
-        echo "No machine selected, exiting."
+        warn "No machine selected, exiting."
         exit 0
     fi
-    if [[ -f "Brewfile.$machine" ]]; then
-        echo "Overwriting Brewfile.$machine..."
+    mkdir -p brewfiles
+    if [[ -f "brewfiles/Brewfile.$machine" ]]; then
+        info "Overwriting brewfiles/Brewfile.$machine..."
     else
-        echo "Creating new Brewfile.$machine..."
+        info "Creating new brewfiles/Brewfile.$machine..."
     fi
-    brew bundle dump --file="Brewfile.$machine" --force --no-vscode
-    echo "Done. Saved to Brewfile.$machine"
+    brew bundle dump --file="brewfiles/Brewfile.$machine" --force --no-vscode
+    ok "Saved to brewfiles/Brewfile.$machine"
 
-# Install a macOS configuration profile (.mobileconfig)
+# Install a macOS configuration profile (assets/<name>.mobileconfig)
 profile name="":
     #!/usr/bin/env zsh
+    source "{{justfile_directory()}}/lib/common.sh"
     name="{{name}}"
     if [[ -z "$name" ]]; then
-        choices=( $(ls *.mobileconfig 2>/dev/null | sed 's/\.mobileconfig//') )
-        echo "Available profiles:"
-        for i in {1..${#choices[@]}}; do echo "  $i) $choices[$i]"; done
-        echo -n "Pick a profile (number or name): "
-        read choice
-        if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#choices[@]} )); then
-            name="$choices[$choice]"
-        else
-            name="$choice"
-        fi
+        choices=( $(ls assets/*.mobileconfig 2>/dev/null | xargs -n1 basename | sed 's/\.mobileconfig//') )
+        name=$(pick_choice "Pick a profile (number or name): " "${choices[@]}")
     fi
     if [[ -z "$name" ]]; then
-        echo "No profile selected, exiting."
+        warn "No profile selected, exiting."
         exit 0
     fi
-    file="${name}.mobileconfig"
+    file="assets/${name}.mobileconfig"
     if [[ ! -f "$file" ]]; then
-        echo "Error: $file not found"
+        err "$file not found"
         exit 1
     fi
-    echo "Installing profile $file..."
+    info "Installing profile $file..."
     open "$file"
 
 # Uninstall packages not listed in a machine's Brewfile
 cleanup machine="":
     #!/usr/bin/env zsh
+    source "{{justfile_directory()}}/lib/common.sh"
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
-        choices=( $(ls Brewfile.* 2>/dev/null | sed 's/Brewfile\.//') )
-        echo "Available machines:"
-        for i in {1..${#choices[@]}}; do echo "  $i) $choices[$i]"; done
-        echo -n "Pick a machine (number or name): "
-        read choice
-        if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#choices[@]} )); then
-            machine="$choices[$choice]"
-        else
-            machine="$choice"
-        fi
+        choices=( $(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//') )
+        machine=$(pick_choice "Pick a machine (number or name): " "${choices[@]}")
     fi
     if [[ -z "$machine" ]]; then
-        echo "No machine selected, exiting."
+        warn "No machine selected, exiting."
         exit 0
     fi
-    if [[ ! -f "Brewfile.$machine" ]]; then
-        echo "Error: Brewfile.$machine not found"
+    if [[ ! -f "brewfiles/Brewfile.$machine" ]]; then
+        err "brewfiles/Brewfile.$machine not found"
         exit 1
     fi
-    output=$(brew bundle cleanup --file="Brewfile.$machine" --formula --cask --tap --mas 2>&1)
+    output=$(brew bundle cleanup --file="brewfiles/Brewfile.$machine" --formula --cask --tap --mas 2>&1)
     if [[ -z "$output" ]]; then
-        echo "Brewfile.$machine is in sync — nothing to clean up."
+        ok "brewfiles/Brewfile.$machine is in sync — nothing to clean up."
         exit 0
     fi
     section=""
-    echo "Not in Brewfile.$machine:"
+    echo "Not in brewfiles/Brewfile.$machine:"
     echo "$output" | while IFS= read -r line; do
         if [[ "$line" == "Would uninstall casks:"* ]]; then
             section="casks"; echo ""; echo "  Casks:"
@@ -162,7 +135,7 @@ cleanup machine="":
     done
     echo ""
     echo "To uninstall these:"
-    echo "  brew bundle cleanup --file=Brewfile.$machine --formula --cask --tap --mas --force"
+    echo "  brew bundle cleanup --file=brewfiles/Brewfile.$machine --formula --cask --tap --mas --force"
 
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
@@ -206,7 +179,7 @@ zsh:
 
     brew_prefix="$(brew --prefix)"
     chmod -R go-w "$brew_prefix/share" "$brew_prefix/share/zsh" 2>/dev/null || true
-    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/zshrc.template" > ~/.zshrc
+    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/assets/zshrc.template" > ~/.zshrc
     mkdir -p ~/.config
     cp "{{justfile_directory()}}/../shared/starship.toml" ~/.config/starship.toml
     cp "{{justfile_directory()}}/../shared/tmux.conf" ~/.tmux.conf

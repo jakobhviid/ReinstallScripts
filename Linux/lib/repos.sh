@@ -27,23 +27,6 @@ gpgkey=https://downloads.1password.com/linux/keys/1password.asc
 EOF
             fi
             ;;
-        code)
-            # Still used by install-fedora-workstation.sh (layered dnf install).
-            # Bazzite installs VSCode as a brew cask via lib/install.sh instead.
-            if [[ ! -f /etc/yum.repos.d/vscode.repo ]]; then
-                info "Adding VS Code repository"
-                sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-                sudo tee /etc/yum.repos.d/vscode.repo >/dev/null <<'EOF'
-[code]
-name=Visual Studio Code
-baseurl=https://packages.microsoft.com/yumrepos/vscode
-enabled=1
-type=rpm-md
-gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc
-EOF
-            fi
-            ;;
         proton-vpn-gnome-desktop)
             if [[ ! -f /etc/yum.repos.d/protonvpn-stable.repo ]]; then
                 info "Adding Proton VPN repository"

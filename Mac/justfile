@@ -66,17 +66,11 @@ backup machine="":
     brew bundle dump --file="brewfiles/Brewfile.$machine" --force --no-vscode
     ok "Saved to brewfiles/Brewfile.$machine"
 
-# Apply Brave debloat profile + Cmd+W keyboard workaround (intermittent Chromium bug; -dict-add merges into NSUserKeyEquivalents instead of overwriting).
+# Apply the Brave debloat profile + Cmd+W keyboard workaround. Thin wrapper — calls 'just profile brave-debloat' which carries the keybinding fix as a pre-install step.
 brave:
-    #!/usr/bin/env zsh
-    source "{{justfile_directory()}}/lib/common.sh"
-    info "Installing Brave debloat profile..."
-    open "{{justfile_directory()}}/assets/brave-debloat.mobileconfig"
-    info "Rebinding Brave's 'Close Window' to Cmd+Shift+W..."
-    defaults write com.brave.Browser NSUserKeyEquivalents -dict-add "Close Window" '@$w'
-    ok "Brave configured — restart Brave for the keyboard rebinding to take effect"
+    just profile brave-debloat
 
-# Install a macOS configuration profile (assets/<name>.mobileconfig)
+# Install a macOS configuration profile (assets/<name>.mobileconfig). Some profiles carry pre-install companion steps (e.g. brave-debloat applies a Cmd+W keybinding fix).
 profile name="":
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
@@ -94,6 +88,22 @@ profile name="":
         err "$file not found"
         exit 1
     fi
+
+    # Pre-install companion steps run BEFORE 'open' — System Settings →
+    # Profiles is user-blocking, so anything we want done without waiting
+    # on a click-through has to happen here.
+    case "$name" in
+        brave-debloat)
+            # Workaround for an intermittent Chromium bug where Brave's File
+            # menu loses the 'Close Tab' item and 'Close Window' steals ⌘W.
+            # -dict-add merges into NSUserKeyEquivalents instead of clobbering
+            # any other App Shortcuts you've configured. Restart Brave for it
+            # to take effect.
+            info "Rebinding Brave's 'Close Window' to ⌘⇧W..."
+            defaults write com.brave.Browser NSUserKeyEquivalents -dict-add "Close Window" '@$w'
+            ;;
+    esac
+
     info "Installing profile $file..."
     open "$file"
 

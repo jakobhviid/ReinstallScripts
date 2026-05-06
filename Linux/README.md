@@ -32,7 +32,6 @@ Linux/
 │   ├── repos.sh                          ← per-package custom RPM repo setup
 │   └── config.sh                         ← all run_config_* (brave/1password/desktop/etc.)
 ├── justfile                              ← install/backup/cleanup + zsh + dconf snapshot recipes
-├── Bazzite.md                            ← long-form notes for first-time Bazzite bring-up
 └── README.md
 ```
 
@@ -99,3 +98,38 @@ just backup mynewbox                      # creates brewfiles/Brewfile.mynewbox
 ## Per-machine variation
 
 Like the Mac side, Brewfiles diverge per machine. The system-layer arrays in `install-bazzite.sh` (`RPM_PACKAGES`, `GNOME_EXTENSIONS`) currently apply uniformly — split them out per machine if the divergence matters.
+
+## Manual extras
+
+Things the install flow doesn't do for you — run by hand on a fresh machine when you actually need them.
+
+### Kiro CLI
+
+Anthropic-style coding agent CLI from AWS. One-shot installer, not in the Brewfile.
+
+```sh
+curl -fsSL https://cli.kiro.dev/install | bash
+```
+
+### Newelle (immutable-host config)
+
+Newelle is a GTK4 LLM client. On Bazzite the Flatpak sandbox can't reach the host shell out of the box — the install adds the Flatpak but you still need to grant `flatpak-spawn` permission and disable Newelle's "Command Virtualization" toggle if you want it to run host commands.
+
+```sh
+flatpak override --user io.github.qwersyk.Newelle \
+  --talk-name=org.freedesktop.Flatpak --filesystem=home
+```
+
+In Newelle: **Settings → General → Neural Network Control → Command Virtualization OFF**, then point the system prompt at Toolbox for any package work:
+
+> "You are an AI assistant on Fedora Silverblue. The host is immutable. Use `flatpak-spawn --host` for host commands and `toolbox run` for package installs. Access files via the home directory."
+
+### GNOME extensions bundled with Bazzite
+
+Bazzite ships these enabled — don't add them to `GNOME_EXTENSIONS`:
+
+- Add to Steam, Hot Edge (disable if using Dash to Panel/Dock), Restart To, Compiz alike magic lamp, Blur my Shell, AppIndicator + KStatusNotifierItem, Caffeine, GSConnect
+
+Bundled but disabled by default — turn on via Extension Manager if wanted:
+
+- Compiz windows effect, Desktop Cube, Burn my Windows

@@ -26,7 +26,6 @@ Linux/
 ├── assets/                            ← deployable data (zshrc template, dconf snapshots, brave policy, EQ, PWAs, icons)
 ├── lib/{common,install,repos,config}.sh
 ├── justfile                           ← install / backup / cleanup / zsh / speaker-eq / brave / *-backup
-├── Bazzite.md                         ← long-form notes for first-time bring-up
 └── README.md
 
 Windows/

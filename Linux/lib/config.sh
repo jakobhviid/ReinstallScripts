@@ -86,11 +86,15 @@ run_config_desktop_overrides() {
 
     for row in "${overrides[@]}"; do
         IFS='|' read -r name src icon <<<"$row"
-        if [[ ! -f "$src" ]]; then
-            warn "Skipping $name — source $src not found"
-            continue
+        # If the user-level file is already there (brew casks deposit some
+        # straight into ~/.local/share/applications), skip the copy step.
+        if [[ ! -f "$app_dir/$name" ]]; then
+            if [[ ! -f "$src" ]]; then
+                warn "Skipping $name — no $app_dir/$name and no $src"
+                continue
+            fi
+            cp "$src" "$app_dir/$name"
         fi
-        [[ -f "$app_dir/$name" ]] || cp "$src" "$app_dir/$name"
         sed -i "s|^Icon=.*|Icon=$icon_dir/$icon|" "$app_dir/$name"
     done
 
@@ -221,4 +225,45 @@ run_config_audio() {
         systemctl --user restart wireplumber pipewire pipewire-pulse
         ok "Audio device names configured"
     fi
+}
+
+# Drop stale singleton/lock files at login so apps with crash-survivor locks
+# (Brave's SingletonLock, Nextcloud's kdsingleapplication socket) start cleanly.
+# %u expands to the running user — no jakob hardcoding.
+run_config_unlock_services() {
+    info "Installing user-level unlock services"
+
+    local unit_dir="$HOME/.config/systemd/user"
+    mkdir -p "$unit_dir"
+
+    cat >"$unit_dir/brave-unlock.service" <<'EOF'
+[Unit]
+Description=Remove stale Brave profile singleton lock at login
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/rm -f %h/.config/BraveSoftware/Brave-Browser/SingletonLock %h/.config/BraveSoftware/Brave-Browser/SingletonCookie %h/.config/BraveSoftware/Brave-Browser/SingletonSocket
+
+[Install]
+WantedBy=default.target
+EOF
+
+    cat >"$unit_dir/nextcloud-unlock.service" <<'EOF'
+[Unit]
+Description=Remove stale Nextcloud kdsingleapplication lock at login
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/rm -f %h/.var/app/com.nextcloud.desktopclient.nextcloud/cache/tmp/kdsingleapp-%u-nextcloud %h/.var/app/com.nextcloud.desktopclient.nextcloud/cache/tmp/kdsingleapp-%u-nextcloud.lock
+
+[Install]
+WantedBy=default.target
+EOF
+
+    systemctl --user daemon-reload
+    systemctl --user enable brave-unlock.service nextcloud-unlock.service &>/dev/null
+
+    ok "Unlock services installed and enabled"
 }

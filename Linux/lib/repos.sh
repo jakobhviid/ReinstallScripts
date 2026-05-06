@@ -28,6 +28,8 @@ EOF
             fi
             ;;
         code)
+            # Still used by install-fedora-workstation.sh (layered dnf install).
+            # Bazzite installs VSCode as a brew cask via lib/install.sh instead.
             if [[ ! -f /etc/yum.repos.d/vscode.repo ]]; then
                 info "Adding VS Code repository"
                 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc

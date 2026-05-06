@@ -18,6 +18,7 @@ is_cli_installed() {
         brew)      command -v brew &>/dev/null || [[ -d /home/linuxbrew/.linuxbrew ]] ;;
         zsh-setup) [[ -f "$HOME/.zshrc" ]] && command -v brew &>/dev/null && brew list starship &>/dev/null ;;
         claude)    command -v claude &>/dev/null ;;
+        code)      command -v brew &>/dev/null && brew list --cask visual-studio-code-linux &>/dev/null ;;
     esac
 }
 
@@ -81,6 +82,10 @@ install_cli_tool() {
         claude)
             brew install claude-code
             ;;
+        code)
+            brew tap ublue-os/tap
+            brew install --cask visual-studio-code-linux
+            ;;
     esac
 }
 
@@ -94,6 +99,9 @@ uninstall_cli_tool() {
             ;;
         claude)
             brew uninstall claude-code 2>/dev/null || true
+            ;;
+        code)
+            brew uninstall --cask visual-studio-code-linux 2>/dev/null || true
             ;;
     esac
 }

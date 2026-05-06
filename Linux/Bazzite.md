@@ -30,16 +30,8 @@ repo_gpgcheck=1
 gpgkey=https://downloads.1password.com/linux/keys/1password.asc
 EOF
 
-# VS Code repo (Microsoft) — repo file only; no rpm --import on an rpm-ostree host
-sudo tee /etc/yum.repos.d/vscode.repo >/dev/null <<'EOF'
-[code]
-name=Visual Studio Code
-baseurl=https://packages.microsoft.com/yumrepos/vscode
-enabled=1
-type=rpm-md
-gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc
-EOF
+# VS Code is installed as a brew cask (ublue-os/tap → visual-studio-code-linux),
+# not layered. See section 4 (CLI & Developer Tools) below.
 
 # Proton VPN repo (Atomic-friendly: key is stored as a file and referenced via file://)
 FEDORA_RELEASE="$(rpm -E %fedora)"
@@ -71,17 +63,15 @@ sudo rpm-ostree install \
   podman-compose \
   brave-browser \
   1password \
-  code \
   proton-vpn-gnome-desktop \
   gnome-shell-extension-dash-to-panel \
   gnome-shell-extension-dash-to-dock \
   zsh \
   libgda \
   libgda-sqlite \
-  piper \
   claude-desktop
-  
-# removed: docker-compose \ vivaldi-stable \ nodejs \ nodejs-npm \
+
+# removed: docker-compose \ vivaldi-stable \ nodejs \ nodejs-npm \ code (→ brew cask) \ piper (→ Flatpak)
 ```
 
 On Silverblue, also install these GNOME extensions (they come standard on Bazzite):
@@ -238,6 +228,17 @@ curl -fsSL https://cli.kiro.dev/install | bash
 ```sh
 brew install claude-code
 ```
+
+### VS Code (uBlue cask, not layered)
+
+```sh
+brew tap ublue-os/tap
+brew install --cask visual-studio-code-linux
+```
+
+The cask deposits `code.desktop` straight into `~/.local/share/applications/`,
+so the icon-swap step in `lib/config.sh` themes it the same way as the
+formerly-layered version did.
 
 ---
 

@@ -11,6 +11,8 @@ default:
     @echo "  just install [machine]   Run install-bazzite.sh with the given machine's Brewfile"
     @echo "  just backup [machine]    Dump current Homebrew + Flatpak state to Brewfile.<machine>"
     @echo "  just drift [machine]     Show what's out of sync with the repo (read-only)"
+    @echo "  just reconcile [machine] Interactively add extras / drop missing from a machine's Brewfile"
+    @echo "  just prune [machine]     Uninstall packages not in a machine's Brewfile (asks first)"
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
     @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
     @echo "  just brave               Deploy Brave browser policy"
@@ -89,8 +91,7 @@ drift machine="":
     here="{{justfile_directory()}}"
 
     # ── zsh templates ──────────────────────────────────────────────────
-    echo
-    echo "zsh"
+    section "zsh"
     rendered=$(mktemp)
     sed "s|BREW_PREFIX|$brew_prefix|g" "$here/assets/zshrc.template" > "$rendered"
     zd=0
@@ -101,30 +102,28 @@ drift machine="":
     do
         src="${pair%%:*}"; dst="${pair#*:}"; label="${dst/#$HOME/~}"
         if [[ ! -f "$dst" ]]; then
-            printf '  %-30s ✗ missing\n' "$label"; zd=1
+            fail_line "$label (missing)"; zd=1
         elif diff -q "$src" "$dst" >/dev/null 2>&1; then
-            printf '  %-30s ✓\n' "$label"
+            ok_line "$label"
         else
             n=$(diff "$src" "$dst" 2>/dev/null | grep -c '^[<>]' || true)
-            printf '  %-30s ✗ %d lines differ\n' "$label" "$n"; zd=1
+            fail_line "$label ($n lines differ)"; zd=1
         fi
     done
     rm -f "$rendered"
-    (( zd )) && fixes+=("zsh             → just zsh")
+    (( zd )) && fixes+=("re-template ~/.zshrc, starship.toml, tmux.conf|just zsh")
 
     # ── default shell ──────────────────────────────────────────────────
-    echo
-    echo "default shell"
+    section "default shell"
     if [[ "$(basename "$SHELL")" == "zsh" ]]; then
-        printf '  ✓ %s\n' "$SHELL"
+        ok_line "$SHELL"
     else
-        printf '  ✗ %s (expected zsh)\n' "$SHELL"
-        fixes+=("default shell   → chsh -s \$(which zsh)")
+        fail_line "$SHELL (expected zsh)"
+        fixes+=("switch login shell to zsh|chsh -s \$(which zsh)")
     fi
 
     # ── git identity ───────────────────────────────────────────────────
-    echo
-    echo "git identity"
+    section "git identity"
     declare -A git_expected=(
         [user.name]="Jakob Hviid, PhD"
         [user.email]="jakob@hviid.phd"
@@ -134,21 +133,20 @@ drift machine="":
     for k in user.name user.email pull.rebase; do
         actual=$(git config --global "$k" 2>/dev/null || true)
         if [[ "$actual" == "${git_expected[$k]}" ]]; then
-            printf '  %-30s ✓\n' "$k"
+            ok_line "$k"
         else
-            printf '  %-30s ✗ %s (expected %s)\n' "$k" "${actual:-<unset>}" "${git_expected[$k]}"
+            fail_line "$k = ${actual:-<unset>} (expected ${git_expected[$k]})"
             gd=1
         fi
     done
-    (( gd )) && fixes+=("git identity    → just zsh")
+    (( gd )) && fixes+=("set git config (user.name, user.email, pull.rebase)|just zsh")
 
     # ── brave policy ───────────────────────────────────────────────────
-    echo
-    echo "brave (policy file)"
+    section "brave (policy file)"
     managed="/etc/brave/policies/managed/brave-policy.json"
     bd=0
     if [[ ! -f "$managed" ]]; then
-        printf '  ✗ policy file not deployed (no %s)\n' "$managed"
+        fail_line "policy file not deployed (no $managed)"
         bd=1
     else
         expected=$(jq -S . "$here/assets/brave-policy.json")
@@ -159,35 +157,33 @@ drift machine="":
             "\(.key)\t\(.value | tojson)\t\(($actual[.key] // null) | tojson)"
         ' <<< "$expected")
         if [[ -z "$mismatches" ]]; then
-            printf '  ✓ all keys match\n'
+            ok_line "all keys match"
         else
             while IFS=$'\t' read -r key exp act; do
-                printf '  %-40s ✗ expected=%s actual=%s\n' "$key" "$exp" "$act"
+                fail_line "$key (expected $exp, actual $act)"
             done <<< "$mismatches"
             bd=1
         fi
     fi
-    (( bd )) && fixes+=("brave           → just brave")
+    (( bd )) && fixes+=("re-deploy Brave policy|just brave")
 
     # ── rpm-ostree layered packages ────────────────────────────────────
-    echo
-    echo "rpm-ostree layered packages"
+    section "rpm-ostree layered packages"
     mapfile -t expected_rpms < <(awk '/^RPM_PACKAGES=\(/,/^\)/' "$here/install-bazzite.sh" | grep -oE '"[^"]+"' | tr -d '"')
     missing_rpms=()
     for pkg in "${expected_rpms[@]}"; do
         rpm -q "$pkg" &>/dev/null || missing_rpms+=("$pkg")
     done
     if (( ${#missing_rpms[@]} == 0 )); then
-        printf '  ✓ all %d expected packages installed (per RPM_PACKAGES in install-bazzite.sh)\n' "${#expected_rpms[@]}"
+        ok_line "all ${#expected_rpms[@]} expected packages installed (per RPM_PACKAGES in install-bazzite.sh)"
     else
-        printf '  ✗ %d expected packages not installed (RPM_PACKAGES in install-bazzite.sh):\n' "${#missing_rpms[@]}"
+        fail_line "${#missing_rpms[@]} expected packages not installed (RPM_PACKAGES in install-bazzite.sh):"
         printf '      %s\n' "${missing_rpms[@]}"
-        fixes+=("rpm-ostree      → ./install-bazzite.sh $machine")
+        fixes+=("install missing system packages|./install-bazzite.sh $machine")
     fi
 
     # ── brewfile ───────────────────────────────────────────────────────
-    echo
-    echo "brewfile (Brewfile.$machine)"
+    section "brewfile (Brewfile.$machine)"
     bf="brewfiles/Brewfile.$machine"
     bfd=0
 
@@ -231,36 +227,203 @@ drift machine="":
         esac
     done < <(grep -vE '^\s*#|^\s*$' "$bf")
 
+    bf_missing=0 bf_extras=0
     if (( ${#missing_bf[@]} == 0 )); then
-        printf '  ✓ all Brewfile entries installed\n'
+        ok_line "all Brewfile entries installed"
     else
-        printf '  ✗ %d Brewfile entries not installed on this machine:\n' "${#missing_bf[@]}"
+        fail_line "${#missing_bf[@]} Brewfile entries not installed on this machine:"
         printf '      %s\n' "${missing_bf[@]}"
-        bfd=1
+        bf_missing=1
     fi
 
     cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
     extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
     if [[ -z "$extras" ]]; then
-        printf '  ✓ no extras (everything installed is in the Brewfile)\n'
+        ok_line "no extras (everything installed is in the Brewfile)"
     else
         n=$(echo "$extras" | wc -l | tr -d ' ')
-        printf '  ✗ %s packages installed but not in the Brewfile:\n' "$n"
+        fail_line "$n packages installed but not in the Brewfile:"
         echo "$extras" | sed 's/^/      /'
-        bfd=1
+        bf_extras=1
     fi
-    (( bfd )) && {
-        fixes+=("brewfile        → brew bundle install --file=$bf   (missing)")
-        fixes+=("                → brew bundle cleanup --file=$bf --formula --cask --tap --force   (extras)")
-    }
+    (( bf_missing )) && fixes+=("install Brewfile entries that are missing on this machine|brew bundle install --file=$bf")
+    (( bf_extras ))  && fixes+=("uninstall packages not in the Brewfile (asks first)|just prune $machine")
+    (( bf_missing || bf_extras )) && fixes+=("interactively pick which extras to add and which missing entries to drop from the Brewfile|just reconcile $machine")
+    (( bf_missing || bf_extras )) && fixes+=("save this machine's current state to the Brewfile (captures extras, drops missing entries, full overwrite)|just backup $machine")
 
     # ── Summary ────────────────────────────────────────────────────────
-    echo
-    echo "Summary"
+    section "Summary"
     if (( ${#fixes[@]} == 0 )); then
         ok "Everything in sync."
     else
-        printf '  %s\n' "${fixes[@]}"
+        for fix in "${fixes[@]}"; do
+            action_line "${fix%%|*}" "${fix#*|}"
+        done
+    fi
+
+# Interactively add extras / drop missing entries from a machine's Brewfile. For each diff item, asks y/N; shows a diff and asks for final confirmation before writing. Note: flatpak extras aren't detected (brew bundle cleanup ignores them); add those manually.
+reconcile machine="":
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
+        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
+    fi
+    if [[ -z "$machine" ]]; then
+        warn "No machine selected, exiting."
+        exit 0
+    fi
+    bf="brewfiles/Brewfile.$machine"
+    if [[ ! -f "$bf" ]]; then
+        err "$bf not found — run 'just backup $machine' first to create it."
+        exit 1
+    fi
+
+    casks_installed=$(brew list --cask 2>/dev/null || true)
+    formulae_installed=$(brew list --formula 2>/dev/null || true)
+    taps_installed=$(brew tap 2>/dev/null || true)
+    flatpaks_installed=""
+    command -v flatpak &>/dev/null && flatpaks_installed=$(flatpak list --app --columns=application 2>/dev/null || true)
+
+    declare -a missing_lines=()
+    while IFS= read -r line; do
+        case "$line" in
+            'brew '*)
+                name=$(echo "$line" | sed -E 's/^brew "([^"]+)".*/\1/')
+                echo "$formulae_installed" | grep -qFx "$name" || missing_lines+=("$line")
+                ;;
+            'cask '*)
+                name=$(echo "$line" | sed -E 's/^cask "([^"]+)".*/\1/')
+                echo "$casks_installed" | grep -qFx "$name" || missing_lines+=("$line")
+                ;;
+            'tap '*)
+                name=$(echo "$line" | sed -E 's/^tap "([^"]+)".*/\1/')
+                echo "$taps_installed" | grep -qFx "$name" || missing_lines+=("$line")
+                ;;
+            'flatpak '*)
+                appid=$(echo "$line" | sed -E 's/^flatpak "([^"]+)".*/\1/')
+                if [[ -n "$flatpaks_installed" ]]; then
+                    echo "$flatpaks_installed" | grep -qFx "$appid" || missing_lines+=("$line")
+                fi
+                ;;
+        esac
+    done < <(grep -vE '^\s*#|^\s*$' "$bf")
+
+    cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
+    extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
+    declare -a extras_typed=()
+    if [[ -n "$extras" ]]; then
+        while IFS= read -r pkg; do
+            [[ -z "$pkg" ]] && continue
+            if echo "$casks_installed" | grep -qFx "$pkg"; then
+                extras_typed+=("cask|$pkg")
+            elif echo "$formulae_installed" | grep -qFx "$pkg"; then
+                extras_typed+=("brew|$pkg")
+            else
+                warn "skipping $pkg (can't determine type — not a cask or formula)"
+            fi
+        done <<< "$extras"
+    fi
+
+    if (( ${#missing_lines[@]} == 0 && ${#extras_typed[@]} == 0 )); then
+        ok "$bf is already in sync. Nothing to reconcile."
+        exit 0
+    fi
+
+    declare -a to_drop=() to_add=()
+
+    if (( ${#missing_lines[@]} > 0 )); then
+        section "Brewfile entries NOT installed on this machine"
+        echo "  (drop = remove this line from the Brewfile because you no longer want it)"
+        echo
+        for line in "${missing_lines[@]}"; do
+            printf '  Drop  %-50s  [y/N] ' "$line"
+            read -r ans
+            [[ "$ans" =~ ^[Yy] ]] && to_drop+=("$line")
+        done
+    fi
+
+    if (( ${#extras_typed[@]} > 0 )); then
+        section "Packages installed but NOT in the Brewfile"
+        echo "  (add = track this package in the Brewfile going forward)"
+        echo
+        for entry in "${extras_typed[@]}"; do
+            type="${entry%%|*}"; pkg="${entry#*|}"
+            new_line="$type \"$pkg\""
+            printf '  Add   %-50s  [y/N] ' "$new_line"
+            read -r ans
+            [[ "$ans" =~ ^[Yy] ]] && to_add+=("$new_line")
+        done
+    fi
+
+    if (( ${#to_drop[@]} == 0 && ${#to_add[@]} == 0 )); then
+        warn "No changes selected. $bf unchanged."
+        exit 0
+    fi
+
+    new_bf=$(mktemp)
+    while IFS= read -r line; do
+        skip=0
+        for d in "${to_drop[@]}"; do
+            [[ "$line" == "$d" ]] && skip=1 && break
+        done
+        (( skip )) || echo "$line" >> "$new_bf"
+    done < "$bf"
+    for line in "${to_add[@]}"; do
+        echo "$line" >> "$new_bf"
+    done
+
+    section "Proposed changes to $bf"
+    diff -u --label "$bf" --label "$bf (proposed)" "$bf" "$new_bf" || true
+
+    echo
+    printf 'Apply these changes? [y/N] '
+    read -r ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+        mv "$new_bf" "$bf"
+        ok "Updated $bf"
+    else
+        rm -f "$new_bf"
+        warn "Aborted. $bf unchanged."
+    fi
+
+# Uninstall packages installed on this machine but not listed in the machine's Brewfile. Lists what would go, asks first, then runs brew bundle cleanup --force.
+prune machine="":
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
+        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
+    fi
+    if [[ -z "$machine" ]]; then
+        warn "No machine selected, exiting."
+        exit 0
+    fi
+    bf="brewfiles/Brewfile.$machine"
+    if [[ ! -f "$bf" ]]; then
+        err "$bf not found"
+        exit 1
+    fi
+
+    cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
+    if [[ -z "$cleanup_out" ]] || ! echo "$cleanup_out" | grep -qE '^Would uninstall|^[a-z]'; then
+        ok "Nothing to prune. $bf is in sync with the machine."
+        exit 0
+    fi
+    info "Packages that would be uninstalled (not listed in $bf):"
+    echo "$cleanup_out"
+    echo
+    printf 'Uninstall these packages? [y/N] '
+    read -r ans
+    if [[ "$ans" =~ ^[Yy] ]]; then
+        brew bundle cleanup --file="$bf" --formula --cask --tap --force
+        ok "Pruned."
+    else
+        warn "Aborted. Nothing uninstalled."
     fi
 
 # Set up Zsh with plugins, Starship prompt, and configuration

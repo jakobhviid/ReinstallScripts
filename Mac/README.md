@@ -37,6 +37,8 @@ Run from the `Mac/` directory.
 | `just backup <machine>`          | `brew bundle dump` current state into `brewfiles/Brewfile.<machine>`          |
 | `just backup`                    | Interactive — pick existing or type a new machine name                        |
 | `just drift <machine>`           | Show what's out of sync with the repo (zsh templates, brave, git, brewfile, default shell). Read-only — points at the recipes that converge. |
+| `just reconcile <machine>`       | Interactively reconcile a machine's Brewfile with what's installed. Per-item y/N for each extra (add to Brewfile) and each missing entry (drop from Brewfile), then a diff and final confirm before writing. |
+| `just prune <machine>`           | Uninstall packages installed on this machine but not listed in the machine's Brewfile. Lists what would be uninstalled, asks first, then runs `brew bundle cleanup --force`. |
 | `just brave`                     | Apply Brave debloat profile + Cmd+W keyboard workaround                       |
 | `just profile <name>`            | Install `assets/<name>.mobileconfig` (opens System Settings)                  |
 | `just zsh`                       | Re-template `~/.zshrc`, configure git/tmux/starship, install zsh plugins      |

@@ -16,6 +16,16 @@ ok()    { printf '\033[1;32m✓ %s\033[0m\n' "$*"; }
 warn()  { printf '\033[1;33m⚠ %s\033[0m\n' "$*"; }
 err()   { printf '\033[1;31m✗ %s\033[0m\n' "$*"; }
 
+# Drift-style output helpers (used by 'just drift' and similar).
+# Bold section header with breathing room above.
+section()    { printf '\n\033[1m%s\033[0m\n' "$*"; }
+# Indented status lines: green ✓ / red ✗ followed by a label.
+ok_line()    { printf '  \033[1;32m✓\033[0m %s\n' "$*"; }
+fail_line()  { printf '  \033[1;31m✗\033[0m %s\n' "$*"; }
+# Action item for Summary: cyan → + description, then command on next line.
+# Usage: action_line "description of what this does" "the actual command"
+action_line() { printf '  \033[1;36m→\033[0m %s\n    \033[2m%s\033[0m\n' "$1" "$2"; }
+
 # confirm "Prompt" — default No. Returns 0 if user types y/Y (anything starting with y).
 confirm() {
     local ans

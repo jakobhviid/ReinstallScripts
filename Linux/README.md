@@ -52,6 +52,8 @@ Run from the `Linux/` directory.
 | `just install`                   | Interactive — pick a machine from a numbered menu                                            |
 | `just backup <machine>`          | `brew bundle dump` current state into `brewfiles/Brewfile.<machine>`                        |
 | `just drift <machine>`           | Show what's out of sync with the repo (zsh, brave, git, rpm-ostree, brewfile, default shell). Read-only — points at the recipes that converge. |
+| `just reconcile <machine>`       | Interactively reconcile a machine's Brewfile with what's installed. Per-item y/N for each extra (add to Brewfile) and each missing entry (drop from Brewfile), then a diff and final confirm before writing. |
+| `just prune <machine>`           | Uninstall packages installed on this machine but not listed in the machine's Brewfile. Lists what would be uninstalled, asks first, then runs `brew bundle cleanup --force`. |
 | `just zsh`                       | Re-template `~/.zshrc`, configure git/tmux/starship, install zsh plugins, set zsh as default |
 | `just speaker-eq`                | Install the PipeWire filter-chain EQ for thin laptop speakers                                |
 | `just brave`                     | Deploy `assets/brave-policy.json` to `/etc/brave/policies/managed/`                          |

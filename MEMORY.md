@@ -129,6 +129,18 @@ every machine gets them.
 - Don't default to "move it to .zshrc.local" when drift is detected. The
   whole point of the templated approach is that good defaults are shared.
 
+### Don't actually run destructive recipes on Jakob's machine while testing
+
+When verifying a recipe that uninstalls packages, removes profiles, modifies system state, or otherwise has a destructive blast radius, never let it actually execute the destructive step. Pipe `n` to the confirmation prompt, or use a dry-run path that doesn't touch state.
+
+**Why:** Jakob said: "remember not to actually remove stuff on my machine." Test runs can quietly turn into real work-loss if a confirmation prompt is bypassed or a flag flipped. He wants verification, not state changes, when the task is "build this recipe and confirm it works."
+
+**How to apply:**
+- For any recipe that calls `brew uninstall`, `brew bundle cleanup --force`, `dconf load`, `chsh`, `defaults write`, profile install/remove, `rm`, `git reset`, etc., the test invocation must end without the destructive line firing.
+- Pipe `n` to confirmations (`echo n | just <recipe>`). Verify the recipe printed the dry-run preview and exited at the prompt.
+- If the recipe has no built-in confirmation, do not run it. Read the code, reason about the output, run an isolated dry-run (e.g. `brew bundle cleanup` without `--force` to preview).
+- Surface in the response that nothing was actually changed, so Jakob can verify.
+
 ### Only commit when explicitly asked
 
 Never create git commits unless Jakob explicitly asks for one ("commit",

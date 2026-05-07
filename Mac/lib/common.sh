@@ -2,6 +2,15 @@
 # Logging helpers + interactive menu picker.
 # Sourced by Mac/justfile recipes.
 
+# Bail fast if sourced on a non-macOS host. Without this, you'd see
+# obscure errors (zsh-only syntax breaking on Linux, or the recipe
+# silently doing macOS-specific things on the wrong OS).
+if [[ "$(uname)" != "Darwin" ]]; then
+    printf '\033[1;31m✗ Mac/justfile is for macOS. Detected: %s\033[0m\n' "$(uname)" >&2
+    printf '  You probably want the Linux/ directory on this host.\n' >&2
+    exit 1
+fi
+
 info()  { printf '\033[1;34m▸ %s\033[0m\n' "$*"; }
 ok()    { printf '\033[1;32m✓ %s\033[0m\n' "$*"; }
 warn()  { printf '\033[1;33m⚠ %s\033[0m\n' "$*"; }

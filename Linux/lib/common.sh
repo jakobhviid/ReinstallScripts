@@ -2,6 +2,15 @@
 # Logging helpers, y/N confirmation prompt, interactive numbered picker.
 # Sourced by install-bazzite.sh and the Linux/justfile recipes.
 
+# Bail fast if sourced on a non-Linux host. Without this, you'd see
+# obscure errors (mapfile not found on Mac's bash 3.2, etc.) when the
+# wrong directory's just recipes are run.
+if [[ "$(uname)" != "Linux" ]]; then
+    printf '\033[1;31m✗ Linux/justfile is for Linux. Detected: %s\033[0m\n' "$(uname)" >&2
+    printf '  You probably want the Mac/ directory on this host.\n' >&2
+    exit 1
+fi
+
 info()  { printf '\033[1;34m▸ %s\033[0m\n' "$*"; }
 ok()    { printf '\033[1;32m✓ %s\033[0m\n' "$*"; }
 warn()  { printf '\033[1;33m⚠ %s\033[0m\n' "$*"; }

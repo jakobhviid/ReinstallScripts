@@ -61,6 +61,17 @@ backup machine="":
         exit 0
     fi
     mkdir -p brewfiles
+    if [[ -L "brewfiles/Brewfile.$machine" ]]; then
+        target=$(readlink "brewfiles/Brewfile.$machine")
+        warn "brewfiles/Brewfile.$machine is a symlink → $target"
+        warn "Dumping follows the link and will overwrite the target file's contents."
+        printf 'Continue? [y/N] '
+        read -r ans
+        if ! [[ "$ans" =~ ^[Yy] ]]; then
+            warn "Aborted. Nothing modified."
+            exit 0
+        fi
+    fi
     if [[ -f "brewfiles/Brewfile.$machine" ]]; then
         info "Overwriting brewfiles/Brewfile.$machine..."
     else

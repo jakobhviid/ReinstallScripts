@@ -120,7 +120,14 @@ drift machine="":
         ok_line "$SHELL"
     else
         fail_line "$SHELL (expected zsh)"
-        fixes+=("switch login shell to zsh|chsh -s \$(which zsh)")
+        # Bazzite (and other atomic Fedora variants) doesn't ship util-linux-user,
+        # so 'chsh' isn't available. The Bazzite docs recommend usermod with the
+        # explicit /usr/bin/zsh path (not $(which zsh)) so the system-shipped
+        # shell is used instead of a Homebrew install that may not persist
+        # across rpm-ostree resets.
+        # Refs: https://universal-blue.discourse.group/t/how-to-change-the-default-shell/3901
+        shell_cmd=$'chsh -s $(which zsh)\n    (atomic desktops like Bazzite: sudo usermod --shell /usr/bin/zsh $USER)'
+        fixes+=("switch login shell to zsh|$shell_cmd")
     fi
 
     # ── git identity ───────────────────────────────────────────────────

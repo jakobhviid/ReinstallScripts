@@ -31,7 +31,7 @@ Linux/
 │   ├── install.sh                        ← detection helpers, CLI bootstrap
 │   ├── repos.sh                          ← per-package custom RPM repo setup
 │   └── config.sh                         ← all run_config_* (brave/1password/desktop/etc.)
-├── justfile                              ← install/backup/cleanup + zsh + dconf snapshot recipes
+├── justfile                              ← install/backup/drift + zsh + dconf snapshot/restore recipes
 └── README.md
 ```
 
@@ -45,12 +45,14 @@ Run from the `Linux/` directory.
 | `just install <machine>`         | Run `install-bazzite.sh <machine>` — full flow                                              |
 | `just install`                   | Interactive — pick a machine from a numbered menu                                            |
 | `just backup <machine>`          | `brew bundle dump` current state into `brewfiles/Brewfile.<machine>`                        |
-| `just cleanup <machine>`         | Show userspace packages installed but not in the machine's Brewfile                          |
+| `just drift <machine>`           | Show what's out of sync with the repo (zsh, brave, git, rpm-ostree, brewfile, default shell). Read-only — points at the recipes that converge. |
 | `just zsh`                       | Re-template `~/.zshrc`, configure git/tmux/starship, install zsh plugins, set zsh as default |
 | `just speaker-eq`                | Install the PipeWire filter-chain EQ for thin laptop speakers                                |
 | `just brave`                     | Deploy `assets/brave-policy.json` to `/etc/brave/policies/managed/`                          |
 | `just gnome-backup`              | Snapshot `/org/gnome/shell/` settings into `assets/gnome/shell.dconf`                        |
+| `just gnome-restore`             | Apply `assets/gnome/shell.dconf` to live `/org/gnome/shell/` (asks first, default no)        |
 | `just ptyxis-backup`             | Snapshot `/org/gnome/Ptyxis/` settings into `assets/ptyxis.dconf`                            |
+| `just ptyxis-restore`            | Apply `assets/ptyxis.dconf` to live `/org/gnome/Ptyxis/` (asks first, default no)            |
 
 ## Install flow
 

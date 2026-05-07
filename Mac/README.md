@@ -33,7 +33,7 @@ Run from the `Mac/` directory.
 | `just install`                   | Interactive — pick a machine from a numbered menu                             |
 | `just backup <machine>`          | `brew bundle dump` current state into `brewfiles/Brewfile.<machine>`          |
 | `just backup`                    | Interactive — pick existing or type a new machine name                        |
-| `just cleanup <machine>`         | Show packages installed but not in the machine's Brewfile                     |
+| `just drift <machine>`           | Show what's out of sync with the repo (zsh templates, brave, git, brewfile, default shell). Read-only — points at the recipes that converge. |
 | `just brave`                     | Apply Brave debloat profile + Cmd+W keyboard workaround                       |
 | `just profile <name>`            | Install `assets/<name>.mobileconfig` (opens System Settings)                  |
 | `just zsh`                       | Re-template `~/.zshrc`, configure git/tmux/starship, install zsh plugins      |

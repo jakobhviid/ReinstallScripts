@@ -13,7 +13,7 @@ default:
     @echo "Commands:"
     @echo "  just install [machine]    Install Homebrew packages from a machine's Brewfile"
     @echo "  just backup [machine]     Dump current Homebrew state to a Brewfile (or create new)"
-    @echo "  just cleanup [machine]    Uninstall packages not listed in a machine's Brewfile"
+    @echo "  just drift [machine]      Show what's out of sync with the repo (read-only)"
     @echo "  just brave                Apply Brave debloat profile + Cmd+W workaround"
     @echo "  just profile [name]       Install a macOS configuration profile (.mobileconfig)"
     @echo "  just zsh                  Set up Zsh with plugins, Starship prompt, and config"
@@ -107,8 +107,8 @@ profile name="":
     info "Installing profile $file..."
     open "$file"
 
-# Uninstall packages not listed in a machine's Brewfile
-cleanup machine="":
+# Show what's out of sync with the repo. Read-only — points at recipes to converge.
+drift machine="":
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
     machine="{{machine}}"
@@ -124,39 +124,136 @@ cleanup machine="":
         err "brewfiles/Brewfile.$machine not found"
         exit 1
     fi
-    output=$(brew bundle cleanup --file="brewfiles/Brewfile.$machine" --formula --cask --tap --mas 2>&1)
-    if [[ -z "$output" ]]; then
-        ok "brewfiles/Brewfile.$machine is in sync — nothing to clean up."
-        exit 0
-    fi
-    section=""
-    echo "Not in brewfiles/Brewfile.$machine:"
-    echo "$output" | while IFS= read -r line; do
-        if [[ "$line" == "Would uninstall casks:"* ]]; then
-            section="casks"; echo ""; echo "  Casks:"
-        elif [[ "$line" == "Would uninstall formulae:"* ]]; then
-            section="formulae"; echo ""; echo "  Formulae:"
-        elif [[ "$line" == "Would uninstall VSCode"* ]]; then
-            section="vscode"; echo ""; echo "  VS Code extensions:"
-        elif [[ "$line" == "Would \`brew cleanup\`:"* ]]; then
-            section="cache"; echo ""; echo "  Cached files:"
-        elif [[ "$line" == "Run \`brew"* || "$line" == "Run "* ]]; then
-            continue
-        elif [[ -n "$section" && -n "$line" ]]; then
-            if [[ "$section" == "cache" ]]; then
-                if [[ "$line" == "Would remove:"* ]]; then
-                    echo "    ${line#Would remove: }"
-                fi
-            else
-                for word in ${=line}; do
-                    echo "    $word"
-                done
-            fi
+
+    typeset -a fixes
+    brew_prefix="$(brew --prefix)"
+    here="{{justfile_directory()}}"
+
+    # ── zsh templates ──────────────────────────────────────────────────
+    echo
+    echo "zsh"
+    rendered=$(mktemp)
+    sed "s|BREW_PREFIX|$brew_prefix|g" "$here/assets/zshrc.template" > "$rendered"
+    zd=0
+    for pair in \
+        "$rendered:$HOME/.zshrc" \
+        "$here/../shared/starship.toml:$HOME/.config/starship.toml" \
+        "$here/../shared/tmux.conf:$HOME/.tmux.conf"
+    do
+        src="${pair%%:*}"; dst="${pair#*:}"; label="${dst/#$HOME/~}"
+        if [[ ! -f "$dst" ]]; then
+            printf '  %-30s ✗ missing\n' "$label"; zd=1
+        elif diff -q "$src" "$dst" >/dev/null 2>&1; then
+            printf '  %-30s ✓\n' "$label"
+        else
+            n=$(diff "$src" "$dst" 2>/dev/null | grep -c '^[<>]')
+            printf '  %-30s ✗ %d lines differ\n' "$label" "$n"; zd=1
         fi
     done
-    echo ""
-    echo "To uninstall these:"
-    echo "  brew bundle cleanup --file=brewfiles/Brewfile.$machine --formula --cask --tap --mas --force"
+    rm -f "$rendered"
+    (( zd )) && fixes+=("zsh             → just zsh")
+
+    # ── default shell ──────────────────────────────────────────────────
+    echo
+    echo "default shell"
+    expected_shell="$brew_prefix/bin/zsh"
+    if [[ "$SHELL" == "$expected_shell" ]]; then
+        printf '  ✓ %s\n' "$SHELL"
+    else
+        printf '  ✗ %s (expected %s)\n' "$SHELL" "$expected_shell"
+        fixes+=("default shell   → chsh -s $expected_shell")
+    fi
+
+    # ── git identity ───────────────────────────────────────────────────
+    echo
+    echo "git identity"
+    typeset -A git_expected
+    git_expected[user.name]="Jakob Hviid, PhD"
+    git_expected[user.email]="jakob@hviid.phd"
+    git_expected[pull.rebase]="true"
+    gd=0
+    for k in user.name user.email pull.rebase; do
+        actual=$(git config --global "$k" 2>/dev/null)
+        if [[ "$actual" == "${git_expected[$k]}" ]]; then
+            printf '  %-30s ✓\n' "$k"
+        else
+            printf '  %-30s ✗ %s (expected %s)\n' "$k" "${actual:-<unset>}" "${git_expected[$k]}"
+            gd=1
+        fi
+    done
+    (( gd )) && fixes+=("git identity    → just zsh")
+
+    # ── brave (mobileconfig vs Managed Preferences) ────────────────────
+    echo
+    echo "brave (mobileconfig)"
+    managed="/Library/Managed Preferences/$(whoami)/com.brave.Browser.plist"
+    profile_src="$here/assets/brave-debloat.mobileconfig"
+    bd=0
+    if [[ ! -f "$managed" ]]; then
+        printf '  ✗ profile not installed (no %s)\n' "$managed"
+        bd=1
+    else
+        expected_json=$(plutil -convert json -o - "$profile_src" 2>/dev/null \
+            | jq '.PayloadContent[0] | with_entries(select(.key|startswith("Payload")|not))')
+        actual_json=$(plutil -convert json -o - "$managed" 2>/dev/null || echo '{}')
+        mismatches=$(jq -r --argjson actual "$actual_json" '
+            to_entries[] |
+            select((.value | tojson) != ($actual[.key] | tojson)) |
+            "\(.key)\t\(.value | tojson)\t\(($actual[.key] // null) | tojson)"
+        ' <<< "$expected_json")
+        if [[ -z "$mismatches" ]]; then
+            printf '  ✓ all keys match\n'
+        else
+            while IFS=$'\t' read -r key exp act; do
+                printf '  %-40s ✗ expected=%s actual=%s\n' "$key" "$exp" "$act"
+            done <<< "$mismatches"
+            bd=1
+        fi
+    fi
+    (( bd )) && fixes+=("brave           → just brave")
+
+    # ── brewfile ───────────────────────────────────────────────────────
+    echo
+    echo "brewfile (Brewfile.$machine)"
+    bf="brewfiles/Brewfile.$machine"
+    bfd=0
+
+    # Missing entries
+    check_out=$(brew bundle check --file="$bf" --verbose --no-upgrade 2>&1 || true)
+    missing=$(echo "$check_out" | sed -n 's/^→ [A-Za-z]* \(.*\) needs to be installed\..*/\1/p')
+    if [[ -z "$missing" ]]; then
+        printf '  ✓ all listed entries installed\n'
+    else
+        n=$(echo "$missing" | wc -l | tr -d ' ')
+        printf '  ✗ %s entries listed but not installed:\n' "$n"
+        echo "$missing" | sed 's/^/      /'
+        bfd=1
+    fi
+
+    # Extras
+    cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
+    extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
+    if [[ -z "$extras" ]]; then
+        printf '  ✓ no extras (everything installed is listed)\n'
+    else
+        n=$(echo "$extras" | wc -l | tr -d ' ')
+        printf '  ✗ %s packages installed but not listed:\n' "$n"
+        echo "$extras" | sed 's/^/      /'
+        bfd=1
+    fi
+    (( bfd )) && {
+        fixes+=("brewfile        → brew bundle install --file=$bf   (missing)")
+        fixes+=("                → brew bundle cleanup --file=$bf --formula --cask --tap --force   (extras)")
+    }
+
+    # ── Summary ────────────────────────────────────────────────────────
+    echo
+    echo "Summary"
+    if (( ${#fixes[@]} == 0 )); then
+        ok "Everything in sync."
+    else
+        printf '  %s\n' "${fixes[@]}"
+    fi
 
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:

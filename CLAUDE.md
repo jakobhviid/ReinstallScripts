@@ -17,7 +17,7 @@ Mac/
 │   ├── zshrc.template
 │   └── *.mobileconfig (brave-debloat, encrypted-dns, privacy-baseline)
 ├── lib/common.sh                     ← logger + interactive picker shared by recipes
-├── justfile                          ← install / backup / cleanup / profile / zsh
+├── justfile                          ← install / backup / drift / profile / zsh / brave
 └── README.md
 
 Linux/
@@ -25,7 +25,7 @@ Linux/
 ├── brewfiles/Brewfile.<machine>      ← per-machine userspace bundle (currently chronos-redux)
 ├── assets/                            ← deployable data (zshrc template, dconf snapshots, brave policy, EQ, PWAs, icons)
 ├── lib/{common,install,repos,config}.sh
-├── justfile                           ← install / backup / cleanup / zsh / speaker-eq / brave / *-backup
+├── justfile                           ← install / backup / drift / zsh / speaker-eq / brave / *-backup / *-restore
 └── README.md
 
 Windows/
@@ -54,7 +54,7 @@ Requires Homebrew + [just](https://github.com/casey/just). Run from `Mac/`:
 ```sh
 just install huginn        # brew bundle --file=brewfiles/Brewfile.huginn + just zsh + just brave
 just backup huginn         # brew bundle dump --file=brewfiles/Brewfile.huginn
-just cleanup huginn        # show packages installed but not in the Brewfile
+just drift huginn          # show what's out of sync with the repo (read-only)
 just backup mynewmac       # create a new machine's Brewfile (then hand-edit + commit)
 just brave                 # apply assets/brave-debloat.mobileconfig + Cmd+W keyboard workaround
 just profile brave-debloat # install any assets/<name>.mobileconfig directly
@@ -72,11 +72,12 @@ Requires a fresh Bazzite. Homebrew and `just` are bootstrapped by the script. Ru
 ./install-bazzite.sh chronos-redux   # full flow — rpm-ostree → brew bundle → gext → configs
 just install chronos-redux           # equivalent, via justfile
 just backup chronos-redux            # dump live brew + flatpak state to brewfiles/Brewfile.chronos-redux
-just cleanup chronos-redux           # show userspace packages installed but not in the Brewfile
+just drift chronos-redux             # show what's out of sync with the repo (read-only)
 just zsh                             # re-template ~/.zshrc + tmux/tpm + git identity
 just speaker-eq                      # PipeWire filter-chain EQ for thin laptop speakers
 just brave                           # deploy assets/brave-policy.json
-just gnome-backup / just ptyxis-backup
+just gnome-backup / just ptyxis-backup     # snapshot live dconf state to assets/
+just gnome-restore / just ptyxis-restore   # push the snapshot back to live (asks first)
 ```
 
 `brew bundle dump` pulls in default GNOME flatpaks that ship with Bazzite — hand-edit `brewfiles/Brewfile.<machine>` after `just backup` before committing.

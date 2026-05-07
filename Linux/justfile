@@ -10,12 +10,14 @@ default:
     @echo "Commands:"
     @echo "  just install [machine]   Run install-bazzite.sh with the given machine's Brewfile"
     @echo "  just backup [machine]    Dump current Homebrew + Flatpak state to Brewfile.<machine>"
-    @echo "  just cleanup [machine]   Show Homebrew + cask drift vs the machine's Brewfile"
+    @echo "  just drift [machine]     Show what's out of sync with the repo (read-only)"
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
     @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
     @echo "  just brave               Deploy Brave browser policy"
     @echo "  just gnome-backup        Snapshot current GNOME shell settings"
+    @echo "  just gnome-restore       Apply the snapshot to live GNOME shell (asks first)"
     @echo "  just ptyxis-backup       Snapshot current Ptyxis settings"
+    @echo "  just ptyxis-restore      Apply the snapshot to live Ptyxis (asks first)"
     @echo ""
     @echo "Available machines: {{_machines}}"
 
@@ -63,8 +65,8 @@ backup machine="":
     ok "Saved to brewfiles/Brewfile.$machine"
     warn "Hand-edit before commit — the dump pulls in default GNOME flatpaks and runtime extensions."
 
-# Show packages installed but not listed in a machine's Brewfile.
-cleanup machine="":
+# Show what's out of sync with the repo. Read-only — points at recipes to converge.
+drift machine="":
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
@@ -81,9 +83,148 @@ cleanup machine="":
         err "brewfiles/Brewfile.$machine not found"
         exit 1
     fi
-    brew bundle cleanup --file="brewfiles/Brewfile.$machine" --formula --cask --tap || true
+
+    declare -a fixes=()
+    brew_prefix="$(brew --prefix)"
+    here="{{justfile_directory()}}"
+
+    # ── zsh templates ──────────────────────────────────────────────────
     echo
-    warn "To uninstall: brew bundle cleanup --file=brewfiles/Brewfile.$machine --formula --cask --tap --force"
+    echo "zsh"
+    rendered=$(mktemp)
+    sed "s|BREW_PREFIX|$brew_prefix|g" "$here/assets/zshrc.template" > "$rendered"
+    zd=0
+    for pair in \
+        "$rendered:$HOME/.zshrc" \
+        "$here/../shared/starship.toml:$HOME/.config/starship.toml" \
+        "$here/../shared/tmux.conf:$HOME/.tmux.conf"
+    do
+        src="${pair%%:*}"; dst="${pair#*:}"; label="${dst/#$HOME/~}"
+        if [[ ! -f "$dst" ]]; then
+            printf '  %-30s ✗ missing\n' "$label"; zd=1
+        elif diff -q "$src" "$dst" >/dev/null 2>&1; then
+            printf '  %-30s ✓\n' "$label"
+        else
+            n=$(diff "$src" "$dst" 2>/dev/null | grep -c '^[<>]' || true)
+            printf '  %-30s ✗ %d lines differ\n' "$label" "$n"; zd=1
+        fi
+    done
+    rm -f "$rendered"
+    (( zd )) && fixes+=("zsh             → just zsh")
+
+    # ── default shell ──────────────────────────────────────────────────
+    echo
+    echo "default shell"
+    if [[ "$(basename "$SHELL")" == "zsh" ]]; then
+        printf '  ✓ %s\n' "$SHELL"
+    else
+        printf '  ✗ %s (expected zsh)\n' "$SHELL"
+        fixes+=("default shell   → chsh -s \$(which zsh)")
+    fi
+
+    # ── git identity ───────────────────────────────────────────────────
+    echo
+    echo "git identity"
+    declare -A git_expected=(
+        [user.name]="Jakob Hviid, PhD"
+        [user.email]="jakob@hviid.phd"
+        [pull.rebase]="true"
+    )
+    gd=0
+    for k in user.name user.email pull.rebase; do
+        actual=$(git config --global "$k" 2>/dev/null || true)
+        if [[ "$actual" == "${git_expected[$k]}" ]]; then
+            printf '  %-30s ✓\n' "$k"
+        else
+            printf '  %-30s ✗ %s (expected %s)\n' "$k" "${actual:-<unset>}" "${git_expected[$k]}"
+            gd=1
+        fi
+    done
+    (( gd )) && fixes+=("git identity    → just zsh")
+
+    # ── brave policy ───────────────────────────────────────────────────
+    echo
+    echo "brave (policy file)"
+    managed="/etc/brave/policies/managed/brave-policy.json"
+    bd=0
+    if [[ ! -f "$managed" ]]; then
+        printf '  ✗ policy file not deployed (no %s)\n' "$managed"
+        bd=1
+    else
+        expected=$(jq -S . "$here/assets/brave-policy.json")
+        actual=$(jq -S . "$managed" 2>/dev/null || echo '{}')
+        mismatches=$(jq -r --argjson actual "$actual" '
+            to_entries[] |
+            select((.value | tojson) != ($actual[.key] | tojson)) |
+            "\(.key)\t\(.value | tojson)\t\(($actual[.key] // null) | tojson)"
+        ' <<< "$expected")
+        if [[ -z "$mismatches" ]]; then
+            printf '  ✓ all keys match\n'
+        else
+            while IFS=$'\t' read -r key exp act; do
+                printf '  %-40s ✗ expected=%s actual=%s\n' "$key" "$exp" "$act"
+            done <<< "$mismatches"
+            bd=1
+        fi
+    fi
+    (( bd )) && fixes+=("brave           → just brave")
+
+    # ── rpm-ostree layered packages ────────────────────────────────────
+    echo
+    echo "rpm-ostree layered packages"
+    mapfile -t expected_rpms < <(awk '/^RPM_PACKAGES=\(/,/^\)/' "$here/install-bazzite.sh" | grep -oE '"[^"]+"' | tr -d '"')
+    missing_rpms=()
+    for pkg in "${expected_rpms[@]}"; do
+        rpm -q "$pkg" &>/dev/null || missing_rpms+=("$pkg")
+    done
+    if (( ${#missing_rpms[@]} == 0 )); then
+        printf '  ✓ all %d listed packages installed\n' "${#expected_rpms[@]}"
+    else
+        printf '  ✗ %d packages listed but not installed:\n' "${#missing_rpms[@]}"
+        printf '      %s\n' "${missing_rpms[@]}"
+        fixes+=("rpm-ostree      → ./install-bazzite.sh $machine")
+    fi
+
+    # ── brewfile ───────────────────────────────────────────────────────
+    echo
+    echo "brewfile (Brewfile.$machine)"
+    bf="brewfiles/Brewfile.$machine"
+    bfd=0
+
+    check_out=$(brew bundle check --file="$bf" --verbose --no-upgrade 2>&1 || true)
+    missing_bf=$(echo "$check_out" | sed -n 's/^→ [A-Za-z]* \(.*\) needs to be installed\..*/\1/p')
+    if [[ -z "$missing_bf" ]]; then
+        printf '  ✓ all listed entries installed\n'
+    else
+        n=$(echo "$missing_bf" | wc -l | tr -d ' ')
+        printf '  ✗ %s entries listed but not installed:\n' "$n"
+        echo "$missing_bf" | sed 's/^/      /'
+        bfd=1
+    fi
+
+    cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
+    extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
+    if [[ -z "$extras" ]]; then
+        printf '  ✓ no extras\n'
+    else
+        n=$(echo "$extras" | wc -l | tr -d ' ')
+        printf '  ✗ %s packages installed but not listed:\n' "$n"
+        echo "$extras" | sed 's/^/      /'
+        bfd=1
+    fi
+    (( bfd )) && {
+        fixes+=("brewfile        → brew bundle install --file=$bf   (missing)")
+        fixes+=("                → brew bundle cleanup --file=$bf --formula --cask --tap --force   (extras)")
+    }
+
+    # ── Summary ────────────────────────────────────────────────────────
+    echo
+    echo "Summary"
+    if (( ${#fixes[@]} == 0 )); then
+        ok "Everything in sync."
+    else
+        printf '  %s\n' "${fixes[@]}"
+    fi
 
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
@@ -217,6 +358,44 @@ ptyxis-backup:
     mkdir -p "$(dirname "$out")"
     dconf dump /org/gnome/Ptyxis/ > "$out"
     echo "✓ Wrote $out ($(wc -l < "$out") lines)"
+
+# Apply assets/gnome/shell.dconf to live /org/gnome/shell/. Asks first, default no — overwrites GNOME shell prefs.
+gnome-restore:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    snapshot="{{justfile_directory()}}/assets/gnome/shell.dconf"
+    if [[ ! -f "$snapshot" ]]; then
+        err "$snapshot not found"
+        exit 1
+    fi
+    warn "About to load $(wc -l < "$snapshot") lines of dconf state into /org/gnome/shell/"
+    warn "This overwrites your live GNOME shell prefs (dash-to-panel, blur-my-shell, hotedge, enabled-extensions)."
+    if confirm "Apply snapshot?"; then
+        dconf load /org/gnome/shell/ < "$snapshot"
+        ok "Applied $snapshot"
+    else
+        info "Aborted."
+    fi
+
+# Apply assets/ptyxis.dconf to live /org/gnome/Ptyxis/. Asks first, default no — overwrites Ptyxis prefs.
+ptyxis-restore:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    snapshot="{{justfile_directory()}}/assets/ptyxis.dconf"
+    if [[ ! -f "$snapshot" ]]; then
+        err "$snapshot not found"
+        exit 1
+    fi
+    warn "About to load $(wc -l < "$snapshot") lines of dconf state into /org/gnome/Ptyxis/"
+    warn "This overwrites your live Ptyxis prefs (profiles, keybindings, window prefs)."
+    if confirm "Apply snapshot?"; then
+        dconf load /org/gnome/Ptyxis/ < "$snapshot"
+        ok "Applied $snapshot"
+    else
+        info "Aborted."
+    fi
 
 # Deploy Brave browser policy
 brave:

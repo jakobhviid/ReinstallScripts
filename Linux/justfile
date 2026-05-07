@@ -402,12 +402,13 @@ reconcile machine="":
 
     if (( ${#missing_lines[@]} > 0 )); then
         section "Brewfile entries NOT installed on this machine"
-        echo "  (drop = remove this line from the Brewfile because you no longer want it)"
+        echo "  Y = keep tracking in Brewfile (default; you still want this package)"
+        echo "  n = drop from Brewfile (you no longer want it tracked)"
         echo
         for line in "${missing_lines[@]}"; do
-            printf '  Drop  %-50s  [y/N] ' "$line"
+            printf '  Keep  %-50s in Brewfile? [Y/n] ' "$line"
             read -r ans
-            [[ "$ans" =~ ^[Yy] ]] && to_drop+=("$line")
+            [[ "$ans" =~ ^[Nn] ]] && to_drop+=("$line")
         done
     fi
 
@@ -415,15 +416,15 @@ reconcile machine="":
         section "Packages installed but NOT in the Brewfile"
         echo "  y = add to Brewfile (track going forward)"
         echo "  i = add to bazzite-flatpak-ignore.txt (silence in drift, flatpaks only)"
-        echo "  N = skip"
+        echo "  N = skip (default; leave Brewfile unchanged)"
         echo
         for entry in "${extras_typed[@]}"; do
             type="${entry%%|*}"; pkg="${entry#*|}"
             new_line="$type \"$pkg\""
             if [[ "$type" == "flatpak" ]]; then
-                printf '  Add   %-50s  [y/N/i] ' "$new_line"
+                printf '  Add   %-50s to Brewfile? [y/N/i] ' "$new_line"
             else
-                printf '  Add   %-50s  [y/N] ' "$new_line"
+                printf '  Add   %-50s to Brewfile? [y/N] ' "$new_line"
             fi
             read -r ans
             case "$ans" in

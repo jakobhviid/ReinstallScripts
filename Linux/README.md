@@ -4,13 +4,19 @@ Re-runnable, idempotent provisioning for Bazzite (rpm-ostree). The system layer 
 
 ## Prerequisites
 
-A fresh Bazzite install. Homebrew and `just` are installed by the script if missing.
+A fresh Bazzite install. Run the bootstrap script once to install Homebrew and `just`:
 
 ```sh
 # fix bracketed paste if you copy-paste this README into a terminal
 bind 'set enable-bracketed-paste off'
 source ~/.bashrc
+
+./bootstrap.sh
 ```
+
+When it finishes, open a new terminal (or `eval "$(brew shellenv)"` in the current one) so `just` is on your PATH. After that, every action in this directory runs through `just`.
+
+(`install-bazzite.sh` also bootstraps brew + just internally, so on Bazzite you can skip `bootstrap.sh` and go straight to `./install-bazzite.sh <machine>` if you prefer. Either path works.)
 
 ## Layout
 

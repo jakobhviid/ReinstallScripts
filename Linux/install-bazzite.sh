@@ -98,10 +98,12 @@ main() {
         ok "System packages layered"
     fi
 
-    # Bootstrap brew if missing
+    # Bootstrap brew + just via bootstrap.sh (single source of truth).
     if ! is_cli_installed brew; then
-        info "Installing Homebrew"
-        install_cli_tool brew
+        info "Bootstrapping Homebrew + just"
+        "$SCRIPT_DIR/bootstrap.sh"
+        # Load brew into this script's env so subsequent brew calls work.
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     fi
 
     # Brewfile — userspace formulae, casks, taps, flatpaks

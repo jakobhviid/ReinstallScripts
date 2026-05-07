@@ -62,18 +62,6 @@ install_zsh_setup() {
 
 install_cli_tool() {
     case "$1" in
-        brew)
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            if [[ -d /home/linuxbrew/.linuxbrew ]]; then
-                eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-                if ! grep -q 'linuxbrew' ~/.bashrc 2>/dev/null; then
-                    printf '\neval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv bash)"\n' >> ~/.bashrc
-                fi
-                if [[ -f ~/.zshrc ]] && ! grep -q 'linuxbrew' ~/.zshrc 2>/dev/null; then
-                    printf '\neval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"\n' >> ~/.zshrc
-                fi
-            fi
-            ;;
         zsh-setup)
             install_zsh_setup
             ;;

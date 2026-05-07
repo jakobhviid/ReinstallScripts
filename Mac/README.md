@@ -4,10 +4,13 @@ Re-runnable, declarative macOS provisioning driven by [`brew bundle`](https://gi
 
 ## Prerequisites
 
+Run the bootstrap script once on a fresh Mac. It installs Homebrew and `just`:
+
 ```sh
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install just
+./bootstrap.sh
 ```
+
+When it finishes, open a new terminal (or `eval "$(brew shellenv)"` in the current one) so `just` is on your PATH. After that, every action in this directory runs through `just`.
 
 ## Layout
 

@@ -54,6 +54,7 @@ shared/
 
 - `Linux/assets/gnome/shell.dconf` — Snapshot of `/org/gnome/shell/` (enabled-extensions + dash-to-panel/blur-my-shell/hotedge), loaded by `run_config_gnome_shell`. **Regenerate with `just gnome-backup`** — that recipe re-dumps live state and strips bookkeeping keys (prefs-opened, extension-version, rounded-blur-found, settings-version) and per-monitor panel layout (panel-anchors/positions/sizes/lengths/element-positions, which encode this machine's display connector ID and don't transfer). After tweaking dash-to-panel etc., re-run the recipe and commit.
 - `Linux/assets/ptyxis.dconf` — Snapshot of `/org/gnome/Ptyxis/` (profiles, keybindings, window prefs), loaded by `run_config_ptyxis`. **Regenerate with `just ptyxis-backup`** — full subtree dump, no filtering. Profile UUIDs are just identifiers and carry across machines.
+- `Linux/assets/bazzite-flatpak-ignore.txt` — Flatpak app IDs that `just drift`, `just reconcile`, and `just prune` should treat as baseline (not flag as extras and not offer to uninstall). Used to silence default Bazzite GNOME apps that ship with the OS so drift output stays focused on real per-machine changes. One app ID per line; `#` for comments.
 
 ## Mac Workflow
 

@@ -1,0 +1,22 @@
+# Flatpak app IDs to exclude from 'just drift' extras detection.
+# One app ID per line. Lines starting with # are comments.
+#
+# Bazzite ships several GNOME apps as flatpaks by default. They're not worth
+# tracking in Brewfiles (every machine has them, no per-machine variation),
+# but without this list 'just drift' would flag them as extras every run.
+#
+# Add lines here as you find OS-default flatpaks you don't want to track.
+# Remove lines if you actually want to manage one explicitly via Brewfile.
+
+# Bazzite GNOME defaults (verify on your machine and adjust as needed)
+org.gnome.Calculator
+org.gnome.Calendar
+org.gnome.Loupe
+org.gnome.Papers
+org.gnome.Showtime
+org.gnome.TextEditor
+org.gnome.clocks
+org.gnome.Snapshot
+org.gnome.Decibels
+org.gnome.Characters
+org.gnome.font-viewer

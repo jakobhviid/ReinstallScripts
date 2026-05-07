@@ -236,14 +236,54 @@ drift machine="":
         bf_missing=1
     fi
 
+    # Brew bundle cleanup surfaces formula/cask/tap extras (not flatpaks).
     cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
-    extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
-    if [[ -z "$extras" ]]; then
-        ok_line "no extras (everything installed is in the Brewfile)"
+    brew_extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
+
+    # Type-tag brew extras (cask/brew/tap) and append flatpak extras (computed
+    # separately, with assets/bazzite-flatpak-ignore.txt subtracted to silence
+    # Bazzite baseline GNOME apps). All extras shown with "type name" prefix.
+    declare -a extras_display=()
+    if [[ -n "$brew_extras" ]]; then
+        while IFS= read -r pkg; do
+            [[ -z "$pkg" ]] && continue
+            if echo "$casks_installed" | grep -qFx "$pkg"; then
+                extras_display+=("cask $pkg")
+            elif echo "$formulae_installed" | grep -qFx "$pkg"; then
+                extras_display+=("brew $pkg")
+            else
+                extras_display+=("? $pkg")
+            fi
+        done <<< "$brew_extras"
+    fi
+
+    flatpak_ignore=""
+    [[ -f "$here/assets/bazzite-flatpak-ignore.txt" ]] && \
+        flatpak_ignore=$(grep -vE '^\s*#|^\s*$' "$here/assets/bazzite-flatpak-ignore.txt" 2>/dev/null || true)
+    if [[ -n "$flatpaks_installed" ]]; then
+        declare -a expected_flatpaks=()
+        while IFS= read -r line; do
+            [[ "$line" =~ ^flatpak\ \"([^\"]+)\" ]] && expected_flatpaks+=("${BASH_REMATCH[1]}")
+        done < <(grep -vE '^\s*#|^\s*$' "$bf")
+        while IFS= read -r appid; do
+            [[ -z "$appid" ]] && continue
+            in_brewfile=0
+            for ef in "${expected_flatpaks[@]}"; do
+                [[ "$ef" == "$appid" ]] && in_brewfile=1 && break
+            done
+            (( in_brewfile )) && continue
+            if [[ -n "$flatpak_ignore" ]] && echo "$flatpak_ignore" | grep -qFx "$appid"; then
+                continue
+            fi
+            extras_display+=("flatpak $appid")
+        done <<< "$flatpaks_installed"
+    fi
+
+    if (( ${#extras_display[@]} == 0 )); then
+        ok_line "no extras (everything installed is in the Brewfile or in bazzite-flatpak-ignore.txt)"
     else
-        n=$(echo "$extras" | wc -l | tr -d ' ')
-        fail_line "$n packages installed but not in the Brewfile:"
-        echo "$extras" | sed 's/^/      /'
+        fail_line "${#extras_display[@]} packages installed but not in the Brewfile:"
+        printf '      %s\n' "${extras_display[@]}"
         bf_extras=1
     fi
     (( bf_missing )) && fixes+=("install Brewfile entries that are missing on this machine|brew bundle install --file=$bf")
@@ -261,7 +301,7 @@ drift machine="":
         done
     fi
 
-# Interactively add extras / drop missing entries from a machine's Brewfile. For each diff item, asks y/N; shows a diff and asks for final confirmation before writing. Note: flatpak extras aren't detected (brew bundle cleanup ignores them); add those manually.
+# Interactively add extras / drop missing entries from a machine's Brewfile. For each diff item, asks y/N; shows a diff and asks for final confirmation before writing. Flatpak extras are filtered through assets/bazzite-flatpak-ignore.txt to silence Bazzite GNOME defaults.
 reconcile machine="":
     #!/usr/bin/env bash
     set -uo pipefail
@@ -327,6 +367,30 @@ reconcile machine="":
         done <<< "$extras"
     fi
 
+    # Flatpak extras: installed flatpaks not in Brewfile and not on the ignore list.
+    here="{{justfile_directory()}}"
+    flatpak_ignore=""
+    [[ -f "$here/assets/bazzite-flatpak-ignore.txt" ]] && \
+        flatpak_ignore=$(grep -vE '^\s*#|^\s*$' "$here/assets/bazzite-flatpak-ignore.txt" 2>/dev/null || true)
+    if [[ -n "$flatpaks_installed" ]]; then
+        declare -a expected_flatpaks=()
+        while IFS= read -r line; do
+            [[ "$line" =~ ^flatpak\ \"([^\"]+)\" ]] && expected_flatpaks+=("${BASH_REMATCH[1]}")
+        done < <(grep -vE '^\s*#|^\s*$' "$bf")
+        while IFS= read -r appid; do
+            [[ -z "$appid" ]] && continue
+            in_brewfile=0
+            for ef in "${expected_flatpaks[@]}"; do
+                [[ "$ef" == "$appid" ]] && in_brewfile=1 && break
+            done
+            (( in_brewfile )) && continue
+            if [[ -n "$flatpak_ignore" ]] && echo "$flatpak_ignore" | grep -qFx "$appid"; then
+                continue
+            fi
+            extras_typed+=("flatpak|$appid")
+        done <<< "$flatpaks_installed"
+    fi
+
     if (( ${#missing_lines[@]} == 0 && ${#extras_typed[@]} == 0 )); then
         ok "$bf is already in sync. Nothing to reconcile."
         exit 0
@@ -389,7 +453,7 @@ reconcile machine="":
         warn "Aborted. $bf unchanged."
     fi
 
-# Uninstall packages installed on this machine but not listed in the machine's Brewfile. Lists what would go, asks first, then runs brew bundle cleanup --force.
+# Uninstall packages and flatpaks installed on this machine but not listed in the machine's Brewfile. Flatpak extras are filtered through assets/bazzite-flatpak-ignore.txt. Lists what would go, asks first, then runs brew bundle cleanup --force + flatpak uninstall -y.
 prune machine="":
     #!/usr/bin/env bash
     set -uo pipefail
@@ -408,19 +472,63 @@ prune machine="":
         err "$bf not found"
         exit 1
     fi
+    here="{{justfile_directory()}}"
 
+    # Brew side: cleanup dry-run for formula/cask/tap.
     cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
-    if [[ -z "$cleanup_out" ]] || ! echo "$cleanup_out" | grep -qE '^Would uninstall|^[a-z]'; then
+    has_brew_extras=0
+    echo "$cleanup_out" | grep -qE '^Would uninstall|^[a-z]' && has_brew_extras=1
+
+    # Flatpak side: installed minus Brewfile entries minus ignore list.
+    flatpaks_installed=""
+    command -v flatpak &>/dev/null && flatpaks_installed=$(flatpak list --app --columns=application 2>/dev/null || true)
+    flatpak_ignore=""
+    [[ -f "$here/assets/bazzite-flatpak-ignore.txt" ]] && \
+        flatpak_ignore=$(grep -vE '^\s*#|^\s*$' "$here/assets/bazzite-flatpak-ignore.txt" 2>/dev/null || true)
+    declare -a flatpak_extras=()
+    if [[ -n "$flatpaks_installed" ]]; then
+        declare -a expected_flatpaks=()
+        while IFS= read -r line; do
+            [[ "$line" =~ ^flatpak\ \"([^\"]+)\" ]] && expected_flatpaks+=("${BASH_REMATCH[1]}")
+        done < <(grep -vE '^\s*#|^\s*$' "$bf")
+        while IFS= read -r appid; do
+            [[ -z "$appid" ]] && continue
+            in_brewfile=0
+            for ef in "${expected_flatpaks[@]}"; do
+                [[ "$ef" == "$appid" ]] && in_brewfile=1 && break
+            done
+            (( in_brewfile )) && continue
+            if [[ -n "$flatpak_ignore" ]] && echo "$flatpak_ignore" | grep -qFx "$appid"; then
+                continue
+            fi
+            flatpak_extras+=("$appid")
+        done <<< "$flatpaks_installed"
+    fi
+
+    if (( ! has_brew_extras && ${#flatpak_extras[@]} == 0 )); then
         ok "Nothing to prune. $bf is in sync with the machine."
         exit 0
     fi
+
     info "Packages that would be uninstalled (not listed in $bf):"
-    echo "$cleanup_out"
+    if (( has_brew_extras )); then
+        echo "$cleanup_out"
+    fi
+    if (( ${#flatpak_extras[@]} > 0 )); then
+        (( has_brew_extras )) && echo
+        echo "Flatpaks:"
+        printf '  %s\n' "${flatpak_extras[@]}"
+    fi
     echo
     printf 'Uninstall these packages? [y/N] '
     read -r ans
     if [[ "$ans" =~ ^[Yy] ]]; then
-        brew bundle cleanup --file="$bf" --formula --cask --tap --force
+        if (( has_brew_extras )); then
+            brew bundle cleanup --file="$bf" --formula --cask --tap --force
+        fi
+        if (( ${#flatpak_extras[@]} > 0 )); then
+            flatpak uninstall -y "${flatpak_extras[@]}"
+        fi
         ok "Pruned."
     else
         warn "Aborted. Nothing uninstalled."

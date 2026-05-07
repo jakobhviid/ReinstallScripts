@@ -77,7 +77,7 @@ run_config_desktop_overrides() {
     # name | source .desktop | icon filename (under shared/app-icons)
     local overrides=(
         "brave-browser.desktop|/usr/share/applications/brave-browser.desktop|brave-browser.webp"
-        "code.desktop|/usr/share/applications/code.desktop|code.webp"
+        "code.desktop|$HOME/.local/share/applications/code.desktop|code.webp"
         "1password.desktop|/usr/share/applications/1password.desktop|1password.webp"
         "org.gnome.Nautilus.desktop|/usr/share/applications/org.gnome.Nautilus.desktop|org.gnome.Nautilus.png"
         "org.gnome.Ptyxis.desktop|/usr/share/applications/org.gnome.Ptyxis.desktop|org.gnome.Ptyxis.webp"

@@ -366,7 +366,8 @@ reconcile machine="":
         echo "  n = drop from Brewfile (you no longer want it tracked)"
         echo
         for line in "${missing_lines[@]}"; do
-            printf '  Keep  %-50s in Brewfile? [Y/n] ' "$line"
+            name=$(echo "$line" | sed -E 's/^[a-z]+ "([^"]+)".*/\1/')
+            printf '  Keep entry "%s" in Brewfile? [Y/n] ' "$name"
             read -r ans
             [[ "$ans" =~ ^[Nn] ]] && to_drop+=("$line")
         done
@@ -380,7 +381,7 @@ reconcile machine="":
         for entry in "${extras_typed[@]}"; do
             type="${entry%%|*}"; pkg="${entry#*|}"
             new_line="$type \"$pkg\""
-            printf '  Add   %-50s to Brewfile? [y/N] ' "$new_line"
+            printf '  Add entry "%s" to Brewfile? [y/N] ' "$pkg"
             read -r ans
             [[ "$ans" =~ ^[Yy] ]] && to_add+=("$new_line")
         done

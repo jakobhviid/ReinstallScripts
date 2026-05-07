@@ -80,12 +80,10 @@
 
         <key>HttpsUpgradesEnabled</key>
         <true/>
-        <key>SSLVersionMin</key>
-        <string>tls1.2</string>
 
         <key>BraveDeAmpEnabled</key>
         <true/>
-        <key>BraveDebounceEnabled</key>
+        <key>BraveDebouncingEnabled</key>
         <true/>
         <key>BraveReduceLanguageEnabled</key>
         <true/>

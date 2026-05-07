@@ -27,10 +27,9 @@
   "SafeBrowsingExtendedReportingEnabled": false,
 
   "HttpsUpgradesEnabled": true,
-  "SSLVersionMin": "tls1.2",
 
   "BraveDeAmpEnabled": true,
-  "BraveDebounceEnabled": true,
+  "BraveDebouncingEnabled": true,
   "BraveReduceLanguageEnabled": true,
 
   "SpellCheckServiceEnabled": false,

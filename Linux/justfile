@@ -13,6 +13,7 @@ default:
     @echo "  just drift [machine]     Show what's out of sync with the repo (read-only)"
     @echo "  just reconcile [machine] Interactively add extras / drop missing from a machine's Brewfile"
     @echo "  just prune [machine]     Uninstall packages not in a machine's Brewfile (asks first)"
+    @echo "  just install-missing [machine]   Install Brewfile entries that are missing on this machine"
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
     @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
     @echo "  just brave               Deploy Brave browser policy"
@@ -286,7 +287,7 @@ drift machine="":
         printf '      %s\n' "${extras_display[@]}"
         bf_extras=1
     fi
-    (( bf_missing )) && fixes+=("install Brewfile entries that are missing on this machine|brew bundle install --file=$bf")
+    (( bf_missing )) && fixes+=("install Brewfile entries that are missing on this machine|just install-missing $machine")
     (( bf_extras ))  && fixes+=("uninstall packages not in the Brewfile (asks first)|just prune $machine")
     (( bf_missing || bf_extras )) && fixes+=("interactively pick which extras to add and which missing entries to drop from the Brewfile|just reconcile $machine")
     (( bf_missing || bf_extras )) && fixes+=("save this machine's current state to the Brewfile (captures extras, drops missing entries, full overwrite)|just backup $machine")
@@ -533,6 +534,27 @@ prune machine="":
     else
         warn "Aborted. Nothing uninstalled."
     fi
+
+# Install Brewfile entries that are missing on this machine (formulas/casks/taps via brew, flatpaks via brew bundle's flatpak directive). Thin wrapper over 'brew bundle install'. Additive — never removes anything.
+install-missing machine="":
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
+        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
+    fi
+    if [[ -z "$machine" ]]; then
+        warn "No machine selected, exiting."
+        exit 0
+    fi
+    bf="brewfiles/Brewfile.$machine"
+    if [[ ! -f "$bf" ]]; then
+        err "$bf not found"
+        exit 1
+    fi
+    brew bundle install --file="$bf"
 
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:

@@ -191,14 +191,51 @@ drift machine="":
     bf="brewfiles/Brewfile.$machine"
     bfd=0
 
-    check_out=$(brew bundle check --file="$bf" --verbose --no-upgrade 2>&1 || true)
-    missing_bf=$(echo "$check_out" | sed -n 's/^→ [A-Za-z]* \(.*\) needs to be installed\..*/\1/p')
-    if [[ -z "$missing_bf" ]]; then
+    # Missing entries — direct brew/flatpak checks; brew bundle check is
+    # unreliable for auto-updating entries where the manifest drifts from disk.
+    casks_installed=$(brew list --cask 2>/dev/null || true)
+    formulae_installed=$(brew list --formula 2>/dev/null || true)
+    taps_installed=$(brew tap 2>/dev/null || true)
+    flatpaks_installed=""
+    command -v flatpak &>/dev/null && flatpaks_installed=$(flatpak list --app --columns=application 2>/dev/null || true)
+    vscode_installed=""
+    command -v code &>/dev/null && vscode_installed=$(code --list-extensions 2>/dev/null || true)
+
+    declare -a missing_bf=()
+    while IFS= read -r line; do
+        case "$line" in
+            'brew '*)
+                name=$(echo "$line" | sed -E 's/^brew "([^"]+)".*/\1/')
+                echo "$formulae_installed" | grep -qFx "$name" || missing_bf+=("brew $name")
+                ;;
+            'cask '*)
+                name=$(echo "$line" | sed -E 's/^cask "([^"]+)".*/\1/')
+                echo "$casks_installed" | grep -qFx "$name" || missing_bf+=("cask $name")
+                ;;
+            'tap '*)
+                name=$(echo "$line" | sed -E 's/^tap "([^"]+)".*/\1/')
+                echo "$taps_installed" | grep -qFx "$name" || missing_bf+=("tap $name")
+                ;;
+            'flatpak '*)
+                appid=$(echo "$line" | sed -E 's/^flatpak "([^"]+)".*/\1/')
+                if [[ -n "$flatpaks_installed" ]]; then
+                    echo "$flatpaks_installed" | grep -qFx "$appid" || missing_bf+=("flatpak $appid")
+                fi
+                ;;
+            'vscode '*)
+                ext=$(echo "$line" | sed -E 's/^vscode "([^"]+)".*/\1/')
+                if [[ -n "$vscode_installed" ]]; then
+                    echo "$vscode_installed" | grep -qFix "$ext" || missing_bf+=("vscode $ext")
+                fi
+                ;;
+        esac
+    done < <(grep -vE '^\s*#|^\s*$' "$bf")
+
+    if (( ${#missing_bf[@]} == 0 )); then
         printf '  ✓ all listed entries installed\n'
     else
-        n=$(echo "$missing_bf" | wc -l | tr -d ' ')
-        printf '  ✗ %s entries listed but not installed:\n' "$n"
-        echo "$missing_bf" | sed 's/^/      /'
+        printf '  ✗ %d entries listed but not installed:\n' "${#missing_bf[@]}"
+        printf '      %s\n' "${missing_bf[@]}"
         bfd=1
     fi
 

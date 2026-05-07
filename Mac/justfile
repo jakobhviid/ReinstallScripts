@@ -156,12 +156,11 @@ drift machine="":
     # ── default shell ──────────────────────────────────────────────────
     echo
     echo "default shell"
-    expected_shell="$brew_prefix/bin/zsh"
-    if [[ "$SHELL" == "$expected_shell" ]]; then
+    if [[ "$(basename "$SHELL")" == "zsh" ]]; then
         printf '  ✓ %s\n' "$SHELL"
     else
-        printf '  ✗ %s (expected %s)\n' "$SHELL" "$expected_shell"
-        fixes+=("default shell   → chsh -s $expected_shell")
+        printf '  ✗ %s (expected zsh)\n' "$SHELL"
+        fixes+=("default shell   → chsh -s \$(which zsh)")
     fi
 
     # ── git identity ───────────────────────────────────────────────────
@@ -218,15 +217,53 @@ drift machine="":
     bf="brewfiles/Brewfile.$machine"
     bfd=0
 
-    # Missing entries
-    check_out=$(brew bundle check --file="$bf" --verbose --no-upgrade 2>&1 || true)
-    missing=$(echo "$check_out" | sed -n 's/^→ [A-Za-z]* \(.*\) needs to be installed\..*/\1/p')
-    if [[ -z "$missing" ]]; then
+    # Missing entries — direct brew/mas/code checks; brew bundle check is
+    # unreliable for auto-updating casks (Discord, VS Code etc.) where the
+    # manifest drifts from disk.
+    casks_installed=$(brew list --cask 2>/dev/null)
+    formulae_installed=$(brew list --formula 2>/dev/null)
+    taps_installed=$(brew tap 2>/dev/null)
+    mas_installed=""
+    command -v mas &>/dev/null && mas_installed=$(mas list 2>/dev/null | awk '{print $1}')
+    vscode_installed=""
+    command -v code &>/dev/null && vscode_installed=$(code --list-extensions 2>/dev/null)
+
+    typeset -a missing_bf
+    while IFS= read -r line; do
+        case "$line" in
+            'brew '*)
+                name=$(echo "$line" | sed -E 's/^brew "([^"]+)".*/\1/')
+                echo "$formulae_installed" | grep -qFx "$name" || missing_bf+=("brew $name")
+                ;;
+            'cask '*)
+                name=$(echo "$line" | sed -E 's/^cask "([^"]+)".*/\1/')
+                echo "$casks_installed" | grep -qFx "$name" || missing_bf+=("cask $name")
+                ;;
+            'tap '*)
+                name=$(echo "$line" | sed -E 's/^tap "([^"]+)".*/\1/')
+                echo "$taps_installed" | grep -qFx "$name" || missing_bf+=("tap $name")
+                ;;
+            'mas '*)
+                id=$(echo "$line" | sed -E 's/.*id: ([0-9]+).*/\1/')
+                name=$(echo "$line" | sed -E 's/^mas "([^"]+)".*/\1/')
+                if [[ -n "$mas_installed" ]]; then
+                    echo "$mas_installed" | grep -qFx "$id" || missing_bf+=("mas $name ($id)")
+                fi
+                ;;
+            'vscode '*)
+                ext=$(echo "$line" | sed -E 's/^vscode "([^"]+)".*/\1/')
+                if [[ -n "$vscode_installed" ]]; then
+                    echo "$vscode_installed" | grep -qFix "$ext" || missing_bf+=("vscode $ext")
+                fi
+                ;;
+        esac
+    done < <(grep -vE '^\s*#|^\s*$' "$bf")
+
+    if (( ${#missing_bf[@]} == 0 )); then
         printf '  ✓ all listed entries installed\n'
     else
-        n=$(echo "$missing" | wc -l | tr -d ' ')
-        printf '  ✗ %s entries listed but not installed:\n' "$n"
-        echo "$missing" | sed 's/^/      /'
+        printf '  ✗ %d entries listed but not installed:\n' "${#missing_bf[@]}"
+        printf '      %s\n' "${missing_bf[@]}"
         bfd=1
     fi
 

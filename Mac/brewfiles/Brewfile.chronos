@@ -1,5 +1,4 @@
 tap "joshmedeski/sesh"
-tap "mongodb/brew"
 brew "jpeg-xl"
 brew "aom"
 brew "asitop"
@@ -58,16 +57,15 @@ brew "watch"
 brew "wifi-password"
 brew "ykman"
 brew "zoxide"
-brew "zsh"
 brew "zsh-autopair"
 brew "zsh-autosuggestions"
 brew "zsh-completions"
 brew "zsh-history-substring-search"
 brew "zsh-syntax-highlighting"
 brew "zsh-you-should-use"
-brew "mongodb/brew/mongodb-community"
 cask "1password"
 cask "1password-cli"
+cask "alcove"
 cask "brave-browser"
 cask "calibre"
 cask "chatgpt"
@@ -107,13 +105,13 @@ cask "mission-control-plus"
 cask "mongodb-compass"
 cask "nextcloud"
 cask "obsidian"
-cask "ollama-app"
 cask "pdf-expert"
 cask "pearcleaner"
 cask "podman-desktop"
 cask "proton-drive"
 cask "proton-mail"
 cask "proton-mail-bridge"
+cask "proton-meet"
 cask "protonvpn"
 cask "raycast"
 cask "signal"
@@ -130,7 +128,6 @@ mas "1Password for Safari", id: 1569813296
 mas "AdGuard for Safari", id: 1440147259
 mas "Amphetamine", id: 937984704
 mas "Base", id: 6744867438
-mas "Bear", id: 1091189122
 mas "ClickClack", id: 6740695697
 mas "Craft", id: 1487937127
 mas "Craft Web Clipper", id: 6748613311

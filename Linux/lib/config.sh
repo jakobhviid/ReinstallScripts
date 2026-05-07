@@ -1,25 +1,20 @@
 # shellcheck shell=bash
-# Post-install configuration steps shared between Bazzite and Fedora Workstation.
+# Post-install per-user configuration steps for Phase 2 of install-bazzite.sh.
 # Depends on common.sh (info/ok/warn) and caller having set SCRIPT_DIR to the
 # directory of the top-level install script (Linux/), so that references like
-# "$SCRIPT_DIR/assets/brave-policy.json" and "$SCRIPT_DIR/../shared/app-icons/" resolve.
-
-run_config_brave_policy() {
-    info "Applying Brave browser policy"
-
-    if [[ ! -f "$SCRIPT_DIR/assets/brave-policy.json" ]]; then
-        warn "brave-policy.json not found at $SCRIPT_DIR/assets — skipping"
-        return
-    fi
-
-    sudo mkdir -p /etc/brave/policies/managed
-    sudo cp "$SCRIPT_DIR/assets/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
-
-    ok "Brave policy applied"
-}
+# "$SCRIPT_DIR/../shared/app-icons/" resolve.
+#
+# Functions removed in the bazzite-custom image rework — now handled by the
+# image's system_files/ directly:
+#   - run_config_brave_policy       → image bakes /etc/brave/policies/managed/brave-policy.json
+#   - run_config_audio              → image bakes /usr/share/wireplumber/wireplumber.conf.d/rename-devices.conf
+#   - run_config_unlock_services    → image bakes /usr/lib/systemd/user/{brave,vivaldi,nextcloud}-unlock.service
+#                                     (auto-enabled per-user via /usr/lib/systemd/user-preset/)
+# The 1Password custom_allowed_browsers block was also removed from
+# run_config_1password — the image bakes /etc/1password/custom_allowed_browsers.
 
 run_config_1password() {
-    info "Configuring 1Password"
+    info "Configuring 1Password (per-user GNOME keybinding + dark titlebar)"
 
     # Register our custom keybinding path in the global list WITHOUT clobbering
     # any other custom shortcuts the user has configured. Only add if missing.
@@ -42,14 +37,6 @@ run_config_1password() {
       command "1password --quick-access"
     gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
       binding "<Alt><Shift>2"
-
-    # Browser compat list — non-Chrome/Firefox browsers need to be allow-listed
-    # explicitly for the 1Password browser extension to talk to the desktop app.
-    # Listing browsers we don't have is harmless.
-    sudo install -d -m 0755 /etc/1password
-    printf '%s\n' vivaldi-bin zen-bin | sudo tee /etc/1password/custom_allowed_browsers >/dev/null
-    sudo chown root:root /etc/1password/custom_allowed_browsers
-    sudo chmod 0755 /etc/1password/custom_allowed_browsers
 
     # Fix dark titlebar and enable native Wayland
     mkdir -p ~/.local/share/applications
@@ -265,72 +252,4 @@ run_config_ptyxis() {
     info "Applying Ptyxis settings (profiles, shortcuts, window prefs)"
     dconf load /org/gnome/Ptyxis/ < "$src"
     ok "Ptyxis settings applied"
-}
-
-run_config_audio() {
-    mkdir -p ~/.config/wireplumber/wireplumber.conf.d/
-    local dest=~/.config/wireplumber/wireplumber.conf.d/rename-devices.conf
-    if [[ -f "$SCRIPT_DIR/assets/rename-devices.conf" ]] && ! diff -q "$SCRIPT_DIR/assets/rename-devices.conf" "$dest" &>/dev/null; then
-        info "Updating audio device names"
-        cp "$SCRIPT_DIR/assets/rename-devices.conf" "$dest"
-        systemctl --user restart wireplumber pipewire pipewire-pulse
-        ok "Audio device names configured"
-    fi
-}
-
-# Drop stale singleton/lock files at login so apps with crash-survivor locks
-# (Brave's SingletonLock, Nextcloud's kdsingleapplication socket) start cleanly.
-# %u expands to the running user — no jakob hardcoding.
-run_config_unlock_services() {
-    info "Installing user-level unlock services"
-
-    local unit_dir="$HOME/.config/systemd/user"
-    mkdir -p "$unit_dir"
-
-    cat >"$unit_dir/brave-unlock.service" <<'EOF'
-[Unit]
-Description=Remove stale Brave profile singleton lock at login
-After=default.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/rm -f %h/.config/BraveSoftware/Brave-Browser/SingletonLock %h/.config/BraveSoftware/Brave-Browser/SingletonCookie %h/.config/BraveSoftware/Brave-Browser/SingletonSocket
-
-[Install]
-WantedBy=default.target
-EOF
-
-    # Vivaldi is more aggressive than Brave/Chrome about a leftover SingletonLock —
-    # it refuses to launch entirely until the file is removed (per Vivaldi forum
-    # threads). Same fix pattern, different path.
-    cat >"$unit_dir/vivaldi-unlock.service" <<'EOF'
-[Unit]
-Description=Remove stale Vivaldi profile singleton lock at login
-After=default.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/rm -f %h/.config/vivaldi/SingletonLock %h/.config/vivaldi/SingletonCookie %h/.config/vivaldi/SingletonSocket
-
-[Install]
-WantedBy=default.target
-EOF
-
-    cat >"$unit_dir/nextcloud-unlock.service" <<'EOF'
-[Unit]
-Description=Remove stale Nextcloud kdsingleapplication lock at login
-After=default.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/rm -f %h/.var/app/com.nextcloud.desktopclient.nextcloud/cache/tmp/kdsingleapp-%u-nextcloud %h/.var/app/com.nextcloud.desktopclient.nextcloud/cache/tmp/kdsingleapp-%u-nextcloud.lock
-
-[Install]
-WantedBy=default.target
-EOF
-
-    systemctl --user daemon-reload
-    systemctl --user enable brave-unlock.service vivaldi-unlock.service nextcloud-unlock.service &>/dev/null
-
-    ok "Unlock services installed and enabled"
 }

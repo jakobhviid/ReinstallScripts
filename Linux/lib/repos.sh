@@ -2,31 +2,17 @@
 # Per-package third-party repo setup.
 # Called automatically before installing a package that needs a custom repo.
 # Depends on common.sh (info) being sourced first.
+#
+# After the bazzite-custom image rework, this file shrank to just the
+# proton-vpn case — every other repo (brave, 1password, claude-desktop,
+# vivaldi, zen-browser COPR) is now baked into the image's /etc/yum.repos.d/.
+# Proton VPN stays here because the image can't bake the package itself
+# (its post-install scriptlet calls systemctl which fails in a build
+# container, killing the dnf transaction); the repo + the layered install
+# happen on the live system instead.
 
 ensure_repo() {
     case "$1" in
-        brave-browser)
-            if [[ ! -f /etc/yum.repos.d/brave-browser.repo ]]; then
-                info "Adding Brave repository"
-                sudo curl -fsSLo /etc/yum.repos.d/brave-browser.repo \
-                  https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-            fi
-            ;;
-        1password)
-            if [[ ! -f /etc/yum.repos.d/1password.repo ]]; then
-                info "Adding 1Password repository"
-                sudo rpm --import https://downloads.1password.com/linux/keys/1password.asc
-                sudo tee /etc/yum.repos.d/1password.repo >/dev/null <<'EOF'
-[1password]
-name=1Password Stable Channel
-baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://downloads.1password.com/linux/keys/1password.asc
-EOF
-            fi
-            ;;
         proton-vpn-gnome-desktop)
             if [[ ! -f /etc/yum.repos.d/protonvpn-stable.repo ]]; then
                 info "Adding Proton VPN repository"
@@ -43,23 +29,6 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-protonvpn-${fedora_release}-stable
 EOF
-            fi
-            ;;
-        claude-desktop)
-            if [[ ! -f /etc/yum.repos.d/claude-desktop.repo ]]; then
-                info "Adding Claude Desktop repository"
-                sudo curl -fsSLo /etc/yum.repos.d/claude-desktop.repo \
-                  https://aaddrick.github.io/claude-desktop-debian/rpm/claude-desktop.repo
-            fi
-            ;;
-        zen-browser)
-            # Zen Browser ships via Fedora Copr (sneexy/zen-browser).
-            if [[ ! -f /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:sneexy:zen-browser.repo ]]; then
-                info "Adding Zen Browser repository (sneexy COPR)"
-                local fedora_release
-                fedora_release="$(rpm -E %fedora)"
-                sudo curl -fsSLo /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:sneexy:zen-browser.repo \
-                  "https://copr.fedorainfracloud.org/coprs/sneexy/zen-browser/repo/fedora-${fedora_release}/sneexy-zen-browser-fedora-${fedora_release}.repo"
             fi
             ;;
     esac

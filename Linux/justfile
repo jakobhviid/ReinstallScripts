@@ -16,7 +16,6 @@ default:
     @echo "  just install-missing [machine]   Install Brewfile entries that are missing on this machine"
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
     @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
-    @echo "  just brave               Deploy Brave browser policy"
     @echo "  just gnome-backup        Snapshot current GNOME shell settings"
     @echo "  just gnome-restore       Apply the snapshot to live GNOME shell (asks first)"
     @echo "  just ptyxis-backup       Snapshot current Ptyxis settings"
@@ -625,26 +624,20 @@ install-missing machine="":
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
     #!/usr/bin/env bash
-    echo "Installing Zsh plugins and CLI tools via Homebrew..."
+    # Install only the brew-only stuff. The bazzite-custom image bakes in the
+    # CLI baseline (bat eza fzf htop jq just lazygit starship tmux zoxide),
+    # zsh-autosuggestions, zsh-syntax-highlighting, and the symbols-only Nerd
+    # Font as RPMs — installing brew copies on top is wasteful duplication.
+    echo "Installing brew-only Zsh plugins + CLI tools (image has the rest)..."
     brew tap joshmedeski/sesh 2>/dev/null || true
     brew install \
-        zsh-autosuggestions \
-        zsh-syntax-highlighting \
+        zsh-autopair \
         zsh-completions \
         zsh-history-substring-search \
-        zsh-autopair \
         zsh-you-should-use \
-        bat \
-        eza \
-        fzf \
         fzf-tab \
-        zoxide \
-        starship \
-        tmux \
-        lazygit \
         sesh \
-        claude-code \
-        jq
+        claude-code
 
     # Migrate native Claude Code install to Homebrew
     if [[ -f "$HOME/.local/bin/claude" ]]; then
@@ -657,9 +650,10 @@ zsh:
         echo "Native Claude Code removed — now managed by Homebrew"
     fi
 
-    echo "Installing Nerd Fonts..."
+    # The patched Nerd Font typefaces (FiraCode, Hack, MesloLG) aren't in F44;
+    # the image's nerd-fonts RPM ships symbols only.
+    echo "Installing brew-only Nerd Font typefaces (image has symbols-only)..."
     brew install \
-        font-symbols-only-nerd-font \
         font-fira-code-nerd-font \
         font-hack-nerd-font \
         font-meslo-lg-nerd-font
@@ -793,10 +787,8 @@ ptyxis-restore:
         info "Aborted."
     fi
 
-# Deploy Brave browser policy
-brave:
-    #!/usr/bin/env bash
-    echo "Deploying Brave browser policy..."
-    sudo mkdir -p /etc/brave/policies/managed
-    sudo cp "{{justfile_directory()}}/assets/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
-    echo "✓ Brave policy applied"
+# `just brave` was removed: the bazzite-custom image bakes
+# /etc/brave/policies/managed/brave-policy.json directly. The canonical
+# editable source still lives at assets/brave-policy.json — when changing
+# the policy, edit it here, then sync to bazzite-custom/system_files/etc/brave/
+# policies/managed/brave-policy.json and push the image.

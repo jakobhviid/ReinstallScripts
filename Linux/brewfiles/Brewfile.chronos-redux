@@ -1,8 +1,16 @@
-# Userspace packages for chronos-redux (Bazzite).
+# Userspace packages for chronos-redux (Bazzite, on bazzite-nvidia-custom image).
 # rpm-ostree layered packages, custom RPM repos, and GNOME extensions live in
 # install-bazzite.sh and lib/ — this Brewfile only describes what brew bundle
 # can install on its own (formulae, casks, taps, and Flatpaks via the
 # brew-bundle Flatpak directive).
+#
+# After the bazzite-custom image rework, the CLI baseline (bat, btop, butane,
+# eza, fzf, htop, jq, just, lazygit, starship, tmux, zoxide), zsh-autosuggestions,
+# zsh-syntax-highlighting, and font-symbols-only-nerd-font are all in the image
+# as RPMs — removed from this brewfile so brew doesn't install duplicates. The
+# 33 image-preinstalled flatpaks (Discord, Signal, Nextcloud, LocalSend, etc.)
+# are still listed here as the canonical "this machine wants this" record;
+# `flatpak install` is idempotent so the duplication is harmless.
 #
 # Refresh with: just backup chronos-redux  (then hand-edit before commit —
 # the dump pulls in default GNOME flatpaks that ship with Bazzite).
@@ -10,41 +18,28 @@
 tap "joshmedeski/sesh"
 tap "ublue-os/tap"
 
-# Shell + CLI
-brew "bat"
-brew "btop"
-brew "butane"
+# Shell + CLI (only those NOT in the image)
 brew "dotnet"
-brew "eza"
-brew "fzf"
 brew "fzf-tab"
-brew "htop"
-brew "jq"
-brew "just"
-brew "lazygit"
 brew "sesh"
-brew "starship"
-brew "tmux"
 brew "typst"
-brew "zoxide"
 
-# Zsh plugins
+# Zsh plugins (image has zsh-autosuggestions + zsh-syntax-highlighting; rest
+# stay brew-only — no Fedora packaging for these)
 brew "zsh-autopair"
-brew "zsh-autosuggestions"
 brew "zsh-completions"
 brew "zsh-history-substring-search"
-brew "zsh-syntax-highlighting"
 brew "zsh-you-should-use"
 
 # GUI / desktop apps
 cask "claude-code"
 cask "ublue-os/tap/visual-studio-code-linux"
 
-# Fonts (Nerd Font set used by Ptyxis + Starship symbols)
+# Fonts (image ships nerd-fonts (symbols-only); the patched typefaces aren't
+# in F44 so they stay brew)
 cask "font-fira-code-nerd-font"
 cask "font-hack-nerd-font"
 cask "font-meslo-lg-nerd-font"
-cask "font-symbols-only-nerd-font"
 
 # Flatpaks
 flatpak "com.bilingify.readest"

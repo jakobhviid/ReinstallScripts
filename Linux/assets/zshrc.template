@@ -10,8 +10,17 @@ export HOMEBREW_NO_ENV_HINTS=1
 eval "$(starship init zsh)"
 
 # ─── Plugins ──────────────────────────────────────────────────────────────────
-source BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# zsh-autosuggestions and zsh-syntax-highlighting come from the bazzite-custom
+# image (Fedora RPMs at /usr/share/). The rest are brew-only — no F44
+# packaging exists. Try image path first, fall back to brew so this template
+# also works on stock Bazzite (or other distros) where image-shipped
+# /usr/share/zsh-* may not be present.
+for f in /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh; do
+    [[ -r "$f" ]] && source "$f" && break
+done
+for f in /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+    [[ -r "$f" ]] && source "$f" && break
+done
 source BREW_PREFIX/share/zsh-history-substring-search/zsh-history-substring-search.zsh
 source BREW_PREFIX/share/zsh-autopair/autopair.zsh
 source BREW_PREFIX/share/zsh-you-should-use/you-should-use.plugin.zsh

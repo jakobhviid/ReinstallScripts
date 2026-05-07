@@ -156,11 +156,21 @@ drift machine="":
     (( zd )) && fixes+=("re-template ~/.zshrc, starship.toml, tmux.conf|just zsh")
 
     # ── default shell ──────────────────────────────────────────────────
+    # Read the CONFIGURED login shell from Directory Services via dscl, not
+    # the current session's $SHELL. After 'chsh -s ...' updates the user
+    # record, $SHELL stays stale until the user logs out and back in, which
+    # would make drift report incorrect "still bash" verdicts.
     section "default shell"
-    if [[ "$(basename "$SHELL")" == "zsh" ]]; then
-        ok_line "$SHELL"
+    configured_shell=$(dscl . -read "/Users/$USER" UserShell 2>/dev/null | awk '{print $2}')
+    [[ -z "$configured_shell" ]] && configured_shell="$SHELL"
+    if [[ "$(basename "$configured_shell")" == "zsh" ]]; then
+        if [[ "$SHELL" != "$configured_shell" ]]; then
+            ok_line "$configured_shell (current session is $SHELL; log out and back in to switch)"
+        else
+            ok_line "$configured_shell"
+        fi
     else
-        fail_line "$SHELL (expected zsh)"
+        fail_line "$configured_shell (expected zsh)"
         fixes+=("switch login shell to zsh|chsh -s \$(which zsh)")
     fi
 

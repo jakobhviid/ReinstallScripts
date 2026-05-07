@@ -115,11 +115,21 @@ drift machine="":
     (( zd )) && fixes+=("re-template ~/.zshrc, starship.toml, tmux.conf|just zsh")
 
     # ── default shell ──────────────────────────────────────────────────
+    # Read the CONFIGURED login shell from /etc/passwd via getent, not the
+    # current session's $SHELL. After 'usermod --shell ...' updates passwd,
+    # $SHELL stays stale until the user logs out and back in, which would
+    # make drift report incorrect "still bash" verdicts.
     section "default shell"
-    if [[ "$(basename "$SHELL")" == "zsh" ]]; then
-        ok_line "$SHELL"
+    configured_shell=$(getent passwd "$USER" 2>/dev/null | cut -d: -f7)
+    [[ -z "$configured_shell" ]] && configured_shell="$SHELL"
+    if [[ "$(basename "$configured_shell")" == "zsh" ]]; then
+        if [[ "$SHELL" != "$configured_shell" ]]; then
+            ok_line "$configured_shell (current session is $SHELL; log out and back in to switch)"
+        else
+            ok_line "$configured_shell"
+        fi
     else
-        fail_line "$SHELL (expected zsh)"
+        fail_line "$configured_shell (expected zsh)"
         # Bazzite (and other atomic Fedora variants) doesn't ship util-linux-user,
         # so 'chsh' isn't available. The Bazzite docs recommend usermod with the
         # explicit /usr/bin/zsh path (not $(which zsh)) so the system-shipped

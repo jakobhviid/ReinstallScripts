@@ -13,7 +13,21 @@ source "$SCRIPT_DIR/lib/install.sh"
 source "$SCRIPT_DIR/lib/repos.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 
-MACHINE="${1:-chronos-redux}"
+# Pick a machine: explicit arg wins; otherwise force a choice via the picker.
+if [[ -n "${1:-}" ]]; then
+    MACHINE="$1"
+else
+    mapfile -t _choices < <(ls "$SCRIPT_DIR/brewfiles/Brewfile."* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
+    if [[ ${#_choices[@]} -eq 0 ]]; then
+        err "No Brewfiles found in $SCRIPT_DIR/brewfiles/"
+        exit 1
+    fi
+    MACHINE=$(pick_machine "Pick a machine (number or name): " "${_choices[@]}")
+    if [[ -z "$MACHINE" ]]; then
+        err "No machine selected, exiting."
+        exit 1
+    fi
+fi
 BREWFILE="$SCRIPT_DIR/brewfiles/Brewfile.${MACHINE}"
 
 # ─── System Layer (rpm-ostree + GNOME extensions) ─────────────────────────────

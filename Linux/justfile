@@ -29,7 +29,7 @@ install machine="":
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
         mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_choice "Pick a machine (number or name): " "${choices[@]}")
+        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
     fi
     if [[ -z "$machine" ]]; then
         warn "No machine selected, exiting."
@@ -49,7 +49,7 @@ backup machine="":
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
         mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_choice "Pick a machine (number, name, or new name): " "${choices[@]}")
+        machine=$(pick_machine "Pick a machine (number, name, or new name): " "${choices[@]}")
     fi
     if [[ -z "$machine" ]]; then
         warn "No machine selected, exiting."
@@ -73,7 +73,7 @@ drift machine="":
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
         mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_choice "Pick a machine (number or name): " "${choices[@]}")
+        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
     fi
     if [[ -z "$machine" ]]; then
         warn "No machine selected, exiting."

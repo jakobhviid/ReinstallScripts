@@ -115,9 +115,9 @@ just            # list recipes
 - **Never run justfile recipes, install scripts, or other destructive commands without explicit user consent.** These scripts install packages, modify system state, and open configuration profiles. When testing justfile changes, use `just --dry-run <recipe>` to inspect the generated script. Only run a recipe live if the user explicitly asks for it.
 - **Brave browser policies must stay in sync across all platforms.** Same policy set, three formats:
   - **Mac:** `Mac/assets/brave-debloat.mobileconfig` (plist)
-  - **Linux:** `Linux/assets/brave-policy.json` (single source of truth — deployed by `run_config_brave_policy` in `Linux/lib/config.sh`)
+  - **Linux:** `Linux/assets/brave-policy.json` (canonical editable source). The bazzite-custom image bakes a copy at `system_files/etc/brave/policies/managed/brave-policy.json` and is what actually loads on rebased machines — when changing the policy, edit this file, sync to bazzite-custom, push the image.
   - **Windows:** `Windows/brave-policy.json`
-  When adding, removing, or changing a Brave policy, update all locations.
+  When adding, removing, or changing a Brave policy, update all four locations (Mac, Linux source, Linux image copy, Windows).
 - **Git identity across all platforms is "Jakob Hviid, PhD" / jakob@hviid.phd** with `pull.rebase true`. Set by `just zsh` on Mac/Linux.
 - **Shell config changes must be applied to all locations.** Each platform has its own template:
   - `Mac/assets/zshrc.template` + `Mac/justfile` zsh recipe
@@ -125,14 +125,16 @@ just            # list recipes
   - `Windows/profile.template.ps1` + `Windows/justfile` zsh recipe
 - **Per-machine Brewfile divergence is intentional.** Each machine serves a different purpose. Don't flag cross-machine package inconsistencies as issues.
 - **`install-bazzite.sh` is add-only and idempotent.** It detects what's already installed, prints a Plan, asks `Proceed? [y/N]`, then installs only what's missing. It never uninstalls — to drop an app, edit the relevant array (or `brewfiles/Brewfile.<machine>`) and uninstall the app manually.
-- **System layer vs userspace layer (Linux):**
-  - **System layer** (rpm-ostree-managed) — `RPM_PACKAGES` array in `install-bazzite.sh` + `lib/repos.sh` repo registration. GNOME extensions via `gext`. Cannot be expressed in a Brewfile.
-  - **Userspace layer** (brew-managed) — `brewfiles/Brewfile.<machine>` covers taps, formulae, casks, and Flatpaks via the `flatpak` Brewfile directive. Applied by `brew bundle` after the rpm-ostree pass.
+- **`install-bazzite.sh` is phase-aware**, auto-detected via `rpm-ostree status`:
+  - **Phase 1** (NOT yet on the bazzite-custom image): installs the vendored cosign pub key from `Linux/assets/bazzite-custom.pub`, drops a `/etc/containers/registries.d/` entry, JSON-merges a sigstoreSigned trust rule into `/etc/containers/policy.json`, then `rpm-ostree rebase --install proton-vpn-gnome-desktop ostree-image-signed:registry:ghcr.io/jakobhviid/<image>:latest` and prompts to reboot. The per-machine → image variant mapping is the `machine_to_image` case statement at the top of the script (chronos-redux/atlas → bazzite-nvidia-custom; default → bazzite-custom).
+  - **Phase 2** (already on the image): brew bootstrap → brew bundle → `gext` → `just zsh` → per-user `run_config_*`.
+- **System layer is mostly in the bazzite-custom image now.** `RPM_PACKAGES` in `install-bazzite.sh` is just `proton-vpn-gnome-desktop` — the package can't be image-baked because its post-install scriptlet calls `systemctl`, which fails in a build container. Everything else (browsers, 1Password, Claude Desktop, dash-to-panel/dock, CLI baseline, brave policy, 1pw allowed-browsers, wireplumber renames, three unlock services, 33 preinstalled flatpaks) is in the image. See `bazzite-custom/README.md` for the full inventory.
+- **Userspace layer** (brew-managed) — `brewfiles/Brewfile.<machine>` covers taps, formulae, casks, and Flatpaks via the `flatpak` Brewfile directive. Applied by `brew bundle` in Phase 2. Brewfiles after the image rework only contain things NOT in the image: brew-only zsh plugins (autopair, completions, history-substring-search, you-should-use), niche tools (sesh, fzf-tab, typst, dotnet), claude-code (frequent updates), VS Code via ublue tap, the 3 NF-patched typefaces, and all flatpaks (the 33 image-preinstalled ones still listed as canonical "this machine wants this" record — `flatpak install` is idempotent).
 - **Shared Linux install logic lives in `Linux/lib/`** (sourced by `install-bazzite.sh`):
   - `common.sh` — `info`/`ok`/`warn`/`err` loggers, `confirm` prompt, `pick_choice` interactive picker
   - `install.sh` — detection helpers (`is_rpm_installed`, `is_flatpak_installed`, `is_gext_installed`, `is_cli_installed`), `filter_to_install`, CLI-tool install/uninstall (`brew`, `zsh-setup`), `ensure_gext`
-  - `repos.sh` — `ensure_repo` for Brave, 1Password, Proton VPN, Claude Desktop
-  - `config.sh` — all `run_config_*` (brave policy, 1password, desktop overrides, PWAs, autostart with background-launch flags, audio, localsend dark titlebar, unlock services for Brave/Nextcloud, GNOME shell, Ptyxis)
+  - `repos.sh` — `ensure_repo` for Proton VPN only (other repos baked in image)
+  - `config.sh` — per-user `run_config_*` (1password GNOME keybinding + dark titlebar, desktop overrides, PWAs, autostart with background-launch flags, localsend dark titlebar, GNOME shell, Ptyxis). Functions deleted in the image rework: `run_config_brave_policy`, `run_config_audio`, `run_config_unlock_services` — image bakes those.
 - **Linux `.desktop` icon/Exec overrides and autostart are configured once in `Linux/lib/config.sh`.** To add a new icon override: drop the file in `shared/app-icons/`, then add a `name|source|icon` row to the `overrides` array in `run_config_desktop_overrides`. To add an autostart app: add a `name|fallback-source` row to the `entries` array in `run_config_autostart`, plus a `case` branch if the autostart copy needs a background-launch flag injected (`--silent`, `--start-minimized`, `--background`, `--hidden`).
 - **Mac `lib/common.sh`** holds the same logger functions and `pick_choice` helper used by `Linux/lib/common.sh` — keep the two in sync if you change the picker contract.
 - `Windows/supportfiles/` contains registry fixes (network drive warning) and Windows Terminal settings.

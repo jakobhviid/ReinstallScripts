@@ -178,9 +178,9 @@ drift machine="":
         rpm -q "$pkg" &>/dev/null || missing_rpms+=("$pkg")
     done
     if (( ${#missing_rpms[@]} == 0 )); then
-        printf '  ✓ all %d listed packages installed\n' "${#expected_rpms[@]}"
+        printf '  ✓ all %d expected packages installed (per RPM_PACKAGES in install-bazzite.sh)\n' "${#expected_rpms[@]}"
     else
-        printf '  ✗ %d packages listed but not installed:\n' "${#missing_rpms[@]}"
+        printf '  ✗ %d expected packages not installed (RPM_PACKAGES in install-bazzite.sh):\n' "${#missing_rpms[@]}"
         printf '      %s\n' "${missing_rpms[@]}"
         fixes+=("rpm-ostree      → ./install-bazzite.sh $machine")
     fi
@@ -232,9 +232,9 @@ drift machine="":
     done < <(grep -vE '^\s*#|^\s*$' "$bf")
 
     if (( ${#missing_bf[@]} == 0 )); then
-        printf '  ✓ all listed entries installed\n'
+        printf '  ✓ all Brewfile entries installed\n'
     else
-        printf '  ✗ %d entries listed but not installed:\n' "${#missing_bf[@]}"
+        printf '  ✗ %d Brewfile entries not installed on this machine:\n' "${#missing_bf[@]}"
         printf '      %s\n' "${missing_bf[@]}"
         bfd=1
     fi
@@ -242,10 +242,10 @@ drift machine="":
     cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
     extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
     if [[ -z "$extras" ]]; then
-        printf '  ✓ no extras\n'
+        printf '  ✓ no extras (everything installed is in the Brewfile)\n'
     else
         n=$(echo "$extras" | wc -l | tr -d ' ')
-        printf '  ✗ %s packages installed but not listed:\n' "$n"
+        printf '  ✗ %s packages installed but not in the Brewfile:\n' "$n"
         echo "$extras" | sed 's/^/      /'
         bfd=1
     fi

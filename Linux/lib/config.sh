@@ -300,6 +300,22 @@ ExecStart=/usr/bin/rm -f %h/.config/BraveSoftware/Brave-Browser/SingletonLock %h
 WantedBy=default.target
 EOF
 
+    # Vivaldi is more aggressive than Brave/Chrome about a leftover SingletonLock —
+    # it refuses to launch entirely until the file is removed (per Vivaldi forum
+    # threads). Same fix pattern, different path.
+    cat >"$unit_dir/vivaldi-unlock.service" <<'EOF'
+[Unit]
+Description=Remove stale Vivaldi profile singleton lock at login
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/rm -f %h/.config/vivaldi/SingletonLock %h/.config/vivaldi/SingletonCookie %h/.config/vivaldi/SingletonSocket
+
+[Install]
+WantedBy=default.target
+EOF
+
     cat >"$unit_dir/nextcloud-unlock.service" <<'EOF'
 [Unit]
 Description=Remove stale Nextcloud kdsingleapplication lock at login
@@ -314,7 +330,7 @@ WantedBy=default.target
 EOF
 
     systemctl --user daemon-reload
-    systemctl --user enable brave-unlock.service nextcloud-unlock.service &>/dev/null
+    systemctl --user enable brave-unlock.service vivaldi-unlock.service nextcloud-unlock.service &>/dev/null
 
     ok "Unlock services installed and enabled"
 }

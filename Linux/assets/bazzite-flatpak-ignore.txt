@@ -20,3 +20,6 @@ org.gnome.Snapshot
 org.gnome.Decibels
 org.gnome.Characters
 org.gnome.font-viewer
+org.gnome.Contacts
+org.gnome.Logs
+org.gnome.Weather

@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Memory
+
+Persistent project memory lives in [MEMORY.md](MEMORY.md) at the repo root, **not** in the harness's per-user auto-memory directory (`~/.claude/projects/.../memory/`). This is deliberate: the repo is meant to set up Jakob's machines, so context that helps Claude work here needs to travel with the code via git, not stay siloed on whichever machine first wrote it.
+
+- **Read MEMORY.md** at the start of any non-trivial task in this repo — it captures preferences, decisions, and gotchas not visible in the code.
+- **When you learn something durable** (a user preference, a project decision, a hard-won gotcha), add it to MEMORY.md. Do not write to `~/.claude/projects/.../memory/` for repo-scoped memories.
+- The auto-memory directory is fine for facts about Jakob that span multiple repos — but anything specific to this repo or its conventions belongs in MEMORY.md.
+
 ## Overview
 
 A collection of OS reinstall/setup scripts organized by platform and machine. No build system or test suite — the "output" is a correctly configured machine.

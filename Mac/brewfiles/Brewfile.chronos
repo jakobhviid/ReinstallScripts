@@ -176,3 +176,6 @@ mas "Transloader", id: 572281534
 mas "WhatsApp", id: 310633997
 mas "Windows App", id: 1295203466
 mas "Xcode", id: 497799835
+cask "firefox"
+cask "hyperkey"
+cask "zen"

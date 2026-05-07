@@ -101,6 +101,28 @@ drift machine="":
     brew_prefix="$(brew --prefix)"
     here="{{justfile_directory()}}"
 
+    # ── image rebase ───────────────────────────────────────────────────
+    # Confirm the machine is on the expected bazzite-custom variant.
+    # The rest of this drift script assumes image-baked behavior (CLI
+    # tools live at /usr/bin instead of brew, system-shipped unlock
+    # services, brave policy in image, etc.), so this check sits first.
+    # Mapping mirrors install-bazzite.sh's machine_to_image function.
+    section "image rebase"
+    case "$machine" in
+        chronos-redux|atlas) expected_image="bazzite-nvidia-custom" ;;
+        *)                   expected_image="bazzite-custom" ;;
+    esac
+    expected_match="registry:ghcr.io/jakobhviid/${expected_image}:latest"
+    current_origin=$(rpm-ostree status --json 2>/dev/null \
+        | jq -r '.deployments[0].origin // ""' 2>/dev/null)
+    if [[ "$current_origin" == *"$expected_match"* ]]; then
+        ok_line "${expected_image}:latest"
+    else
+        short_current="${current_origin#*registry:}"
+        fail_line "currently on ${short_current:-<no custom image>}, expected ${expected_image}:latest"
+        fixes+=("rebase to the bazzite-custom image|./install-bazzite.sh $machine")
+    fi
+
     # ── zsh templates ──────────────────────────────────────────────────
     section "zsh"
     rendered=$(mktemp)

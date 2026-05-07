@@ -203,11 +203,14 @@ drift machine="":
         case "$line" in
             'brew '*)
                 name=$(echo "$line" | sed -E 's/^brew "([^"]+)".*/\1/')
-                echo "$formulae_installed" | grep -qFx "$name" || missing_bf+=("brew $name")
+                # Strip tap prefix: "tap/repo/formula" → "formula" (brew list returns short names).
+                short="${name##*/}"
+                echo "$formulae_installed" | grep -qFx "$short" || missing_bf+=("brew $name")
                 ;;
             'cask '*)
                 name=$(echo "$line" | sed -E 's/^cask "([^"]+)".*/\1/')
-                echo "$casks_installed" | grep -qFx "$name" || missing_bf+=("cask $name")
+                short="${name##*/}"
+                echo "$casks_installed" | grep -qFx "$short" || missing_bf+=("cask $name")
                 ;;
             'tap '*)
                 name=$(echo "$line" | sed -E 's/^tap "([^"]+)".*/\1/')
@@ -333,11 +336,14 @@ reconcile machine="":
         case "$line" in
             'brew '*)
                 name=$(echo "$line" | sed -E 's/^brew "([^"]+)".*/\1/')
-                echo "$formulae_installed" | grep -qFx "$name" || missing_lines+=("$line")
+                # Strip tap prefix: "tap/repo/formula" → "formula" (brew list returns short names).
+                short="${name##*/}"
+                echo "$formulae_installed" | grep -qFx "$short" || missing_lines+=("$line")
                 ;;
             'cask '*)
                 name=$(echo "$line" | sed -E 's/^cask "([^"]+)".*/\1/')
-                echo "$casks_installed" | grep -qFx "$name" || missing_lines+=("$line")
+                short="${name##*/}"
+                echo "$casks_installed" | grep -qFx "$short" || missing_lines+=("$line")
                 ;;
             'tap '*)
                 name=$(echo "$line" | sed -E 's/^tap "([^"]+)".*/\1/')

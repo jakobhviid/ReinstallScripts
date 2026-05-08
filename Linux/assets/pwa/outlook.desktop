@@ -5,19 +5,19 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Network;Email;
 Name=Outlook
-Exec=brave-browser --ozone-platform=x11 --enable-features=WebContentsForceDark --force-dark-mode --app=https://outlook.cloud.microsoft --class=WebApp-Outlook --name=WebApp-Outlook
+Exec=brave-browser --ozone-platform=x11 --app=https://outlook.cloud.microsoft --class=WebApp-Outlook --name=WebApp-Outlook
 StartupWMClass=WebApp-Outlook
 Icon=outlook
 Actions=New-event;New-message;Open-calendar
 
 [Desktop Action New-event]
 Name=New event
-Exec=brave-browser --ozone-platform=x11 --enable-features=WebContentsForceDark --force-dark-mode --app=https://outlook.cloud.microsoft/calendar/deeplink/compose --class=WebApp-Outlook --name=WebApp-Outlook
+Exec=brave-browser --ozone-platform=x11 --app=https://outlook.cloud.microsoft/calendar/deeplink/compose --class=WebApp-Outlook --name=WebApp-Outlook
 
 [Desktop Action New-message]
 Name=New message
-Exec=brave-browser --ozone-platform=x11 --enable-features=WebContentsForceDark --force-dark-mode --app=https://outlook.cloud.microsoft/mail/deeplink/compose --class=WebApp-Outlook --name=WebApp-Outlook
+Exec=brave-browser --ozone-platform=x11 --app=https://outlook.cloud.microsoft/mail/deeplink/compose --class=WebApp-Outlook --name=WebApp-Outlook
 
 [Desktop Action Open-calendar]
 Name=Open calendar
-Exec=brave-browser --ozone-platform=x11 --enable-features=WebContentsForceDark --force-dark-mode --app=https://outlook.cloud.microsoft/calendar --class=WebApp-Outlook --name=WebApp-Outlook
+Exec=brave-browser --ozone-platform=x11 --app=https://outlook.cloud.microsoft/calendar --class=WebApp-Outlook --name=WebApp-Outlook

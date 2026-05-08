@@ -5,6 +5,6 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Network;Email;
 Name=Proton Mail
-Exec=brave-browser --ozone-platform=x11 --enable-features=WebContentsForceDark --force-dark-mode --app=https://mail.proton.me --class=WebApp-ProtonMail --name=WebApp-ProtonMail
+Exec=brave-browser --ozone-platform=x11 --app=https://mail.proton.me --class=WebApp-ProtonMail --name=WebApp-ProtonMail
 StartupWMClass=WebApp-ProtonMail
 Icon=proton-mail

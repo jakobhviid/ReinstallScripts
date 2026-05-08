@@ -234,6 +234,18 @@ run_config_pwa() {
         fi
     done
 
+    # Remove legacy Brave-installed PWA .desktop entries (from the previous
+    # --app-id=<crx> era). Pattern matches Brave's auto-generated naming
+    # `brave-<32-char-crx-id>-Default.desktop` so we never touch the main
+    # `brave-browser.desktop`.
+    shopt -s nullglob
+    for legacy in "$app_dir"/brave-*-Default.desktop; do
+        if [[ "$(basename "$legacy")" =~ ^brave-[a-p]{32}-[A-Za-z]+\.desktop$ ]]; then
+            rm -f "$legacy"
+        fi
+    done
+    shopt -u nullglob
+
     update-desktop-database ~/.local/share/applications &>/dev/null || true
 
     ok "Brave PWAs deployed"

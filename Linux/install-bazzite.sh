@@ -149,10 +149,16 @@ EOF
     info "Adding proton-vpn-gnome-desktop repo for the layered package"
     ensure_repo proton-vpn-gnome-desktop
 
-    # 5. Rebase signed + layer proton-vpn in one transaction
-    info "Rebasing to ostree-image-signed:registry:${image_url}:latest with proton-vpn-gnome-desktop layered"
-    sudo rpm-ostree rebase --install proton-vpn-gnome-desktop \
-        "ostree-image-signed:registry:${image_url}:latest"
+    # 5. Rebase to the signed image. Then layer proton-vpn separately with
+    # --idempotent so re-runs (or pre-existing proton-vpn requests from a
+    # previous installation) are no-ops instead of hard errors.
+    # `rpm-ostree rebase --install <pkg>` doesn't have an --idempotent
+    # equivalent, so we can't use the combined form here.
+    info "Rebasing to ostree-image-signed:registry:${image_url}:latest"
+    sudo rpm-ostree rebase "ostree-image-signed:registry:${image_url}:latest"
+
+    info "Layering proton-vpn-gnome-desktop (idempotent — no-op if already requested)"
+    sudo rpm-ostree install --idempotent proton-vpn-gnome-desktop
 
     echo
     ok "Phase 1 complete. Reboot required for the new deployment to become active."

@@ -107,13 +107,13 @@ drift machine="":
     # this drift script assumes image-baked behavior (CLI tools live at
     # /usr/bin instead of brew, system-shipped unlock services, brave
     # policy in image, etc.), so this check sits first.
-    # Match just the URL path, not the full origin: rpm-ostree
-    # normalizes the URI scheme so `registry:…` becomes `docker://…`
-    # in recorded origin. The exact variant (nvidia vs not) is a user
-    # choice during install — drift just verifies you're on one of them.
+    # For container-image deployments the relevant field is
+    # `.container-image-reference`, not `.origin` (which is null in this
+    # case). Use `select(.booted)` instead of `[0]` so a staged pending
+    # doesn't shadow the actually-running deployment.
     section "image rebase"
     current_origin=$(rpm-ostree status --json 2>/dev/null \
-        | jq -r '.deployments[0].origin // ""' 2>/dev/null)
+        | jq -r '.deployments[] | select(.booted) | (.["container-image-reference"] // .origin // "")' 2>/dev/null)
     case "$current_origin" in
         *ghcr.io/jakobhviid/bazzite-custom:latest*)
             ok_line "bazzite-custom:latest"

@@ -52,17 +52,19 @@ else
 fi
 BREWFILE="$SCRIPT_DIR/brewfiles/Brewfile.${MACHINE}"
 
-# True if the current rpm-ostree deployment's origin is on one of our
-# bazzite-custom image variants. Pattern matches just the URL path because
-# rpm-ostree normalizes the URI scheme — you may rebase via
-# `ostree-image-signed:registry:…` but status records it back as
-# `ostree-image-signed:docker://…`. So anchoring the match on `registry:`
-# (as the original code did) never matched a real rebased deployment, which
-# made install-bazzite.sh re-trigger Phase 1 on every run.
+# True if the booted rpm-ostree deployment is on one of our bazzite-custom
+# image variants. Two fixes vs the previous version:
+#   (1) For container-image deployments, .origin is null; the actual image
+#       reference lives in .container-image-reference. The previous read of
+#       .origin always returned "" → no match → Phase 1 re-fired forever.
+#   (2) Use `select(.booted)` instead of indexing [0]: when a pending
+#       deployment is staged, the pending sits at index 0 and booted at 1,
+#       so [0] would inspect the wrong one.
+# Falls back to .origin for traditional ostree-ref deployments.
 is_on_custom_image() {
     local current
     current=$(rpm-ostree status --json 2>/dev/null \
-        | jq -r '.deployments[0].origin // ""' 2>/dev/null)
+        | jq -r '.deployments[] | select(.booted) | (.["container-image-reference"] // .origin // "")' 2>/dev/null)
     case "$current" in
         *ghcr.io/jakobhviid/bazzite-custom:latest*) return 0 ;;
         *ghcr.io/jakobhviid/bazzite-nvidia-custom:latest*) return 0 ;;
@@ -317,7 +319,7 @@ main() {
     else
         local current_image
         current_image=$(rpm-ostree status --json 2>/dev/null \
-            | jq -r '.deployments[0].origin // ""' 2>/dev/null \
+            | jq -r '.deployments[] | select(.booted) | (.["container-image-reference"] // .origin // "")' 2>/dev/null \
             | grep -oE 'bazzite-(nvidia-)?custom' | head -1)
         info "Already on ${current_image:-the custom image} — running Phase 2 (userspace setup)."
         phase2_userspace

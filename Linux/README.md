@@ -27,12 +27,12 @@ A fresh Bazzite GNOME install (KDE-based variants like the default `bazzite` or 
 4. `just zsh` (templates `~/.zshrc`, configures tmux/tpm, sets default shell)
 5. Per-user `run_config_*` — 1Password GNOME Alt+Shift+2 keybinding + dark titlebar, app icon overrides, PWA deployment, autostart entries with background-launch flags, LocalSend Flatpak GTK_THEME override, GNOME shell + Ptyxis dconf snapshots
 
-The per-machine → image variant mapping is the `machine_to_image` case statement at the top of `install-bazzite.sh`. Add new machines there:
+Image variant is selected interactively during Phase 1 by `pick_image_variant`:
 
-| Machine name | Image variant |
-|---|---|
-| `chronos-redux`, `atlas` | `bazzite-nvidia-custom` |
-| (default) | `bazzite-custom` |
+1. `lspci` is grep'd for NVIDIA — if found, `bazzite-nvidia-custom` is preselected; otherwise `bazzite-custom`.
+2. `pick_choice` shows both options with the detected default; press Enter to accept or type the other.
+
+This sidesteps any per-machine hardcoding. If you want to deliberately install the non-NVIDIA image on NVIDIA hardware (e.g. a server you don't want the driver loaded on), just pick `bazzite-custom` at the prompt.
 
 ## Layout
 
@@ -77,12 +77,13 @@ Run from the `Linux/` directory.
 | `just install-missing <machine>`         | Install Brewfile entries that are missing on this machine (formulas/casks/taps and flatpaks). Thin wrapper over `brew bundle install`. Additive only. |
 | `just zsh`                       | Re-template `~/.zshrc`, configure git/tmux/starship, install brew-only zsh plugins (image has the rest), set zsh as default |
 | `just speaker-eq`                | Install the PipeWire filter-chain EQ for thin laptop speakers (X1 Carbon Gen 13 only)        |
+| `just brave`                     | Deploy `assets/brave-policy.json` to `/etc/brave/policies/managed/`. Image bakes the same on rebased machines so this is normally redundant — kept for testing policy edits before syncing them into bazzite-custom. |
 | `just gnome-backup`              | Snapshot `/org/gnome/shell/` settings into `assets/gnome/shell.dconf`                        |
 | `just gnome-restore`             | Apply `assets/gnome/shell.dconf` to live `/org/gnome/shell/` (asks first, default no)        |
 | `just ptyxis-backup`             | Snapshot `/org/gnome/Ptyxis/` settings into `assets/ptyxis.dconf`                            |
 | `just ptyxis-restore`            | Apply `assets/ptyxis.dconf` to live `/org/gnome/Ptyxis/` (asks first, default no)            |
 
-(`just brave` was removed — the image bakes `/etc/brave/policies/managed/brave-policy.json`. The canonical editable source still lives at `assets/brave-policy.json`; sync to bazzite-custom when changing the policy.)
+**Editing the Brave policy:** edit `assets/brave-policy.json`, then `just brave` to deploy it on the local machine (image users will see the local copy override the image's baked-in copy). Once happy with the changes, sync the file into `../bazzite-custom/system_files/etc/brave/policies/managed/brave-policy.json` and push the bazzite-custom image so the change propagates fleet-wide.
 
 ## Workflow
 
@@ -110,14 +111,15 @@ just backup chronos-redux                 # overwrites brewfiles/Brewfile.chrono
 **Add a new Linux machine:**
 
 ```sh
-# 1. Add the machine name → image variant mapping in install-bazzite.sh
-#    (machine_to_image function — bazzite-custom for non-NVIDIA, bazzite-nvidia-custom for NVIDIA)
-# 2. ./install-bazzite.sh mynewbox      # Phase 1 — rebase, reboot
-# 3. Reboot
-# 4. just backup mynewbox                # creates brewfiles/Brewfile.mynewbox from current state
-# 5. Hand-edit Brewfile.mynewbox to drop the dumped flatpaks if you want it lean
-# 6. ./install-bazzite.sh mynewbox      # Phase 2 — userspace setup
+# 1. ./install-bazzite.sh mynewbox      # Phase 1 — pick_image_variant prompts
+#                                       #   (NVIDIA detected → bazzite-nvidia-custom default)
+# 2. Reboot
+# 3. just backup mynewbox                # creates brewfiles/Brewfile.mynewbox from current state
+# 4. Hand-edit Brewfile.mynewbox to drop the dumped flatpaks if you want it lean
+# 5. ./install-bazzite.sh mynewbox      # Phase 2 — userspace setup
 ```
+
+No code edit needed for a new machine — the image variant is chosen at the prompt during step 1.
 
 ## Brave policy
 
@@ -132,7 +134,7 @@ When changing the policy, edit this file then propagate to all three sync target
 
 Brewfiles diverge per machine — each machine serves a different purpose. The system-layer arrays in `install-bazzite.sh` (`RPM_PACKAGES`, `GNOME_EXTENSIONS`) currently apply uniformly. After the image rework, `RPM_PACKAGES` is just `proton-vpn-gnome-desktop`; `GNOME_EXTENSIONS` is six per-user `gext`-installed extensions. If the divergence ever matters, split per-machine.
 
-The image variant differs per machine via the `machine_to_image` mapping — that's where NVIDIA vs Intel splits.
+The image variant is per-machine but selected at install time via `pick_image_variant` (NVIDIA detection + prompt) — no static mapping needed.
 
 ## Manual extras
 

@@ -52,24 +52,46 @@ else
 fi
 BREWFILE="$SCRIPT_DIR/brewfiles/Brewfile.${MACHINE}"
 
-# ─── Per-machine → image variant mapping ─────────────────────────────────────
-# Add new machines here. Default falls through to bazzite-custom (non-NVIDIA).
-machine_to_image() {
-    case "$1" in
-        chronos-redux|atlas) echo "bazzite-nvidia-custom" ;;
-        *)                   echo "bazzite-custom" ;;
-    esac
-}
-
-# True if the current rpm-ostree deployment's origin matches the expected
-# image — accepts both signed (`ostree-image-signed:`) and unverified
-# (`ostree-unverified-image:`) prefixes since either means we're on the image.
+# True if the current rpm-ostree deployment's origin is on one of our
+# bazzite-custom image variants. Pattern matches just the URL path because
+# rpm-ostree normalizes the URI scheme — you may rebase via
+# `ostree-image-signed:registry:…` but status records it back as
+# `ostree-image-signed:docker://…`. So anchoring the match on `registry:`
+# (as the original code did) never matched a real rebased deployment, which
+# made install-bazzite.sh re-trigger Phase 1 on every run.
 is_on_custom_image() {
-    local image_name="$1"
     local current
     current=$(rpm-ostree status --json 2>/dev/null \
         | jq -r '.deployments[0].origin // ""' 2>/dev/null)
-    [[ "$current" == *"registry:ghcr.io/jakobhviid/${image_name}:latest"* ]]
+    case "$current" in
+        *ghcr.io/jakobhviid/bazzite-custom:latest*) return 0 ;;
+        *ghcr.io/jakobhviid/bazzite-nvidia-custom:latest*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Detect NVIDIA hardware and prompt for image variant. Hardware detection
+# preselects the sensible default; user can override (e.g. test the non-NVIDIA
+# image on NVIDIA hardware, or vice versa). Replaced an earlier hardcoded
+# machine→image case statement — too brittle for future machines and didn't
+# allow per-invocation override.
+pick_image_variant() {
+    local has_nvidia=0
+    if lspci 2>/dev/null | grep -iE 'vga|3d|display' | grep -qi nvidia; then
+        has_nvidia=1
+    fi
+
+    local default_image
+    if (( has_nvidia )); then
+        default_image="bazzite-nvidia-custom"
+        info "Detected NVIDIA GPU — default image: bazzite-nvidia-custom" >&2
+    else
+        default_image="bazzite-custom"
+        info "No NVIDIA GPU detected — default image: bazzite-custom" >&2
+    fi
+
+    pick_choice "Image variant: " "$default_image" \
+        "bazzite-custom" "bazzite-nvidia-custom"
 }
 
 # ─── System Layer (rpm-ostree + GNOME extensions) ─────────────────────────────
@@ -286,15 +308,18 @@ main() {
         fi
     fi
 
-    local image_name
-    image_name=$(machine_to_image "$MACHINE")
-    info "Target image: ghcr.io/jakobhviid/${image_name}:latest"
-
-    if ! is_on_custom_image "$image_name"; then
+    if ! is_on_custom_image; then
         warn "Not on the custom image yet — running Phase 1 (trust setup + signed rebase + proton-vpn layer + reboot)."
+        local image_name
+        image_name=$(pick_image_variant)
+        info "Target image: ghcr.io/jakobhviid/${image_name}:latest"
         phase1_image_setup "$image_name"
     else
-        info "Already on the custom image — running Phase 2 (userspace setup)."
+        local current_image
+        current_image=$(rpm-ostree status --json 2>/dev/null \
+            | jq -r '.deployments[0].origin // ""' 2>/dev/null \
+            | grep -oE 'bazzite-(nvidia-)?custom' | head -1)
+        info "Already on ${current_image:-the custom image} — running Phase 2 (userspace setup)."
         phase2_userspace
     fi
 }

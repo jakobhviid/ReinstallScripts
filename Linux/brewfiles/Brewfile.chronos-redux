@@ -24,8 +24,13 @@ brew "fzf-tab"
 brew "sesh"
 brew "typst"
 
-# Zsh plugins (image has zsh-autosuggestions + zsh-syntax-highlighting; rest
-# stay brew-only — no Fedora packaging for these)
+# Zsh plugins. zsh-autosuggestions and zsh-syntax-highlighting are also in
+# the image as Fedora RPMs but kept here for stock-Bazzite compatibility +
+# `just drift` consistency; on rebased machines they install as harmless
+# duplicates and zshrc.template sources the image copy first. The other four
+# stay brew-only — no Fedora packaging exists.
+brew "zsh-autosuggestions"
+brew "zsh-syntax-highlighting"
 brew "zsh-autopair"
 brew "zsh-completions"
 brew "zsh-history-substring-search"

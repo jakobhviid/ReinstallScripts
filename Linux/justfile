@@ -16,6 +16,7 @@ default:
     @echo "  just install-missing [machine]   Install Brewfile entries that are missing on this machine"
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
     @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
+    @echo "  just brave               Deploy assets/brave-policy.json (image bakes the same; useful for testing edits)"
     @echo "  just gnome-backup        Snapshot current GNOME shell settings"
     @echo "  just gnome-restore       Apply the snapshot to live GNOME shell (asks first)"
     @echo "  just ptyxis-backup       Snapshot current Ptyxis settings"
@@ -102,26 +103,30 @@ drift machine="":
     here="{{justfile_directory()}}"
 
     # ── image rebase ───────────────────────────────────────────────────
-    # Confirm the machine is on the expected bazzite-custom variant.
-    # The rest of this drift script assumes image-baked behavior (CLI
-    # tools live at /usr/bin instead of brew, system-shipped unlock
-    # services, brave policy in image, etc.), so this check sits first.
-    # Mapping mirrors install-bazzite.sh's machine_to_image function.
+    # Confirm the machine is on a bazzite-custom variant. The rest of
+    # this drift script assumes image-baked behavior (CLI tools live at
+    # /usr/bin instead of brew, system-shipped unlock services, brave
+    # policy in image, etc.), so this check sits first.
+    # Match just the URL path, not the full origin: rpm-ostree
+    # normalizes the URI scheme so `registry:…` becomes `docker://…`
+    # in recorded origin. The exact variant (nvidia vs not) is a user
+    # choice during install — drift just verifies you're on one of them.
     section "image rebase"
-    case "$machine" in
-        chronos-redux|atlas) expected_image="bazzite-nvidia-custom" ;;
-        *)                   expected_image="bazzite-custom" ;;
-    esac
-    expected_match="registry:ghcr.io/jakobhviid/${expected_image}:latest"
     current_origin=$(rpm-ostree status --json 2>/dev/null \
         | jq -r '.deployments[0].origin // ""' 2>/dev/null)
-    if [[ "$current_origin" == *"$expected_match"* ]]; then
-        ok_line "${expected_image}:latest"
-    else
-        short_current="${current_origin#*registry:}"
-        fail_line "currently on ${short_current:-<no custom image>}, expected ${expected_image}:latest"
-        fixes+=("rebase to the bazzite-custom image|./install-bazzite.sh $machine")
-    fi
+    case "$current_origin" in
+        *ghcr.io/jakobhviid/bazzite-custom:latest*)
+            ok_line "bazzite-custom:latest"
+            ;;
+        *ghcr.io/jakobhviid/bazzite-nvidia-custom:latest*)
+            ok_line "bazzite-nvidia-custom:latest"
+            ;;
+        *)
+            short_current="${current_origin##*:}"
+            fail_line "currently on ${current_origin:-<no deployment>}, expected ghcr.io/jakobhviid/bazzite-{,nvidia-}custom:latest"
+            fixes+=("rebase to the bazzite-custom image|./install-bazzite.sh $machine")
+            ;;
+    esac
 
     # ── zsh templates ──────────────────────────────────────────────────
     section "zsh"
@@ -651,13 +656,19 @@ install-missing machine="":
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
     #!/usr/bin/env bash
-    # Install only the brew-only stuff. The bazzite-custom image bakes in the
-    # CLI baseline (bat eza fzf htop jq just lazygit starship tmux zoxide),
-    # zsh-autosuggestions, zsh-syntax-highlighting, and the symbols-only Nerd
-    # Font as RPMs — installing brew copies on top is wasteful duplication.
-    echo "Installing brew-only Zsh plugins + CLI tools (image has the rest)..."
+    # The bazzite-custom image bakes the CLI baseline (bat eza fzf htop jq
+    # just lazygit starship tmux zoxide) and the symbols-only Nerd Font as
+    # RPMs — those don't need brew copies on rebased machines, so dropped
+    # from the install line. zsh-autosuggestions and zsh-syntax-highlighting
+    # ARE kept here for stock-Bazzite compatibility (running just zsh on a
+    # not-yet-rebased machine still gets working autosuggest/highlighting via
+    # brew); on rebased machines they install as harmless duplicates of the
+    # image RPM, and zshrc.template's source order picks the image copy first.
+    echo "Installing Zsh plugins + brew-only CLI tools..."
     brew tap joshmedeski/sesh 2>/dev/null || true
     brew install \
+        zsh-autosuggestions \
+        zsh-syntax-highlighting \
         zsh-autopair \
         zsh-completions \
         zsh-history-substring-search \
@@ -814,8 +825,10 @@ ptyxis-restore:
         info "Aborted."
     fi
 
-# `just brave` was removed: the bazzite-custom image bakes
-# /etc/brave/policies/managed/brave-policy.json directly. The canonical
-# editable source still lives at assets/brave-policy.json — when changing
-# the policy, edit it here, then sync to bazzite-custom/system_files/etc/brave/
-# policies/managed/brave-policy.json and push the image.
+# Deploy assets/brave-policy.json locally — useful for testing policy edits before syncing them into the bazzite-custom image (rebased machines normally use the image's baked-in copy of the same file).
+brave:
+    #!/usr/bin/env bash
+    echo "Deploying Brave browser policy from assets/brave-policy.json..."
+    sudo mkdir -p /etc/brave/policies/managed
+    sudo cp "{{justfile_directory()}}/assets/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
+    echo "✓ Brave policy applied — restart Brave to load (brave://policy to verify)"

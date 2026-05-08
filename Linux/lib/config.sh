@@ -160,14 +160,17 @@ run_config_desktop_overrides() {
 
     # name | source .desktop | icon filename (under shared/app-icons)
     local overrides=(
-        "brave-browser.desktop|/usr/share/applications/brave-browser.desktop|brave-browser.webp"
-        "code.desktop|$HOME/.local/share/applications/code.desktop|code.webp"
-        "1password.desktop|/usr/share/applications/1password.desktop|1password.webp"
+        "brave-browser.desktop|/usr/share/applications/brave-browser.desktop|brave-browser.png"
+        "code.desktop|$HOME/.local/share/applications/code.desktop|code.png"
+        "1password.desktop|/usr/share/applications/1password.desktop|1password.png"
         "org.gnome.Nautilus.desktop|/usr/share/applications/org.gnome.Nautilus.desktop|org.gnome.Nautilus.png"
-        "org.gnome.Ptyxis.desktop|/usr/share/applications/org.gnome.Ptyxis.desktop|org.gnome.Ptyxis.webp"
-        "com.discordapp.Discord.desktop|/var/lib/flatpak/exports/share/applications/com.discordapp.Discord.desktop|com.discordapp.Discord.webp"
-        "org.signal.Signal.desktop|/var/lib/flatpak/exports/share/applications/org.signal.Signal.desktop|org.signal.Signal.webp"
+        "org.gnome.Ptyxis.desktop|/usr/share/applications/org.gnome.Ptyxis.desktop|org.gnome.Ptyxis.png"
+        "com.discordapp.Discord.desktop|/var/lib/flatpak/exports/share/applications/com.discordapp.Discord.desktop|com.discordapp.Discord.png"
+        "org.signal.Signal.desktop|/var/lib/flatpak/exports/share/applications/org.signal.Signal.desktop|org.signal.Signal.png"
         "proton.vpn.app.gtk.desktop|/usr/share/applications/proton.vpn.app.gtk.desktop|proton.vpn.app.gtk.png"
+        "vivaldi-stable.desktop|/usr/share/applications/vivaldi-stable.desktop|vivaldi-stable.png"
+        "org.mozilla.firefox.desktop|/usr/share/applications/org.mozilla.firefox.desktop|org.mozilla.firefox.png"
+        "claude-desktop.desktop|/usr/share/applications/claude-desktop.desktop|claude-desktop.png"
     )
 
     for row in "${overrides[@]}"; do

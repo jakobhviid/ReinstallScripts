@@ -5,6 +5,6 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Network;Email;
 Name=Proton Mail
-Exec=brave-browser --ozone-platform=x11 --app=https://mail.proton.me --class=WebApp-ProtonMail --name=WebApp-ProtonMail
+Exec=pwa-launch WebApp-ProtonMail https://mail.proton.me
 StartupWMClass=WebApp-ProtonMail
 Icon=proton-mail

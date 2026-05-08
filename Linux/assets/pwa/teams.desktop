@@ -5,6 +5,6 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Network;InstantMessaging;
 Name=Teams
-Exec=brave-browser --ozone-platform=x11 --app=https://teams.microsoft.com --class=WebApp-Teams --name=WebApp-Teams
+Exec=pwa-launch WebApp-Teams https://teams.microsoft.com
 StartupWMClass=WebApp-Teams
 Icon=teams

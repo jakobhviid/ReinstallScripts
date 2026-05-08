@@ -5,6 +5,6 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Audio;Music;Player;
 Name=YouTube Music
-Exec=brave-browser --ozone-platform=x11 --app=https://music.youtube.com --class=WebApp-YouTubeMusic --name=WebApp-YouTubeMusic
+Exec=pwa-launch WebApp-YouTubeMusic https://music.youtube.com
 StartupWMClass=WebApp-YouTubeMusic
 Icon=youtube-music

@@ -5,23 +5,23 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Office;
 Name=Craft
-Exec=brave-browser --ozone-platform=x11 --app=https://docs.craft.do --class=WebApp-Craft --name=WebApp-Craft
+Exec=pwa-launch WebApp-Craft https://docs.craft.do
 StartupWMClass=WebApp-Craft
 Icon=craft
 Actions=New-document;New-task;Search;Today
 
 [Desktop Action New-document]
 Name=New document
-Exec=brave-browser --ozone-platform=x11 --app=https://docs.craft.do/editor/new --class=WebApp-Craft --name=WebApp-Craft
+Exec=pwa-launch WebApp-Craft https://docs.craft.do/editor/new
 
 [Desktop Action New-task]
 Name=New task
-Exec=brave-browser --ozone-platform=x11 "--app=https://docs.craft.do/home?go=new-task" --class=WebApp-Craft --name=WebApp-Craft
+Exec=pwa-launch WebApp-Craft "https://docs.craft.do/home?go=new-task"
 
 [Desktop Action Search]
 Name=Search
-Exec=brave-browser --ozone-platform=x11 "--app=https://docs.craft.do/home?go=quick-search" --class=WebApp-Craft --name=WebApp-Craft
+Exec=pwa-launch WebApp-Craft "https://docs.craft.do/home?go=quick-search"
 
 [Desktop Action Today]
 Name=Today
-Exec=brave-browser --ozone-platform=x11 --app=https://docs.craft.do/editor/today --class=WebApp-Craft --name=WebApp-Craft
+Exec=pwa-launch WebApp-Craft https://docs.craft.do/editor/today

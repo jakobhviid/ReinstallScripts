@@ -5,6 +5,6 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Office;Calendar;
 Name=Proton Calendar
-Exec=brave-browser --ozone-platform=x11 --app=https://calendar.proton.me --class=WebApp-ProtonCalendar --name=WebApp-ProtonCalendar
+Exec=pwa-launch WebApp-ProtonCalendar https://calendar.proton.me
 StartupWMClass=WebApp-ProtonCalendar
 Icon=proton-calendar

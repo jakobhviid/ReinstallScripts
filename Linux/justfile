@@ -369,6 +369,72 @@ drift machine="":
     (( bf_missing || bf_extras )) && fixes+=("interactively pick which extras to add and which missing entries to drop from the Brewfile|just reconcile $machine")
     (( bf_missing || bf_extras )) && fixes+=("save this machine's current state to the Brewfile (captures extras, drops missing entries, full overwrite)|just backup $machine")
 
+    # ── 1Password integration ─────────────────────────────────────────
+    # 1Password browser integration has three machine-state requirements
+    # that have bitten us multiple times. Surface them here so future drift
+    # runs catch regressions before they manifest as "browser unlock just
+    # silently doesn't work":
+    #   1. User MUST NOT be in the `onepassword` group. The cask creates
+    #      the group; setgid exec is the ONLY intended way to obtain that
+    #      egid. If the user is a member, IPC peer auth becomes spoofable
+    #      and 1P main app rejects connections (PipeAuthError(NoCreds)).
+    #   2. /etc/1password/custom_allowed_browsers must contain `vivaldi-bin`
+    #      and `zen-bin` (the cask only writes flatpak-session-helper) and
+    #      be mode 0755 root:root (writable-only-by-root check; 0444 fails
+    #      because root has no write bit).
+    #   3. Zen needs its own NMH manifest at ~/.zen/native-messaging-hosts/
+    #      — the cask doesn't write one for Zen.
+    section "1password integration"
+    op_drift=0
+    if command -v 1password >/dev/null 2>&1; then
+        # Group membership check (the most consequential, hardest to debug)
+        if id -nG "$USER" | tr ' ' '\n' | grep -qx onepassword; then
+            fail_line "user '$USER' is in the 'onepassword' group (BREAKS browser integration)"
+            fixes+=("remove user from onepassword group then log out/in|sudo gpasswd -d $USER onepassword")
+            op_drift=1
+        else
+            ok_line "user not in onepassword group"
+        fi
+        # custom_allowed_browsers presence + perms + entries
+        cab=/etc/1password/custom_allowed_browsers
+        if [[ ! -f "$cab" ]]; then
+            fail_line "$cab missing (1P GUI not installed?)"
+            op_drift=1
+        else
+            cab_mode=$(stat -c %a "$cab")
+            cab_owner=$(stat -c %U:%G "$cab")
+            if [[ "$cab_mode" != "755" && "$cab_mode" != "644" ]] || [[ "$cab_owner" != "root:root" ]]; then
+                fail_line "$cab perms = $cab_mode $cab_owner (need 0755 or 0644 root:root, 1P rejects 0444)"
+                op_drift=1
+            else
+                ok_line "$cab perms ($cab_mode $cab_owner)"
+            fi
+            cab_missing=()
+            for entry in vivaldi-bin zen-bin; do
+                grep -qxF "$entry" "$cab" 2>/dev/null || cab_missing+=("$entry")
+            done
+            if (( ${#cab_missing[@]} > 0 )); then
+                fail_line "$cab missing: ${cab_missing[*]}"
+                op_drift=1
+            else
+                ok_line "$cab contains vivaldi-bin + zen-bin"
+            fi
+        fi
+        # Zen NMH manifest (only if Zen is installed)
+        if [[ -d /opt/zen || -d ~/.zen ]]; then
+            zen_manifest=~/.zen/native-messaging-hosts/com.1password.1password.json
+            if [[ -f "$zen_manifest" ]]; then
+                ok_line "Zen NMH manifest present"
+            else
+                fail_line "Zen installed but no $zen_manifest"
+                op_drift=1
+            fi
+        fi
+        (( op_drift )) && fixes+=("re-run 1Password per-user config (fixes browser allowlist + Zen NMH)|./install-bazzite.sh $machine")
+    else
+        ok_line "1Password not installed (skipping integration checks)"
+    fi
+
     # ── Summary ────────────────────────────────────────────────────────
     section "Summary"
     if (( ${#fixes[@]} == 0 )); then

@@ -11,16 +11,53 @@
 #   - run_config_unlock_services    → image bakes /usr/lib/systemd/user/{brave,vivaldi,nextcloud}-unlock.service
 #                                     (auto-enabled per-user via /usr/lib/systemd/user-preset/)
 # 1Password lives in brew (cask ublue-os/tap/1password-gui-linux), not in
-# the image and not RPM-layered. The cask handles setgid + group creation +
-# native messaging manifests + custom_allowed_browsers + polkit (per uBlue
-# tap PR #296). uBlue maintain Bazzite, so trust their setup unless proven
-# otherwise — this function only adds the Alt+Shift+2 quick-access
-# keybinding and dark-titlebar tweak, deferring all the IPC plumbing to
-# the cask. If browser integration fails post-install, revisit (likely
-# additions: usermod -aG onepassword "$USER", session re-login).
+# the image and not RPM-layered. Three lessons from a long debugging session
+# that need to be load-bearing here, because the symptoms misled us repeatedly:
+#
+#   1. The user MUST NOT be a member of the `onepassword` group. The cask
+#      creates the group and chowns BrowserSupport to root:onepassword setgid.
+#      1P main app's IPC peer check accepts a connection only if the peer's
+#      egid is `onepassword`, which is supposed to be reachable ONLY via
+#      setgid exec. If the user is in the group, ordinary user processes
+#      could trivially obtain that egid and the auth check is meaningless,
+#      so 1P rejects the connection with PipeAuthError(NoCreds). Every
+#      "fix" that did `usermod -aG onepassword $USER` (a common stale tip)
+#      was the actual bug. The cask deliberately does NOT add the user.
+#      → This function refuses to proceed if the user is a member.
+#
+#   2. /etc/1password/custom_allowed_browsers must be mode 0755 root:root.
+#      1P's verification at op-browser-support/src/browser_verification/
+#      linux.rs:86 is "writable only by root". Mode 0444 (no write for
+#      anyone) FAILS this check — root needs the write bit. The cask
+#      installs at 0644 (also valid). 1P's own log message says 0755.
+#
+#   3. The cask only installs NMH manifests for the major browsers it
+#      ships defaults for (Brave, Chrome variants, Chromium, Edge, Vivaldi,
+#      Vivaldi-snapshot, Firefox). Vivaldi and Zen also need to be
+#      whitelisted in custom_allowed_browsers (1P's hardcoded trusted
+#      basenames are only chrome/chromium-browser-privacy/msedge/brave/
+#      firefox/firefox-bin/firefox-esr). Zen further needs a Firefox-style
+#      NMH manifest copied into ~/.zen/native-messaging-hosts/ — the cask
+#      doesn't know about Zen at all.
+#
+# This function therefore: validates the group state, adds the keybinding
+# and dark-titlebar tweak (the "make it nice" part), appends vivaldi-bin
+# and zen-bin to custom_allowed_browsers, and installs Zen's NMH manifest.
 
 run_config_1password() {
-    info "Configuring 1Password (per-user GNOME keybinding + dark titlebar)"
+    info "Configuring 1Password (per-user GNOME keybinding + dark titlebar + browser allowlist)"
+
+    # Lesson 1: bail loudly if the user is in the onepassword group. This
+    # silently breaks browser integration in a way that took a full session
+    # to root-cause. Prefer noisy stop over silent re-introduction.
+    if id -nG "$USER" | tr ' ' '\n' | grep -qx onepassword; then
+        warn "User '$USER' is a member of the 'onepassword' group."
+        warn "This BREAKS 1Password browser integration: 1P's IPC peer check"
+        warn "rejects connections from peers whose egid is reachable without"
+        warn "setgid exec. Remove with:  sudo gpasswd -d \"$USER\" onepassword"
+        warn "Then log out + log back in. Skipping run_config_1password."
+        return
+    fi
 
     # Register our custom keybinding path in the global list WITHOUT clobbering
     # any other custom shortcuts the user has configured. Only add if missing.
@@ -48,11 +85,56 @@ run_config_1password() {
     # The cask drops 1password.desktop directly into ~/.local/share/applications
     # with Exec pointing at the brew prefix (e.g. /home/linuxbrew/.linuxbrew/bin
     # /1password). Path-flexible regex captures whatever Exec= points at and
-    # rewrites it with the env wrapper + flags, so it works whether the cask
-    # path or the legacy /opt/1Password path is in place.
+    # rewrites it with the env wrapper + flags.
     if [[ -f ~/.local/share/applications/1password.desktop ]]; then
         sed -i -E 's|^Exec=([^ ]*1password) %U|Exec=env GTK_THEME=Adwaita:dark \1 --enable-features=UseOzonePlatform --ozone-platform=wayland %U|' \
           ~/.local/share/applications/1password.desktop
+    fi
+
+    # Lesson 3a: Vivaldi (vivaldi-bin) and Zen (zen-bin) are not in 1P's
+    # hardcoded trusted-browser basename list. Append them to the cask-
+    # installed custom_allowed_browsers (skip the block entirely if the
+    # cask file isn't present — means brew install hasn't run yet).
+    local cab=/etc/1password/custom_allowed_browsers
+    if [[ -f "$cab" ]]; then
+        local need_append=()
+        for entry in vivaldi-bin zen-bin; do
+            if ! sudo grep -qxF "$entry" "$cab"; then
+                need_append+=("$entry")
+            fi
+        done
+        if (( ${#need_append[@]} > 0 )); then
+            info "Adding to $cab: ${need_append[*]}"
+            # Cask ships the file without a trailing newline, so a naive
+            # `tee -a` concatenates with the last line. Ensure trailing
+            # newline first, then append each entry on its own line.
+            if [[ -n "$(sudo tail -c1 "$cab")" ]]; then
+                printf '\n' | sudo tee -a "$cab" >/dev/null
+            fi
+            printf '%s\n' "${need_append[@]}" | sudo tee -a "$cab" >/dev/null
+        fi
+        # Lesson 2: 1P requires "writable only by root" — mode 0755 (or 0644)
+        # owner root:root. Mode 0444 fails because root lacks the write bit.
+        sudo chown root:root "$cab"
+        sudo chmod 0755 "$cab"
+    else
+        warn "$cab not found — skipping browser allowlist update."
+        warn "If you want Vivaldi/Zen browser integration, install"
+        warn "1Password GUI first (brew install --cask ublue-os/tap/1password-gui-linux),"
+        warn "then re-run this script."
+    fi
+
+    # Lesson 3b: Zen needs a Firefox-style NMH manifest (allowed_extensions,
+    # not allowed_origins). Cask doesn't write one. Source it from the
+    # Firefox manifest the cask DID write.
+    local zen_dir=~/.zen/native-messaging-hosts
+    local moz_manifest=~/.mozilla/native-messaging-hosts/com.1password.1password.json
+    local moz_wrapper=~/.mozilla/native-messaging-hosts/1PasswordWrapper.sh
+    if [[ -d ~/.zen && -f "$moz_manifest" ]]; then
+        mkdir -p "$zen_dir"
+        cp -f "$moz_manifest" "$zen_dir/com.1password.1password.json"
+        [[ -f "$moz_wrapper" ]] && cp -f "$moz_wrapper" "$zen_dir/1PasswordWrapper.sh"
+        info "Installed Zen 1Password NMH manifest"
     fi
 
     ok "1Password configured"

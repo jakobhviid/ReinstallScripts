@@ -210,15 +210,9 @@ run_config_pwa() {
 
     local app_dir=~/.local/share/applications
     local icon_dir=~/.local/share/icons/reinstall-scripts/pwa
-    local bin_dir=~/.local/bin
-    mkdir -p "$app_dir" "$icon_dir" "$bin_dir"
+    mkdir -p "$app_dir" "$icon_dir"
 
     cp -u "$src_dir/icons/"* "$icon_dir/"
-
-    # Deploy the launcher wrapper that the .desktop entries call. Putting it
-    # under ~/.local/bin keeps it on PATH for desktop launches (Bazzite/
-    # systemd-managed user sessions add it automatically).
-    install -m 0755 "$src_dir/pwa-launch.sh" "$bin_dir/pwa-launch"
 
     local desktop stem icon_file ext
     for desktop in "$src_dir"/*.desktop; do

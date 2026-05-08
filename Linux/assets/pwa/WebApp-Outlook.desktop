@@ -5,19 +5,19 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Network;Email;
 Name=Outlook
-Exec=pwa-launch WebApp-Outlook https://outlook.cloud.microsoft
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app=https://outlook.cloud.microsoft --class=WebApp-Outlook --name=WebApp-Outlook
 StartupWMClass=WebApp-Outlook
 Icon=outlook
 Actions=New-event;New-message;Open-calendar
 
 [Desktop Action New-event]
 Name=New event
-Exec=pwa-launch WebApp-Outlook https://outlook.cloud.microsoft/calendar/deeplink/compose
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app=https://outlook.cloud.microsoft/calendar/deeplink/compose --class=WebApp-Outlook --name=WebApp-Outlook
 
 [Desktop Action New-message]
 Name=New message
-Exec=pwa-launch WebApp-Outlook https://outlook.cloud.microsoft/mail/deeplink/compose
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app=https://outlook.cloud.microsoft/mail/deeplink/compose --class=WebApp-Outlook --name=WebApp-Outlook
 
 [Desktop Action Open-calendar]
 Name=Open calendar
-Exec=pwa-launch WebApp-Outlook https://outlook.cloud.microsoft/calendar
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app=https://outlook.cloud.microsoft/calendar --class=WebApp-Outlook --name=WebApp-Outlook

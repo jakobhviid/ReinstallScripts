@@ -5,23 +5,23 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Office;
 Name=Craft
-Exec=pwa-launch WebApp-Craft https://docs.craft.do
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app=https://docs.craft.do --class=WebApp-Craft --name=WebApp-Craft
 StartupWMClass=WebApp-Craft
 Icon=craft
 Actions=New-document;New-task;Search;Today
 
 [Desktop Action New-document]
 Name=New document
-Exec=pwa-launch WebApp-Craft https://docs.craft.do/editor/new
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app=https://docs.craft.do/editor/new --class=WebApp-Craft --name=WebApp-Craft
 
 [Desktop Action New-task]
 Name=New task
-Exec=pwa-launch WebApp-Craft "https://docs.craft.do/home?go=new-task"
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app="https://docs.craft.do/home?go=new-task" --class=WebApp-Craft --name=WebApp-Craft
 
 [Desktop Action Search]
 Name=Search
-Exec=pwa-launch WebApp-Craft "https://docs.craft.do/home?go=quick-search"
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app="https://docs.craft.do/home?go=quick-search" --class=WebApp-Craft --name=WebApp-Craft
 
 [Desktop Action Today]
 Name=Today
-Exec=pwa-launch WebApp-Craft https://docs.craft.do/editor/today
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app=https://docs.craft.do/editor/today --class=WebApp-Craft --name=WebApp-Craft

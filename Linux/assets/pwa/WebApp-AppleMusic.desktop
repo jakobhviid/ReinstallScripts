@@ -5,6 +5,6 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;AudioVideo;Audio;Music;Player;
 Name=Apple Music
-Exec=pwa-launch WebApp-AppleMusic https://music.apple.com
+Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app=https://music.apple.com --class=WebApp-AppleMusic --name=WebApp-AppleMusic
 StartupWMClass=WebApp-AppleMusic
 Icon=apple-music

@@ -133,8 +133,10 @@ drift machine="":
     rendered=$(mktemp)
     sed "s|BREW_PREFIX|$brew_prefix|g" "$here/assets/zshrc.template" > "$rendered"
     zd=0
+    # Drift checks ~/.zshrc.image (the managed file), NOT ~/.zshrc — the
+    # latter is user-owned and may diverge freely (see `just zsh` recipe).
     for pair in \
-        "$rendered:$HOME/.zshrc" \
+        "$rendered:$HOME/.zshrc.image" \
         "$here/../shared/starship.toml:$HOME/.config/starship.toml" \
         "$here/../shared/tmux.conf:$HOME/.tmux.conf"
     do
@@ -702,14 +704,41 @@ zsh:
         -o ~/.config/fontconfig/conf.d/10-nerd-font-symbols.conf
     fc-cache -f
 
-    if [[ -f ~/.zshrc ]]; then
-        cp ~/.zshrc ~/.zshrc.bak
-        echo "Backed up existing .zshrc to .zshrc.bak"
-    fi
-
+    # ── Two-file model for .zshrc (added 2026-05) ─────────────────────────
+    # ~/.zshrc.image — auto-managed, rewritten on every `just zsh` from
+    #                  assets/zshrc.template. Drift checks this file.
+    # ~/.zshrc       — yours to edit. Initial bootstrap written ONCE if
+    #                  it doesn't yet exist or still has the old template
+    #                  content. Tools like nvm/bun/pyenv that auto-modify
+    #                  .zshrc no longer get clobbered on the next `just zsh`,
+    #                  and template updates land in .zshrc.image without
+    #                  touching your customizations.
     brew_prefix="$(brew --prefix)"
     chmod -R go-w "$brew_prefix/share" "$brew_prefix/share/zsh" 2>/dev/null || true
-    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/assets/zshrc.template" > ~/.zshrc
+
+    # Always rewrite the managed file from template (with BREW_PREFIX subst).
+    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/assets/zshrc.template" > ~/.zshrc.image
+    echo "Updated ~/.zshrc.image (managed)"
+
+    # Bootstrap ~/.zshrc only if it's missing OR doesn't yet have the
+    # `source ~/.zshrc.image` line. Anything containing that line is treated
+    # as a post-migration user file and left untouched. Pre-migration files
+    # (the old full-template content) get backed up and replaced.
+    needs_bootstrap=0
+    if [[ ! -f ~/.zshrc ]] || ! grep -qF 'source ~/.zshrc.image' ~/.zshrc; then
+        needs_bootstrap=1
+    fi
+    if (( needs_bootstrap )); then
+        if [[ -f ~/.zshrc ]]; then
+            cp ~/.zshrc ~/.zshrc.bak
+            echo "Backed up existing .zshrc to .zshrc.bak"
+        fi
+        cp "{{justfile_directory()}}/assets/zshrc-bootstrap" ~/.zshrc
+        echo "Wrote bootstrap ~/.zshrc → sources ~/.zshrc.image"
+    else
+        echo "~/.zshrc has user content, leaving as-is (must contain 'source ~/.zshrc.image')"
+    fi
+
     mkdir -p ~/.config
     cp "{{justfile_directory()}}/../shared/starship.toml" ~/.config/starship.toml
     cp "{{justfile_directory()}}/../shared/tmux.conf" ~/.tmux.conf

@@ -11,11 +11,13 @@
 #   - run_config_unlock_services    → image bakes /usr/lib/systemd/user/{brave,vivaldi,nextcloud}-unlock.service
 #                                     (auto-enabled per-user via /usr/lib/systemd/user-preset/)
 # 1Password lives in brew (cask ublue-os/tap/1password-gui-linux), not in
-# the image and not RPM-layered. The cask handles setgid + native messaging
-# manifests + custom_allowed_browsers itself; this function only adds the
-# Alt+Shift+2 quick-access keybinding and dark-titlebar tweak. The .desktop
-# Exec= patch below assumes the cask exposes /opt/1Password/1password (the
-# upstream layout); if the cask installs elsewhere, the sed is a no-op.
+# the image and not RPM-layered. The cask handles setgid + group creation +
+# native messaging manifests + custom_allowed_browsers + polkit (per uBlue
+# tap PR #296). uBlue maintain Bazzite, so trust their setup unless proven
+# otherwise — this function only adds the Alt+Shift+2 quick-access
+# keybinding and dark-titlebar tweak, deferring all the IPC plumbing to
+# the cask. If browser integration fails post-install, revisit (likely
+# additions: usermod -aG onepassword "$USER", session re-login).
 
 run_config_1password() {
     info "Configuring 1Password (per-user GNOME keybinding + dark titlebar)"
@@ -42,14 +44,14 @@ run_config_1password() {
     gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
       binding "<Alt><Shift>2"
 
-    # Fix dark titlebar and enable native Wayland
-    mkdir -p ~/.local/share/applications
-    if [[ ! -f ~/.local/share/applications/1password.desktop ]]; then
-        [[ -f /usr/share/applications/1password.desktop ]] && \
-          cp /usr/share/applications/1password.desktop ~/.local/share/applications/1password.desktop
-    fi
+    # Fix dark titlebar and enable native Wayland on the user-local .desktop.
+    # The cask drops 1password.desktop directly into ~/.local/share/applications
+    # with Exec pointing at the brew prefix (e.g. /home/linuxbrew/.linuxbrew/bin
+    # /1password). Path-flexible regex captures whatever Exec= points at and
+    # rewrites it with the env wrapper + flags, so it works whether the cask
+    # path or the legacy /opt/1Password path is in place.
     if [[ -f ~/.local/share/applications/1password.desktop ]]; then
-        sed -i 's|Exec=/opt/1Password/1password %U|Exec=env GTK_THEME=Adwaita:dark /opt/1Password/1password --enable-features=UseOzonePlatform --ozone-platform=wayland %U|' \
+        sed -i -E 's|^Exec=([^ ]*1password) %U|Exec=env GTK_THEME=Adwaita:dark \1 --enable-features=UseOzonePlatform --ozone-platform=wayland %U|' \
           ~/.local/share/applications/1password.desktop
     fi
 

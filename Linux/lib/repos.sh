@@ -4,8 +4,10 @@
 # Depends on common.sh (info) being sourced first.
 #
 # After the bazzite-custom image rework, this file shrank to just the
-# proton-vpn case — every other repo (brave, 1password, claude-desktop,
-# vivaldi, zen-browser COPR) is now baked into the image's /etc/yum.repos.d/.
+# proton-vpn case — the other repos baked in the image (brave, claude-desktop,
+# vivaldi, zen-browser COPR) live in the image's /etc/yum.repos.d/.
+# 1Password is handled via brew cask (ublue-os/tap/1password-gui-linux), so
+# its repo doesn't appear here OR in the image.
 # Proton VPN stays here because the image can't bake the package itself
 # (its post-install scriptlet calls systemctl which fails in a build
 # container, killing the dnf transaction); the repo + the layered install

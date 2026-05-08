@@ -20,12 +20,16 @@ set -uo pipefail
 #
 # Why split? The custom image at ghcr.io/jakobhviid/bazzite-{custom,nvidia-custom}
 # bakes most of what this script used to do at the system layer (browsers,
-# 1Password, Claude Desktop, dash-to-panel/dock, CLI baseline, brave policy,
-# 1pw allowed-browsers, wireplumber renames, three unlock services, 33
-# preinstalled flatpaks). After rebase, this script's job shrinks to: layer
-# proton-vpn (which can't be image-baked due to a systemd scriptlet failure
-# in the build container) + per-user state that can't go in an immutable
-# image. See bazzite-custom/README.md gotcha #2 for the proton-vpn detail.
+# Claude Desktop, dash-to-panel/dock, CLI baseline, brave policy, wireplumber
+# renames, three unlock services, 33 preinstalled flatpaks). After rebase,
+# this script's job shrinks to: layer proton-vpn (which can't be image-baked
+# due to a systemd scriptlet failure in the build container) + per-user state
+# that can't go in an immutable image. See bazzite-custom/README.md gotcha
+# #2 for the proton-vpn detail. 1Password is installed via brew cask
+# (ublue-os/tap/1password-gui-linux) rather than baked into the image — its
+# install model is per-user (RPM %post adds the live user to the onepassword
+# group, no live user in a build container) and the uBlue tap automates
+# the full setup correctly on a live system.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
@@ -216,7 +220,7 @@ phase2_userspace() {
     printf '  %-22s %s\n' "Homebrew:"           "$brew_action"
     printf '  %-22s %s\n' "Brewfile:"           "$(basename "$BREWFILE")"
     printf '  %-22s %s\n' "Zsh setup:"          "$zsh_action"
-    printf '  %-22s %s\n' "Configs:"            "1password (per-user), desktop overrides, PWAs, autostart, localsend, GNOME shell, Ptyxis"
+    printf '  %-22s %s\n' "Configs:"            "1password keybinding (if installed), desktop overrides, PWAs, autostart, localsend, GNOME shell, Ptyxis"
     echo
 
     confirm "Proceed?" || { warn "Cancelled."; exit 0; }
@@ -273,7 +277,9 @@ phase2_userspace() {
 
     # ── Per-user config steps — image handles brave policy, audio renames,
     # ── and the three unlock services already; this is just the per-user state.
-    if is_rpm_installed 1password; then
+    # 1Password is installed via brew cask (ublue-os/tap/1password-gui-linux)
+    # rather than image-baked or rpm-ostree-layered, so check by binary not RPM.
+    if command -v 1password >/dev/null 2>&1; then
         run_config_1password
     fi
     run_config_desktop_overrides

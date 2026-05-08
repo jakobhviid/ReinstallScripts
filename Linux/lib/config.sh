@@ -10,8 +10,12 @@
 #   - run_config_audio              → image bakes /usr/share/wireplumber/wireplumber.conf.d/rename-devices.conf
 #   - run_config_unlock_services    → image bakes /usr/lib/systemd/user/{brave,vivaldi,nextcloud}-unlock.service
 #                                     (auto-enabled per-user via /usr/lib/systemd/user-preset/)
-# The 1Password custom_allowed_browsers block was also removed from
-# run_config_1password — the image bakes /etc/1password/custom_allowed_browsers.
+# 1Password lives in brew (cask ublue-os/tap/1password-gui-linux), not in
+# the image and not RPM-layered. The cask handles setgid + native messaging
+# manifests + custom_allowed_browsers itself; this function only adds the
+# Alt+Shift+2 quick-access keybinding and dark-titlebar tweak. The .desktop
+# Exec= patch below assumes the cask exposes /opt/1Password/1password (the
+# upstream layout); if the cask installs elsewhere, the sed is a no-op.
 
 run_config_1password() {
     info "Configuring 1Password (per-user GNOME keybinding + dark titlebar)"

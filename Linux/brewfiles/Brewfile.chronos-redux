@@ -53,6 +53,12 @@ brew "zsh-you-should-use"
 # GUI / desktop apps
 cask "claude-code"
 cask "ublue-os/tap/visual-studio-code-linux"
+# 1Password GUI — uBlue tap (PR #296 automates setgid + native messaging
+# manifests + custom_allowed_browsers, which were the integration pain
+# points when we tried baking 1P into the image). The op CLI is not
+# bundled by this cask and brew's separate `op` formula doesn't talk to
+# the GUI (ublue-os/homebrew-tap#208) — left out intentionally.
+cask "ublue-os/tap/1password-gui-linux"
 
 # Fonts (Nerd Font set used by Ptyxis + Starship symbols)
 cask "font-fira-code-nerd-font"

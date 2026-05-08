@@ -430,7 +430,25 @@ drift machine="":
                 op_drift=1
             fi
         fi
-        (( op_drift )) && fixes+=("re-run 1Password per-user config (fixes browser allowlist + Zen NMH)|./install-bazzite.sh $machine")
+        # Quick-access keybinding must invoke 1password by ABSOLUTE path —
+        # GNOME shell's PATH is /usr/local/sbin:/usr/local/bin:/usr/bin and
+        # does not include the brew prefix where the cask installs the binary.
+        # Bare "1password" silently fails to launch when GNOME spawns the
+        # keybinding command. Confirm the configured command's first token
+        # is an executable file.
+        kb_path="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/1password/"
+        kb_cmd=$(gsettings get "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" command 2>/dev/null | tr -d "'")
+        kb_exe="${kb_cmd%% *}"
+        if [[ -z "$kb_cmd" ]]; then
+            fail_line "Alt+Shift+2 keybinding not configured"
+            op_drift=1
+        elif [[ ! -x "$kb_exe" ]]; then
+            fail_line "Alt+Shift+2 command resolves to '$kb_exe' which is not executable (GNOME PATH won't find bare names)"
+            op_drift=1
+        else
+            ok_line "Alt+Shift+2 keybinding ($kb_exe)"
+        fi
+        (( op_drift )) && fixes+=("re-run 1Password per-user config (fixes browser allowlist, Zen NMH, keybinding path)|./install-bazzite.sh $machine")
     else
         ok_line "1Password not installed (skipping integration checks)"
     fi

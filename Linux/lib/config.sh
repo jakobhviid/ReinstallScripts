@@ -74,10 +74,19 @@ run_config_1password() {
 
     # Per-keybinding name/command/binding can be set unconditionally — they're
     # under our own sub-schema and don't affect anyone else's shortcuts.
+    # Resolve the binary's absolute path: GNOME shell's PATH is the system
+    # default (/usr/local/sbin:/usr/local/bin:/usr/bin) — it does NOT include
+    # /home/linuxbrew/.linuxbrew/bin, so the bare name `1password` won't
+    # resolve when GNOME spawns the keybinding command. Using $(command -v)
+    # captures wherever brew installed it, making the binding portable across
+    # machines (and across future brew prefix changes — re-run the script
+    # to re-resolve).
+    local op_bin
+    op_bin=$(command -v 1password)
     gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
       name "1Password Quick Search"
     gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
-      command "1password --quick-access"
+      command "$op_bin --quick-access"
     gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
       binding "<Alt><Shift>2"
 

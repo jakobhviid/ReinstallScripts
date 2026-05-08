@@ -232,6 +232,10 @@ run_config_pwa() {
         if [[ -n "$icon_file" ]]; then
             sed -i "s|^Icon=.*|Icon=$icon_file|" "$app_dir/$(basename "$desktop")"
         fi
+        # gtk-launch doesn't expand env vars in Exec=, so resolve __HOME__
+        # at deploy time. Lets each PWA get its own --user-data-dir under
+        # the user's home without hardcoding /home/<user> in the repo.
+        sed -i "s|__HOME__|$HOME|g" "$app_dir/$(basename "$desktop")"
     done
 
     # Remove legacy Brave-installed PWA .desktop entries (from the previous

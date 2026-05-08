@@ -5,6 +5,6 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Network;InstantMessaging;
 Name=Teams
-Exec=brave-browser --ozone-platform=x11 --force-dark-mode --app=https://teams.microsoft.com --class=WebApp-Teams --name=WebApp-Teams
+Exec=brave-browser --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Teams --ozone-platform=x11 --force-dark-mode --app=https://teams.microsoft.com --class=WebApp-Teams --name=WebApp-Teams
 StartupWMClass=WebApp-Teams
 Icon=teams

@@ -52,5 +52,9 @@
   "DefaultSearchProviderSearchURL": "https://www.qwant.com/?q={searchTerms}",
   "DefaultSearchProviderSuggestURL": "https://api.qwant.com/api/suggest/?q={searchTerms}",
   "DefaultSearchProviderKeyword": "qwant",
-  "DefaultSearchProviderEncodings": ["UTF-8"]
+  "DefaultSearchProviderEncodings": ["UTF-8"],
+
+  "ExtensionInstallForcelist": [
+    "aeblfdkhhhdcdjpifhhbdiojplfjncoa;https://clients2.google.com/service/update2/crx"
+  ]
 }

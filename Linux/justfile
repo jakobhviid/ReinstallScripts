@@ -133,8 +133,21 @@ drift machine="":
     rendered=$(mktemp)
     sed "s|BREW_PREFIX|$brew_prefix|g" "$here/assets/zshrc.template" > "$rendered"
     zd=0
-    # Drift checks ~/.zshrc.image (the managed file), NOT ~/.zshrc — the
-    # latter is user-owned and may diverge freely (see `just zsh` recipe).
+    # Sanity-check that the user-owned ~/.zshrc still sources the managed
+    # file. Without this, a user could remove the source line (intentionally
+    # or via misedit) and drift would still pass — but the managed config
+    # would silently not load. We only check for the source line, not the
+    # whole bootstrap content (~/.zshrc is user-owned and may have arbitrary
+    # additions around it).
+    if [[ ! -f "$HOME/.zshrc" ]]; then
+        fail_line "~/.zshrc (missing — run just zsh to bootstrap)"; zd=1
+    elif ! grep -qF 'source ~/.zshrc.image' "$HOME/.zshrc"; then
+        fail_line "~/.zshrc (missing 'source ~/.zshrc.image' line — managed config won't load)"; zd=1
+    else
+        ok_line "~/.zshrc (sources ~/.zshrc.image)"
+    fi
+    # Drift checks ~/.zshrc.image (the managed file), NOT ~/.zshrc body —
+    # the latter is user-owned and may diverge freely (see `just zsh` recipe).
     for pair in \
         "$rendered:$HOME/.zshrc.image" \
         "$here/../shared/starship.toml:$HOME/.config/starship.toml" \
@@ -658,15 +671,15 @@ install-missing machine="":
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
     #!/usr/bin/env bash
-    # The bazzite-custom image bakes the CLI baseline (bat eza fzf htop jq
-    # just lazygit starship tmux zoxide) and the symbols-only Nerd Font as
-    # RPMs — those don't need brew copies on rebased machines, so dropped
-    # from the install line. zsh-autosuggestions and zsh-syntax-highlighting
-    # ARE kept here for stock-Bazzite compatibility (running just zsh on a
-    # not-yet-rebased machine still gets working autosuggest/highlighting via
-    # brew); on rebased machines they install as harmless duplicates of the
-    # image RPM, and zshrc.template's source order picks the image copy first.
-    echo "Installing Zsh plugins + brew-only CLI tools..."
+    # Install everything the rendered zshrc.template references, so a fully
+    # working zsh setup happens whether or not the bazzite-custom image is
+    # in use. On image-rebased machines this means duplicates (brew copy
+    # of bat/eza/etc. alongside the image RPM at /usr/bin) — accepted
+    # because (a) brew typically wins in PATH ordering after brew shellenv,
+    # (b) brewfile listing them keeps `just drift`/`just prune` consistent,
+    # (c) the disk cost is small. Stock-Bazzite users run this and get a
+    # complete shell with no image dependency.
+    echo "Installing Zsh plugins + CLI baseline + brew-only tools..."
     brew tap joshmedeski/sesh 2>/dev/null || true
     brew install \
         zsh-autosuggestions \
@@ -675,9 +688,17 @@ zsh:
         zsh-completions \
         zsh-history-substring-search \
         zsh-you-should-use \
+        bat \
+        eza \
+        fzf \
         fzf-tab \
+        zoxide \
+        starship \
+        tmux \
+        lazygit \
         sesh \
-        claude-code
+        claude-code \
+        jq
 
     # Migrate native Claude Code install to Homebrew
     if [[ -f "$HOME/.local/bin/claude" ]]; then
@@ -690,10 +711,12 @@ zsh:
         echo "Native Claude Code removed — now managed by Homebrew"
     fi
 
-    # The patched Nerd Font typefaces (FiraCode, Hack, MesloLG) aren't in F44;
-    # the image's nerd-fonts RPM ships symbols only.
-    echo "Installing brew-only Nerd Font typefaces (image has symbols-only)..."
+    # All four Nerd Fonts: the symbols-only one is also in the image as
+    # `nerd-fonts` RPM, but listing it here keeps stock-Bazzite users covered
+    # and matches the brewfile (avoids prune cycle).
+    echo "Installing Nerd Fonts..."
     brew install \
+        font-symbols-only-nerd-font \
         font-fira-code-nerd-font \
         font-hack-nerd-font \
         font-meslo-lg-nerd-font

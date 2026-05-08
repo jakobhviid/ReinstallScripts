@@ -1,10 +1,10 @@
-#!/usr/bin/env xdg-open
 [Desktop Entry]
 Version=1.0
-Terminal=false
 Type=Application
+Terminal=false
+StartupNotify=true
+Categories=GTK;Network;InstantMessaging;
 Name=Teams
-MimeType=x-scheme-handler/web+msteams;x-scheme-handler/chromium;
-Exec=/usr/lib/opt/brave.com/brave/brave-browser --profile-directory=Default --app-id=ompifgpmddkgmclendfeacglnodjjndh %U
-Icon=brave-ompifgpmddkgmclendfeacglnodjjndh-Default
-StartupWMClass=crx_ompifgpmddkgmclendfeacglnodjjndh
+Exec=brave-browser --ozone-platform=x11 --enable-features=WebContentsForceDark --force-dark-mode --app=https://teams.microsoft.com --class=WebApp-Teams --name=WebApp-Teams
+StartupWMClass=WebApp-Teams
+Icon=teams

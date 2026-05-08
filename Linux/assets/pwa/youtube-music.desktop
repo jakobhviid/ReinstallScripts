@@ -1,9 +1,10 @@
-#!/usr/bin/env xdg-open
 [Desktop Entry]
 Version=1.0
-Terminal=false
 Type=Application
+Terminal=false
+StartupNotify=true
+Categories=GTK;Audio;Music;Player;
 Name=YouTube Music
-Exec=/usr/lib/opt/brave.com/brave/brave-browser --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod
-Icon=brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default
-StartupWMClass=crx_cinhimbnkkaeohfgghhklpknlkffjgod
+Exec=brave-browser --ozone-platform=x11 --enable-features=WebContentsForceDark --force-dark-mode --app=https://music.youtube.com --class=WebApp-YouTubeMusic --name=WebApp-YouTubeMusic
+StartupWMClass=WebApp-YouTubeMusic
+Icon=youtube-music

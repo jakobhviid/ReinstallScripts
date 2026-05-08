@@ -1,9 +1,10 @@
-#!/usr/bin/env xdg-open
 [Desktop Entry]
 Version=1.0
-Terminal=false
 Type=Application
+Terminal=false
+StartupNotify=true
+Categories=GTK;Office;Calendar;
 Name=Proton Calendar
-Exec=/usr/lib/opt/brave.com/brave/brave-browser --profile-directory=Default --app-id=ojibjkjikcpjonjjngfkegflhmffeemk
-Icon=brave-ojibjkjikcpjonjjngfkegflhmffeemk-Default
-StartupWMClass=crx_ojibjkjikcpjonjjngfkegflhmffeemk
+Exec=brave-browser --ozone-platform=x11 --enable-features=WebContentsForceDark --force-dark-mode --app=https://calendar.proton.me --class=WebApp-ProtonCalendar --name=WebApp-ProtonCalendar
+StartupWMClass=WebApp-ProtonCalendar
+Icon=proton-calendar

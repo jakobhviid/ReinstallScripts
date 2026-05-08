@@ -332,6 +332,14 @@ run_config_gnome_shell() {
 
     info "Applying GNOME shell settings (extensions on/off + dash-to-panel/blur-my-shell/hotedge)"
     dconf load /org/gnome/shell/ < "$src"
+
+    # xwayland-native-scaling makes XWayland apps render at native resolution
+    # under fractional scaling instead of being bitmap-scaled by mutter — fixes
+    # blurry text in our Brave PWA windows (which run on XWayland for proper
+    # WMClass / dock icon matching).
+    dconf write /org/gnome/mutter/experimental-features \
+        "['kms-modifiers', 'xwayland-native-scaling']"
+
     ok "GNOME shell settings applied"
 }
 

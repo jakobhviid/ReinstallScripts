@@ -1,9 +1,10 @@
-#!/usr/bin/env xdg-open
 [Desktop Entry]
 Version=1.0
-Terminal=false
 Type=Application
+Terminal=false
+StartupNotify=true
+Categories=GTK;Network;Email;
 Name=Proton Mail
-Exec=/usr/lib/opt/brave.com/brave/brave-browser --profile-directory=Default --app-id=jnpecgipniidlgicjocehkhajgdnjekh
-Icon=brave-jnpecgipniidlgicjocehkhajgdnjekh-Default
-StartupWMClass=crx_jnpecgipniidlgicjocehkhajgdnjekh
+Exec=brave-browser --ozone-platform=x11 --enable-features=WebContentsForceDark --force-dark-mode --app=https://mail.proton.me --class=WebApp-ProtonMail --name=WebApp-ProtonMail
+StartupWMClass=WebApp-ProtonMail
+Icon=proton-mail

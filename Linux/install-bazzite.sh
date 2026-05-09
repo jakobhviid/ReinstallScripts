@@ -13,7 +13,7 @@ set -uo pipefail
 #   1. Bootstrap brew + just if missing
 #   2. brew bundle install --file=brewfiles/Brewfile.<machine>
 #   3. Install GNOME extensions via gext
-#   4. just zsh (templates ~/.zshrc, tmux, starship, git identity, plugins)
+#   4. just zsh (templates ~/.zshrc.image, bootstraps ~/.zshrc once, tmux, starship, git identity, plugins)
 #   5. Per-user run_config_* (1Password keybinding/desktop, app icon
 #      overrides, PWAs, autostart, LocalSend dark titlebar, GNOME shell +
 #      Ptyxis dconf snapshots)

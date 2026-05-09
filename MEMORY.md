@@ -141,6 +141,17 @@ When verifying a recipe that uninstalls packages, removes profiles, modifies sys
 - If the recipe has no built-in confirmation, do not run it. Read the code, reason about the output, run an isolated dry-run (e.g. `brew bundle cleanup` without `--force` to preview).
 - Surface in the response that nothing was actually changed, so Jakob can verify.
 
+### Don't propose repo changes from live-machine bugs without verifying they reproduce on a fresh install
+
+When something is broken on Jakob's live machine, fix it on the live machine and stop. Don't propose baking the fix into `install-bazzite.sh` / `Linux/lib/` / justfiles "so a future reinstall gets it" unless you've actually verified the same problem would occur on a clean install.
+
+**Why:** Jakob's live machines accumulate residue from migrations (old install paths, deprecated tools, stale config from previous package managers). Most live-machine breakage is migration leftovers, not script defects. Specific incident: a stale `gpg.ssh.program=/opt/1Password/op-ssh-sign` was left over from when 1Password was installed via deb/rpm; after migrating to the brew cask the path was wrong. Claude correctly fixed the live config but then proposed adding `~/.config/environment.d/brew.conf` to `Linux/lib/config.sh` — without ever checking whether GUI apps on a fresh install actually fail to find brew binaries. Jakob: "don't change it if it works, and we don't know if it does."
+
+**How to apply:**
+- Default: fix the live machine, report what changed, stop.
+- If you think the install scripts should also be updated, first show the evidence — read the install path, point to the gap, explain why a fresh install would hit the same issue.
+- If you can't show that evidence, flag the suggestion as speculative and ask whether it's worth verifying before doing the work.
+
 ### Only commit when explicitly asked
 
 Never create git commits unless Jakob explicitly asks for one ("commit",
@@ -211,13 +222,26 @@ cleanup` was deleted in the same change — it was a subset of drift's
 brewfile section.
 
 **How to apply:**
-- v1 categories (Mac and Linux): zsh templates (`~/.zshrc`,
+- **Linux drift sections** (in order): image rebase (booted on
+  `bazzite-{,nvidia-}custom:latest`), zsh (`~/.zshrc` sources
+  `~/.zshrc.image`, `~/.zshrc.image` matches rendered template,
   `~/.config/starship.toml`, `~/.tmux.conf`), default shell, git identity,
-  brave (mobileconfig keys on Mac, policy file on Linux), brewfile (missing
-  + extras). Linux adds rpm-ostree layered packages.
+  brave (policy file at `/etc/brave/policies/managed/brave-policy.json`),
+  rpm-ostree layered packages, brewfile (missing + extras with flatpak
+  ignore-list applied), 1password integration (group membership,
+  `custom_allowed_browsers` perms+entries, Zen NMH manifest, Alt+Shift+2
+  keybinding command path).
+- **Mac drift sections**: zsh (`~/.zshrc` matches rendered template,
+  starship, tmux), default shell, git identity, brave (mobileconfig keys
+  vs Managed Preferences plist), brewfile.
+- **Two-file zsh model on Linux only** (`.zshrc` user-owned bootstrap +
+  `.zshrc.image` managed) — Mac still uses single-file `~/.zshrc`. Drift
+  reflects this.
 - **Cross-platform parity matters:** when adding a new drift category on
   one platform, add it on the other if applicable. Same shape, same summary
-  table format.
+  table format. Some sections are platform-specific (image rebase, 1P
+  integration, rpm-ostree are Linux-only; mobileconfig parsing is
+  Mac-only).
 - **Don't add interactive "apply? [y/N]" prompts to drift.** Drift just
   reports; the user reads and runs the suggested recipe. Keeps the tool
   predictable and small.
@@ -227,8 +251,9 @@ brewfile section.
   `plutil → jq`.
 - Categories deliberately *not* tracked: dconf (use `just gnome-restore` /
   `just ptyxis-restore` for explicit re-apply), `.desktop` overrides +
-  autostart, GNOME extensions, registered repos, PipeWire EQ, PWAs/icons.
-  Add only if the maintenance is worth it.
+  autostart, GNOME extensions, registered repos, PipeWire EQ, PWAs/icons,
+  speaker EQ. Add only if the maintenance is worth it.
 - Companion recipes: `just gnome-restore` and `just ptyxis-restore` apply
   the dconf snapshots back to live state with a y/N prompt that defaults
-  to **no** because they overwrite live GNOME prefs.
+  to **no** (via `confirm()` in `lib/common.sh`) because they overwrite
+  live GNOME prefs.

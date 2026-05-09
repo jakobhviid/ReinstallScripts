@@ -30,7 +30,7 @@ Mac/
 
 Linux/
 ├── install-bazzite.sh                ← orchestrator: rpm-ostree → brew bundle → gext → run_config_*
-├── brewfiles/Brewfile.<machine>      ← per-machine userspace bundle (currently chronos-redux)
+├── brewfiles/Brewfile.<machine>      ← per-machine userspace bundle (chronos-redux, atlas)
 ├── assets/                            ← deployable data (zshrc template, dconf snapshots, brave policy, EQ, PWAs, icons)
 ├── lib/{common,install,repos,config}.sh
 ├── justfile                           ← install / backup / drift / zsh / speaker-eq / brave / *-backup / *-restore
@@ -82,7 +82,7 @@ Requires a fresh Bazzite. Homebrew and `just` are bootstrapped by the script. Ru
 just install chronos-redux           # equivalent, via justfile
 just backup chronos-redux            # dump live brew + flatpak state to brewfiles/Brewfile.chronos-redux
 just drift chronos-redux             # show what's out of sync with the repo (read-only)
-just zsh                             # re-template ~/.zshrc + tmux/tpm + git identity
+just zsh                             # re-template ~/.zshrc.image (managed) + bootstrap ~/.zshrc (once) + tmux/tpm + git identity
 just speaker-eq                      # PipeWire filter-chain EQ for thin laptop speakers
 just brave                           # deploy assets/brave-policy.json
 just gnome-backup / just ptyxis-backup     # snapshot live dconf state to assets/
@@ -93,7 +93,13 @@ just gnome-restore / just ptyxis-restore   # push the snapshot back to live (ask
 
 ## Zsh Config Sync
 
-Both `just zsh` (Mac and Linux) fully overwrite `~/.zshrc` from the platform's `assets/zshrc.template`. Per-machine customizations go in `~/.zshrc.local`, which is sourced at the end of `.zshrc` if it exists.
+**Mac:** `just zsh` fully overwrites `~/.zshrc` from `Mac/assets/zshrc.template` on every run.
+
+**Linux:** `just zsh` uses a two-file split (introduced 2026-05):
+- `~/.zshrc.image` — managed file, rewritten on every `just zsh` from `Linux/assets/zshrc.template`. Drift checks this file.
+- `~/.zshrc` — user-owned. Bootstrapped once from `Linux/assets/zshrc-bootstrap` if missing or if it doesn't yet contain the `source ~/.zshrc.image` line; left alone after that. Tools that auto-edit `.zshrc` (nvm, bun, pyenv) no longer get clobbered on the next `just zsh`.
+
+Per-machine customizations go in `~/.zshrc.local` on both platforms, sourced at the end of the template if it exists.
 
 The templates use `BREW_PREFIX` as a placeholder, substituted at install time via `sed`. The `shared/starship.toml` config is shared across all platforms and deployed to `~/.config/starship.toml` by each platform's `just zsh` recipe.
 

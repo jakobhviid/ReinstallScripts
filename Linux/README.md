@@ -35,7 +35,7 @@ A fresh Bazzite GNOME install (KDE-based variants like the default `bazzite` or 
 1. Bootstrap brew + just if missing
 2. `brew bundle install --file=brewfiles/Brewfile.<machine>`
 3. Install GNOME extensions via `gext` (the 6 user-only ones — none are packaged as RPMs anywhere)
-4. `just zsh` (templates `~/.zshrc`, configures tmux/tpm, sets default shell)
+4. `just zsh` (templates `~/.zshrc.image` from `assets/zshrc.template`, bootstraps `~/.zshrc` from `assets/zshrc-bootstrap` if missing, configures tmux/tpm, sets default shell)
 5. Per-user `run_config_*` — 1Password GNOME Alt+Shift+2 keybinding + dark titlebar, app icon overrides, PWA deployment, autostart entries with background-launch flags, LocalSend Flatpak GTK_THEME override, GNOME shell + Ptyxis dconf snapshots
 
 Image variant is selected interactively during Phase 1 by `pick_image_variant`:
@@ -86,7 +86,7 @@ Run from the `Linux/` directory.
 | `just reconcile <machine>`       | Interactively reconcile a machine's Brewfile with what's installed. Per-item y/N (or y/N/i for flatpak extras, where `i` appends to `assets/bazzite-flatpak-ignore.txt`). Shows a diff and asks for final confirm before writing. |
 | `just prune <machine>`           | Uninstall packages and flatpaks installed on this machine but not listed in the machine's Brewfile. Lists what would be uninstalled, asks first, then runs `brew bundle cleanup --force` and `flatpak uninstall -y`. Flatpak extras filtered through `assets/bazzite-flatpak-ignore.txt`. |
 | `just install-missing <machine>`         | Install Brewfile entries that are missing on this machine (formulas/casks/taps and flatpaks). Thin wrapper over `brew bundle install`. Additive only. |
-| `just zsh`                       | Re-template `~/.zshrc`, configure git/tmux/starship, install brew-only zsh plugins (image has the rest), set zsh as default |
+| `just zsh`                       | Re-template `~/.zshrc.image` (managed), bootstrap `~/.zshrc` once if missing, configure git/tmux/starship, install brew-only zsh plugins (image has the rest), set zsh as default |
 | `just speaker-eq`                | Install the PipeWire filter-chain EQ for thin laptop speakers (X1 Carbon Gen 13 only)        |
 | `just brave`                     | Deploy `assets/brave-policy.json` to `/etc/brave/policies/managed/`. Image bakes the same on rebased machines so this is normally redundant — kept for testing policy edits before syncing them into bazzite-custom. |
 | `just gnome-backup`              | Snapshot `/org/gnome/shell/` settings into `assets/gnome/shell.dconf`                        |

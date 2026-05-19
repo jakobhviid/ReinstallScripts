@@ -23,6 +23,7 @@
 
 tap "joshmedeski/sesh"
 tap "ublue-os/tap"
+tap "colindean/fonts-nonfree"
 
 # Shell + CLI
 brew "bat"
@@ -65,6 +66,16 @@ cask "font-fira-code-nerd-font"
 cask "font-hack-nerd-font"
 cask "font-meslo-lg-nerd-font"
 cask "font-symbols-only-nerd-font"
+
+# Document-compatibility fonts (Microsoft Office, classic web typefaces).
+# colindean/fonts-nonfree provides the EULA-restricted MS faces.
+cask "font-microsoft-office"
+cask "font-microsoft-aptos"
+cask "font-arial"
+cask "font-arial-black"
+cask "font-courier-new"
+cask "font-times-new-roman"
+cask "font-georgia"
 
 # Flatpaks
 flatpak "com.bilingify.readest"

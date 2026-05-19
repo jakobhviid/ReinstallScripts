@@ -172,6 +172,7 @@ run_config_desktop_overrides() {
         "org.mozilla.firefox.desktop|/usr/share/applications/org.mozilla.firefox.desktop|org.mozilla.firefox.png"
         "claude-desktop.desktop|/usr/share/applications/claude-desktop.desktop|claude-desktop.png"
         "Cider.desktop|/usr/share/applications/Cider.desktop|Cider.png"
+        "dev.zed.Zed.desktop|/var/lib/flatpak/exports/share/applications/dev.zed.Zed.desktop|dev.zed.Zed.png"
     )
 
     for row in "${overrides[@]}"; do

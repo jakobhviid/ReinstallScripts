@@ -171,6 +171,7 @@ run_config_desktop_overrides() {
         "vivaldi-stable.desktop|/usr/share/applications/vivaldi-stable.desktop|vivaldi-stable.png"
         "org.mozilla.firefox.desktop|/usr/share/applications/org.mozilla.firefox.desktop|org.mozilla.firefox.png"
         "claude-desktop.desktop|/usr/share/applications/claude-desktop.desktop|claude-desktop.png"
+        "Cider.desktop|/usr/share/applications/Cider.desktop|Cider.png"
     )
 
     for row in "${overrides[@]}"; do

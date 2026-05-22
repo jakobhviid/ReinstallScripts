@@ -175,6 +175,42 @@ because his commit cadence is his own choice.
 
 ## Project
 
+### `fzf --zsh` stderr suppression in both zshrc templates
+
+Line in both `Mac/assets/zshrc.template` and `Linux/assets/zshrc.template`:
+
+```zsh
+source <(fzf --zsh) 2>/dev/null
+```
+
+The `2>/dev/null` looks redundant but is load-bearing — **do not remove it.**
+
+**Why:** `fzf --zsh` (verified on fzf 0.72.0) emits zsh code that snapshots
+all shell options via `setopt -o $opt`. The `zle` option can't be set this
+way (it's auto-managed by zsh in interactive mode), so zsh prints
+`(eval):1: can't change option: zle` to stderr — twice, because fzf does the
+snapshot in both its `key-bindings.zsh` and `completion.zsh` blocks. Without
+redirection, those two stderr lines fire on every shell startup, pushing the
+first prompt down by ~2 rows. Combined with Starship's `add_newline = true`,
+the cumulative top gap was noticeable in both Ghostty and iTerm2 on Mac.
+
+**Verified:**
+- `2>/dev/null` silences both errors.
+- fzf key bindings remain functional: `^R` (history), `^T` (file finder),
+  `^[c` / Alt+C (cd), Tab completion. Confirmed via
+  `zsh --no-rcs -ic 'source <(fzf --zsh) 2>/dev/null; bindkey | grep fzf'`.
+
+**How to apply:**
+- When future Claude (or a linter) sees the apparently-redundant
+  `2>/dev/null`, leave it.
+- If fzf upstream stops emitting the `setopt -o zle` (the issue is fzf's, not
+  ours), the redirect becomes a no-op but still does no harm. No need to
+  remove it preemptively.
+- If a different tool's output starts showing up that we *do* want to see,
+  this redirect would hide it — in that case, switch to a more targeted
+  approach (e.g. `2> >(grep -v "can't change option: zle" >&2)`) rather than
+  reverting.
+
 ### Tmux theme should track Jakob's Gruvbox tweaks for Starship
 
 Jakob modified the Gruvbox color palette in `shared/starship.toml` so white

@@ -27,7 +27,11 @@ source BREW_PREFIX/share/zsh-you-should-use/you-should-use.plugin.zsh
 source BREW_PREFIX/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh
 
 # ─── fzf shell integration (Ctrl+R history, Ctrl+T file finder, Alt+C cd) ────
-source <(fzf --zsh)
+# 2>/dev/null silences fzf's two "(eval):1: can't change option: zle" errors —
+# fzf snapshots all shell options with `setopt -o $opt`, which fails on `zle`
+# (auto-managed in interactive mode). Harmless but pushes the prompt down by
+# 2 rows at startup. See MEMORY.md "fzf --zsh stderr suppression" for context.
+source <(fzf --zsh) 2>/dev/null
 
 # ─── fzf previews ────────────────────────────────────────────────────────────
 export FZF_CTRL_T_OPTS="--preview 'bat --color=always --line-range :200 {} 2>/dev/null || head -200 {}'"

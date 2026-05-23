@@ -19,6 +19,7 @@ Mac/
 ├── brewfiles/Brewfile.<machine>   ← source of truth per machine
 ├── assets/                         ← templates + macOS configuration profiles
 │   ├── zshrc.template
+│   ├── ghostty.config
 │   └── *.mobileconfig
 ├── lib/common.sh                   ← logger + interactive picker shared by recipes
 ├── justfile                        ← all recipes
@@ -32,17 +33,18 @@ Run from the `Mac/` directory.
 | Command                          | What it does                                                                  |
 |----------------------------------|-------------------------------------------------------------------------------|
 | `just`                           | List recipes + available machines/profiles                                    |
-| `just install <machine>`         | `brew bundle --file=brewfiles/Brewfile.<machine>`, then `just zsh` + `just brave` |
+| `just install <machine>`         | `brew bundle --file=brewfiles/Brewfile.<machine>`, then `just zsh` + `just brave` + `just ghostty` |
 | `just install`                   | Interactive — pick a machine from a numbered menu                             |
 | `just backup <machine>`          | `brew bundle dump` current state into `brewfiles/Brewfile.<machine>`          |
 | `just backup`                    | Interactive — pick existing or type a new machine name                        |
-| `just drift <machine>`           | Show what's out of sync with the repo (zsh templates, brave, git, brewfile, default shell). Read-only — points at the recipes that converge. |
+| `just drift <machine>`           | Show what's out of sync with the repo (zsh templates, brave, ghostty config, git, brewfile, default shell). Read-only — points at the recipes that converge. |
 | `just reconcile <machine>`       | Interactively reconcile a machine's Brewfile with what's installed. Per-item y/N for each extra (add to Brewfile) and each missing entry (drop from Brewfile), then a diff and final confirm before writing. |
 | `just prune <machine>`           | Uninstall packages installed on this machine but not listed in the machine's Brewfile. Lists what would be uninstalled, asks first, then runs `brew bundle cleanup --force`. |
 | `just install-missing <machine>`         | Install Brewfile entries that are missing on this machine. Thin wrapper over `brew bundle install`. Additive only. |
 | `just brave`                     | Apply Brave debloat profile + Cmd+W keyboard workaround                       |
 | `just profile <name>`            | Install `assets/<name>.mobileconfig` (opens System Settings)                  |
 | `just zsh`                       | Re-template `~/.zshrc`, configure git/tmux/starship, install zsh plugins      |
+| `just ghostty`                   | Deploy `assets/ghostty.config` to `~/.config/ghostty/config` (backs up if changed) |
 
 ## Workflow
 
@@ -52,7 +54,7 @@ Run from the `Mac/` directory.
 just install huginn      # or whichever machine matches
 ```
 
-That installs everything in `brewfiles/Brewfile.huginn`, then sets up the shell, then opens the Brave debloat profile.
+That installs everything in `brewfiles/Brewfile.huginn`, then sets up the shell, opens the Brave debloat profile, and deploys the Ghostty config.
 
 **Capture current state**
 
@@ -83,6 +85,10 @@ Brewfiles intentionally diverge — Chronos is a personal laptop, Helios is a se
 The companion `defaults write` lives as a `case` branch in the `profile` recipe (keyed on the profile name), so any path that installs `brave-debloat` — interactive picker, direct invocation, or `just brave` — gets the keyboard fix.
 
 To remove the keyboard rebinding: `defaults delete com.brave.Browser NSUserKeyEquivalents`.
+
+## Ghostty configuration
+
+`just ghostty` copies `assets/ghostty.config` to `~/.config/ghostty/config`, backing up any existing config to `~/.config/ghostty/config.bak` if it differs. Ghostty itself is installed as `cask "ghostty"` via the per-machine Brewfile. The deploy step has no `BREW_PREFIX`-style template substitution — it's a byte-for-byte copy — and `just drift` flags any divergence.
 
 ## Reference
 

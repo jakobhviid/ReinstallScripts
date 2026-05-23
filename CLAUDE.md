@@ -23,9 +23,10 @@ Mac/
 ├── brewfiles/Brewfile.<machine>     ← per-machine Homebrew bundle (Chronos, Helios, huginn)
 ├── assets/                           ← templates + macOS configuration profiles (.mobileconfig)
 │   ├── zshrc.template
+│   ├── ghostty.config               ← deployed verbatim to ~/.config/ghostty/config
 │   └── *.mobileconfig (brave-debloat, encrypted-dns, privacy-baseline)
 ├── lib/common.sh                     ← logger + interactive picker shared by recipes
-├── justfile                          ← install / backup / drift / profile / zsh / brave
+├── justfile                          ← install / backup / drift / profile / zsh / brave / ghostty
 └── README.md
 
 Linux/
@@ -61,12 +62,13 @@ shared/
 Requires Homebrew + [just](https://github.com/casey/just). Run from `Mac/`:
 
 ```sh
-just install huginn        # brew bundle --file=brewfiles/Brewfile.huginn + just zsh + just brave
+just install huginn        # brew bundle --file=brewfiles/Brewfile.huginn + just zsh + just brave + just ghostty
 just backup huginn         # brew bundle dump --file=brewfiles/Brewfile.huginn
 just drift huginn          # show what's out of sync with the repo (read-only)
 just backup mynewmac       # create a new machine's Brewfile (then hand-edit + commit)
 just brave                 # apply assets/brave-debloat.mobileconfig + Cmd+W keyboard workaround
 just profile brave-debloat # install any assets/<name>.mobileconfig directly
+just ghostty               # deploy assets/ghostty.config to ~/.config/ghostty/config
 just install               # interactive picker
 just                       # list recipes + machines/profiles
 ```
@@ -129,6 +131,7 @@ just            # list recipes
   - `Mac/assets/zshrc.template` + `Mac/justfile` zsh recipe
   - `Linux/assets/zshrc.template` + `Linux/justfile` zsh recipe (invoked by `install-bazzite.sh` via the `install_zsh_setup` helper)
   - `Windows/profile.template.ps1` + `Windows/justfile` zsh recipe
+- **Ghostty config is Mac-only for now.** `Mac/assets/ghostty.config` is deployed verbatim to `~/.config/ghostty/config` by `just ghostty` (no template substitution — no per-machine variables in the file). There is no Linux or Windows counterpart yet; if Ghostty is later set up on Linux, add a parallel `Linux/assets/ghostty.config` + `just ghostty` recipe and treat the two as a sync pair like the Brave policies.
 - **Per-machine Brewfile divergence is intentional.** Each machine serves a different purpose. Don't flag cross-machine package inconsistencies as issues.
 - **`install-bazzite.sh` is add-only and idempotent.** It detects what's already installed, prints a Plan, asks `Proceed? [y/N]`, then installs only what's missing. It never uninstalls — to drop an app, edit the relevant array (or `brewfiles/Brewfile.<machine>`) and uninstall the app manually.
 - **`install-bazzite.sh` is phase-aware**, auto-detected via `rpm-ostree status`:

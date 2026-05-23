@@ -20,6 +20,7 @@ default:
     @echo "  just brave                Apply Brave debloat profile + Cmd+W workaround"
     @echo "  just profile [name]       Install a macOS configuration profile (.mobileconfig)"
     @echo "  just zsh                  Set up Zsh with plugins, Starship prompt, and config"
+    @echo "  just ghostty              Deploy Ghostty config to ~/.config/ghostty/config"
     @echo ""
     @echo "Available machines: {{_machines}}"
     @echo "Available profiles: {{_profiles}}"
@@ -46,6 +47,7 @@ install machine="":
 
     just zsh
     just brave
+    just ghostty
 
 # Dump current Homebrew state to a Brewfile (or create a new one)
 backup machine="":
@@ -230,6 +232,23 @@ drift machine="":
         fi
     fi
     (( bd )) && fixes+=("re-deploy Brave debloat profile|just brave")
+
+    # ── ghostty ────────────────────────────────────────────────────────
+    # Flat-file deploy: no template substitution, just a byte-for-byte
+    # diff against ~/.config/ghostty/config.
+    section "ghostty"
+    gh_src="$here/assets/ghostty.config"
+    gh_dst="$HOME/.config/ghostty/config"
+    if [[ ! -f "$gh_dst" ]]; then
+        fail_line "~/.config/ghostty/config (missing)"
+        fixes+=("deploy Ghostty config|just ghostty")
+    elif diff -q "$gh_src" "$gh_dst" >/dev/null 2>&1; then
+        ok_line "~/.config/ghostty/config"
+    else
+        n=$(diff "$gh_src" "$gh_dst" 2>/dev/null | grep -c '^[<>]')
+        fail_line "~/.config/ghostty/config ($n lines differ)"
+        fixes+=("re-deploy Ghostty config|just ghostty")
+    fi
 
     # ── brewfile ───────────────────────────────────────────────────────
     section "brewfile (Brewfile.$machine)"
@@ -572,3 +591,21 @@ zsh:
 
     echo "✓ Zsh setup complete"
     echo "  Run 'exec zsh' to load changes"
+
+# Deploy Ghostty config from assets/ghostty.config to ~/.config/ghostty/config
+ghostty:
+    #!/usr/bin/env zsh
+    source "{{justfile_directory()}}/lib/common.sh"
+    src="{{justfile_directory()}}/assets/ghostty.config"
+    dst="$HOME/.config/ghostty/config"
+    if [[ ! -f "$src" ]]; then
+        err "$src not found"
+        exit 1
+    fi
+    mkdir -p "$(dirname "$dst")"
+    if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+        cp "$dst" "$dst.bak"
+        info "Backed up existing config to $dst.bak"
+    fi
+    cp "$src" "$dst"
+    ok "Deployed Ghostty config to $dst"

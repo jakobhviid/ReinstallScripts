@@ -379,3 +379,24 @@ run_config_ptyxis() {
     dconf load /org/gnome/Ptyxis/ < "$src"
     ok "Ptyxis settings applied"
 }
+
+# Deploy Ghostty config from assets/ghostty.config to ~/.config/ghostty/config.
+# Flat-file copy (no template substitution). Backs up any pre-existing config
+# that differs from the vendored one to .bak before overwriting, so a user
+# who edited the live file in place gets one chance to recover.
+run_config_ghostty() {
+    local src="$SCRIPT_DIR/assets/ghostty.config"
+    local dst="$HOME/.config/ghostty/config"
+    if [[ ! -f "$src" ]]; then
+        warn "ghostty.config not found at $src — skipping"
+        return
+    fi
+    info "Deploying Ghostty config"
+    mkdir -p "$(dirname "$dst")"
+    if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+        cp "$dst" "$dst.bak"
+        info "Backed up existing config to $dst.bak"
+    fi
+    cp "$src" "$dst"
+    ok "Ghostty config deployed to $dst"
+}

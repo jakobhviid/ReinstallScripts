@@ -17,6 +17,7 @@ default:
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
     @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
     @echo "  just brave               Deploy assets/brave-policy.json (image bakes the same; useful for testing edits)"
+    @echo "  just ghostty             Deploy assets/ghostty.config to ~/.config/ghostty/config"
     @echo "  just gnome-backup        Snapshot current GNOME shell settings"
     @echo "  just gnome-restore       Apply the snapshot to live GNOME shell (asks first)"
     @echo "  just ptyxis-backup       Snapshot current Ptyxis settings"
@@ -241,6 +242,23 @@ drift machine="":
     # sync assets/brave-policy.json into bazzite-custom/system_files/etc/brave/
     # policies/managed/ and push the image.
     (( bd )) && fixes+=("sync assets/brave-policy.json to bazzite-custom and push the image|cp assets/brave-policy.json ../bazzite-custom/system_files/etc/brave/policies/managed/")
+
+    # ── ghostty ────────────────────────────────────────────────────────
+    # Flat-file deploy: no template substitution, just a byte-for-byte
+    # diff against ~/.config/ghostty/config.
+    section "ghostty"
+    gh_src="$here/assets/ghostty.config"
+    gh_dst="$HOME/.config/ghostty/config"
+    if [[ ! -f "$gh_dst" ]]; then
+        fail_line "~/.config/ghostty/config (missing)"
+        fixes+=("deploy Ghostty config|just ghostty")
+    elif diff -q "$gh_src" "$gh_dst" >/dev/null 2>&1; then
+        ok_line "~/.config/ghostty/config"
+    else
+        n=$(diff "$gh_src" "$gh_dst" 2>/dev/null | grep -c '^[<>]' || true)
+        fail_line "~/.config/ghostty/config ($n lines differ)"
+        fixes+=("re-deploy Ghostty config|just ghostty")
+    fi
 
     # ── rpm-ostree layered packages ────────────────────────────────────
     section "rpm-ostree layered packages"
@@ -968,3 +986,22 @@ brave:
     sudo mkdir -p /etc/brave/policies/managed
     sudo cp "{{justfile_directory()}}/assets/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
     echo "✓ Brave policy applied — restart Brave to load (brave://policy to verify)"
+
+# Deploy Ghostty config from assets/ghostty.config to ~/.config/ghostty/config
+ghostty:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    src="{{justfile_directory()}}/assets/ghostty.config"
+    dst="$HOME/.config/ghostty/config"
+    if [[ ! -f "$src" ]]; then
+        err "$src not found"
+        exit 1
+    fi
+    mkdir -p "$(dirname "$dst")"
+    if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+        cp "$dst" "$dst.bak"
+        info "Backed up existing config to $dst.bak"
+    fi
+    cp "$src" "$dst"
+    ok "Deployed Ghostty config to $dst"

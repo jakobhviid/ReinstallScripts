@@ -32,9 +32,9 @@ Mac/
 Linux/
 ├── install-bazzite.sh                ← orchestrator: rpm-ostree → brew bundle → gext → run_config_*
 ├── brewfiles/Brewfile.<machine>      ← per-machine userspace bundle (chronos-redux, atlas)
-├── assets/                            ← deployable data (zshrc template, dconf snapshots, brave policy, EQ, PWAs, icons)
+├── assets/                            ← deployable data (zshrc template, dconf snapshots, brave policy, ghostty.config, EQ, PWAs, icons)
 ├── lib/{common,install,repos,config}.sh
-├── justfile                           ← install / backup / drift / zsh / speaker-eq / brave / *-backup / *-restore
+├── justfile                           ← install / backup / drift / zsh / speaker-eq / brave / ghostty / *-backup / *-restore
 └── README.md
 
 Windows/
@@ -87,6 +87,7 @@ just drift chronos-redux             # show what's out of sync with the repo (re
 just zsh                             # re-template ~/.zshrc.image (managed) + bootstrap ~/.zshrc (once) + tmux/tpm + git identity
 just speaker-eq                      # PipeWire filter-chain EQ for thin laptop speakers
 just brave                           # deploy assets/brave-policy.json
+just ghostty                         # deploy assets/ghostty.config to ~/.config/ghostty/config
 just gnome-backup / just ptyxis-backup     # snapshot live dconf state to assets/
 just gnome-restore / just ptyxis-restore   # push the snapshot back to live (asks first)
 ```
@@ -131,7 +132,13 @@ just            # list recipes
   - `Mac/assets/zshrc.template` + `Mac/justfile` zsh recipe
   - `Linux/assets/zshrc.template` + `Linux/justfile` zsh recipe (invoked by `install-bazzite.sh` via the `install_zsh_setup` helper)
   - `Windows/profile.template.ps1` + `Windows/justfile` zsh recipe
-- **Ghostty config is Mac-only for now.** `Mac/assets/ghostty.config` is deployed verbatim to `~/.config/ghostty/config` by `just ghostty` (no template substitution — no per-machine variables in the file). There is no Linux or Windows counterpart yet; if Ghostty is later set up on Linux, add a parallel `Linux/assets/ghostty.config` + `just ghostty` recipe and treat the two as a sync pair like the Brave policies.
+- **Ghostty config lives on both Mac and Linux** — `Mac/assets/ghostty.config` and `Linux/assets/ghostty.config`, each deployed verbatim to `~/.config/ghostty/config` by their respective `just ghostty` recipe (Linux also via `run_config_ghostty` in `lib/config.sh` during install-bazzite.sh Phase 2). No template substitution.
+  - **Cross-platform settings — edit BOTH files in lockstep:** colors, palette, padding, cursor, background opacity/blur, font-feature, link, behavior toggles, quick-terminal sizing/position/animation.
+  - **Mac-only — edit Mac file only:** `macos-titlebar-style`, `macos-titlebar-proxy-icon`, `cmd+*` keybinds (no `cmd` key on Linux).
+  - **Linux-only — edit Linux file only:** `font-family` (Mac's Ghostty default already is JetBrains Mono; Linux's default is fontconfig's `monospace`, so we set it explicitly), and the portal-related comments around `global:` keybinds.
+  - **`background-blur-radius` on GNOME/Mutter is a silent no-op** (no compositor blur API). Kept in the file for forward-compat with KDE/Hyprland — don't remove it as "dead" code.
+  - **Ghostty itself is installed by the bazzite-custom image on Linux** (not via Brewfile, not via this script). The repo only ships the config; the binary's lifecycle is image-side.
+  - **No Windows counterpart yet.** If Ghostty is added on Windows, treat it as a fourth file in the same sync set.
 - **Per-machine Brewfile divergence is intentional.** Each machine serves a different purpose. Don't flag cross-machine package inconsistencies as issues.
 - **`install-bazzite.sh` is add-only and idempotent.** It detects what's already installed, prints a Plan, asks `Proceed? [y/N]`, then installs only what's missing. It never uninstalls — to drop an app, edit the relevant array (or `brewfiles/Brewfile.<machine>`) and uninstall the app manually.
 - **`install-bazzite.sh` is phase-aware**, auto-detected via `rpm-ostree status`:

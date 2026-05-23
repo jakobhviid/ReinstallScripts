@@ -220,7 +220,7 @@ phase2_userspace() {
     printf '  %-22s %s\n' "Homebrew:"           "$brew_action"
     printf '  %-22s %s\n' "Brewfile:"           "$(basename "$BREWFILE")"
     printf '  %-22s %s\n' "Zsh setup:"          "$zsh_action"
-    printf '  %-22s %s\n' "Configs:"            "1password keybinding (if installed), desktop overrides, PWAs, autostart, localsend, GNOME shell, Ptyxis"
+    printf '  %-22s %s\n' "Configs:"            "1password keybinding (if installed), desktop overrides, PWAs, autostart, localsend, GNOME shell, Ptyxis, Ghostty"
     echo
 
     confirm "Proceed?" || { warn "Cancelled."; exit 0; }
@@ -288,6 +288,7 @@ phase2_userspace() {
     run_config_localsend
     run_config_gnome_shell
     run_config_ptyxis
+    run_config_ghostty
 
     echo
     ok "Phase 2 complete!"

@@ -82,19 +82,22 @@ Run from the `Linux/` directory.
 | `just install <machine>`         | Run `install-bazzite.sh <machine>` — phase-aware (rebase + reboot, then re-run for userspace) |
 | `just install`                   | Interactive — pick a machine from a numbered menu                                            |
 | `just backup <machine>`          | `brew bundle dump` current state into `brewfiles/Brewfile.<machine>`                        |
-| `just drift <machine>`           | Show what's out of sync. Top check: image rebase status. Then zsh templates, default shell, git identity, brave policy, rpm-ostree layered packages, brewfile diff. Read-only — points at the recipes that converge. |
+| `just drift <machine>`           | Show what's out of sync. Top check: image rebase status. Then zsh templates, default shell, git identity, brave policy, ghostty config, rpm-ostree layered packages, brewfile diff. Read-only — points at the recipes that converge. |
 | `just reconcile <machine>`       | Interactively reconcile a machine's Brewfile with what's installed. Per-item y/N (or y/N/i for flatpak extras, where `i` appends to `assets/bazzite-flatpak-ignore.txt`). Shows a diff and asks for final confirm before writing. |
 | `just prune <machine>`           | Uninstall packages and flatpaks installed on this machine but not listed in the machine's Brewfile. Lists what would be uninstalled, asks first, then runs `brew bundle cleanup --force` and `flatpak uninstall -y`. Flatpak extras filtered through `assets/bazzite-flatpak-ignore.txt`. |
 | `just install-missing <machine>`         | Install Brewfile entries that are missing on this machine (formulas/casks/taps and flatpaks). Thin wrapper over `brew bundle install`. Additive only. |
 | `just zsh`                       | Re-template `~/.zshrc.image` (managed), bootstrap `~/.zshrc` once if missing, configure git/tmux/starship, install brew-only zsh plugins (image has the rest), set zsh as default |
 | `just speaker-eq`                | Install the PipeWire filter-chain EQ for thin laptop speakers (X1 Carbon Gen 13 only)        |
 | `just brave`                     | Deploy `assets/brave-policy.json` to `/etc/brave/policies/managed/`. Image bakes the same on rebased machines so this is normally redundant — kept for testing policy edits before syncing them into bazzite-custom. |
+| `just ghostty`                   | Deploy `assets/ghostty.config` to `~/.config/ghostty/config` (backs up any pre-existing differing config to `.bak`). Also runs as `run_config_ghostty` during install-bazzite.sh Phase 2. |
 | `just gnome-backup`              | Snapshot `/org/gnome/shell/` settings into `assets/gnome/shell.dconf`                        |
 | `just gnome-restore`             | Apply `assets/gnome/shell.dconf` to live `/org/gnome/shell/` (asks first, default no)        |
 | `just ptyxis-backup`             | Snapshot `/org/gnome/Ptyxis/` settings into `assets/ptyxis.dconf`                            |
 | `just ptyxis-restore`            | Apply `assets/ptyxis.dconf` to live `/org/gnome/Ptyxis/` (asks first, default no)            |
 
 **Editing the Brave policy:** edit `assets/brave-policy.json`, then `just brave` to deploy it on the local machine (image users will see the local copy override the image's baked-in copy). Once happy with the changes, sync the file into `../bazzite-custom/system_files/etc/brave/policies/managed/brave-policy.json` and push the bazzite-custom image so the change propagates fleet-wide.
+
+**Editing the Ghostty config:** edit `assets/ghostty.config`, then `just ghostty` to redeploy. Keep cross-platform settings (colors, palette, padding, cursor, behavior, font-feature, link, quick-terminal) in sync with `../Mac/assets/ghostty.config` — Mac-only (`macos-*`, `cmd+*`) and Linux-only (`font-family`, portal comments) keys edit only the respective file. Ghostty itself is installed by the bazzite-custom image, not by this repo.
 
 ## Workflow
 

@@ -72,3 +72,6 @@ mas "Super Agent", id: 1568262835
 mas "Symbolic Linker", id: 1435106536
 mas "The Unarchiver", id: 425424353
 mas "Transloader", id: 572281534
+cask "brave-browser"
+cask "claude-code"
+cask "rustdesk"

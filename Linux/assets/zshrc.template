@@ -171,7 +171,7 @@ alias la='eza -la --git --icons --hyperlink --group-directories-first --time-sty
 alias lt='eza --tree --level=2 --icons --hyperlink --group-directories-first'
 
 # ─── SSH-aware terminal background tint ─────────────────────────────────────
-# Tints the terminal window subtly (teal) while ssh is running, resets on the
+# Tints the terminal window subtly (near-black blood red) while ssh is running, resets on the
 # next prompt. OSC 11 sets only the color — background-opacity / blur from
 # the Ghostty config still apply, so the window stays translucent and blurred,
 # just hue-shifted.
@@ -190,7 +190,7 @@ alias lt='eza --tree --level=2 --icons --hyperlink --group-directories-first'
 _ssh_tint_preexec() {
   case "$1" in
     ssh|'ssh '*)
-      printf '\e]11;#152124\a'
+      printf '\e]11;#1c0303\a'
       typeset -g _ssh_tinted=1
       ;;
   esac

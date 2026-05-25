@@ -161,6 +161,41 @@ alias ll='eza -l --git --icons --hyperlink --group-directories-first --time-styl
 alias la='eza -la --git --icons --hyperlink --group-directories-first --time-style=relative'
 alias lt='eza --tree --level=2 --icons --hyperlink --group-directories-first'
 
+# ─── SSH-aware terminal background tint ─────────────────────────────────────
+# Tints the terminal window subtly (teal) while ssh is running, resets on the
+# next prompt. OSC 11 sets only the color — background-opacity / blur from
+# the Ghostty config still apply, so the window stays translucent and blurred,
+# just hue-shifted.
+#
+# Implemented via preexec/precmd hooks rather than an ssh() function wrapper
+# because Ghostty's shell-integration (ssh-env,ssh-terminfo features in
+# ghostty.config) installs its OWN ssh() function AFTER ~/.zshrc loads, which
+# would shadow a function-based wrapper. preexec sees the literal command
+# string before execution and is unaffected by which ssh function is on top.
+#
+# Reset fires on any return to prompt: clean ssh exit, ~. disconnect, network
+# drop, remote exit, kill. Close-window doesn't reset (the dying window's
+# state doesn't matter — new windows reload the Ghostty config default).
+# Other ssh consumers (scp, rsync, git over ssh, ssh-add, sshfs) do not
+# trigger the tint because preexec matches "ssh" and "ssh ..." only.
+_ssh_tint_preexec() {
+  case "$1" in
+    ssh|'ssh '*)
+      printf '\e]11;#152124\a'
+      typeset -g _ssh_tinted=1
+      ;;
+  esac
+}
+_ssh_tint_precmd() {
+  if (( ${_ssh_tinted:-0} )); then
+    printf '\e]111\a'
+    typeset -g _ssh_tinted=0
+  fi
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec _ssh_tint_preexec
+add-zsh-hook precmd  _ssh_tint_precmd
+
 # ─── Key bindings ─────────────────────────────────────────────────────────────
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down

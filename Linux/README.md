@@ -99,6 +99,8 @@ Run from the `Linux/` directory.
 
 **Editing the Ghostty config:** edit `assets/ghostty.config`, then `just ghostty` to redeploy. Keep cross-platform settings (colors, palette, padding, cursor, behavior, font-feature, link, quick-terminal) in sync with `../Mac/assets/ghostty.config` — Mac-only (`macos-*`, `cmd+*`) and Linux-only (`font-family`, portal comments) keys edit only the respective file. Ghostty itself is installed by the bazzite-custom image, not by this repo.
 
+**Ctrl+Alt+T new-window keybinding:** bound via GNOME custom-keybinding by `run_config_ghostty_keybinding` (called from `install-bazzite.sh` Phase 2). Ghostty's own portal `keybind = global:` only survives while a Ghostty window is open — once the last window closes, the portal grab is released and the shortcut dies. A GNOME-level binding keeps working: it runs `ghostty`, which either D-Bus-activates the live single-instance process (new window in existing) or launches a fresh one. `just drift` flags this binding the same way it flags 1Password's Alt+Shift+2.
+
 ## Workflow
 
 **First-time setup on a fresh Bazzite GNOME box:**

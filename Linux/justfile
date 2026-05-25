@@ -265,6 +265,30 @@ drift machine="":
         fail_line "~/.config/ghostty/config ($n lines differ)"
         fixes+=("re-deploy Ghostty config|just ghostty")
     fi
+    # Ctrl+Alt+T must be the GNOME custom keybinding (run_config_ghostty_keybinding),
+    # not Ghostty's own `keybind = global:` — the portal grab dies with the
+    # process and the shortcut stops working as soon as the last window closes.
+    # Check that the binding exists, points at <Ctrl><Alt>t, and resolves to
+    # an executable. Skip silently if ghostty isn't installed yet (Phase 1
+    # machines won't have it).
+    if command -v ghostty >/dev/null 2>&1; then
+        gh_kb_path="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/ghostty/"
+        gh_kb_cmd=$(gsettings get "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$gh_kb_path" command 2>/dev/null | tr -d "'")
+        gh_kb_bind=$(gsettings get "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$gh_kb_path" binding 2>/dev/null | tr -d "'")
+        gh_kb_exe="${gh_kb_cmd%% *}"
+        if [[ -z "$gh_kb_cmd" ]]; then
+            fail_line "Ctrl+Alt+T keybinding not configured"
+            fixes+=("re-run Ghostty per-user config (binds Ctrl+Alt+T via GNOME so it survives Ghostty exit)|./install-bazzite.sh $machine")
+        elif [[ ! -x "$gh_kb_exe" ]]; then
+            fail_line "Ctrl+Alt+T command resolves to '$gh_kb_exe' which is not executable"
+            fixes+=("re-run Ghostty per-user config (binds Ctrl+Alt+T via GNOME so it survives Ghostty exit)|./install-bazzite.sh $machine")
+        elif [[ "$gh_kb_bind" != "<Ctrl><Alt>t" ]]; then
+            fail_line "Ctrl+Alt+T keybinding is bound to '$gh_kb_bind' instead"
+            fixes+=("re-run Ghostty per-user config (binds Ctrl+Alt+T via GNOME so it survives Ghostty exit)|./install-bazzite.sh $machine")
+        else
+            ok_line "Ctrl+Alt+T keybinding ($gh_kb_exe)"
+        fi
+    fi
 
     # ── rpm-ostree layered packages ────────────────────────────────────
     section "rpm-ostree layered packages"

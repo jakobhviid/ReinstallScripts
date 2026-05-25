@@ -400,3 +400,55 @@ run_config_ghostty() {
     cp "$src" "$dst"
     ok "Ghostty config deployed to $dst"
 }
+
+run_config_ghostty_keybinding() {
+    # Bind Ctrl+Alt+T to launch Ghostty via GNOME custom-keybinding rather
+    # than Ghostty's own portal `keybind = global:` mechanism. The portal
+    # grab only exists while Ghostty is running, so closing the last window
+    # also kills the shortcut. A GNOME-level binding survives the process
+    # exiting, and with Ghostty's gtk-single-instance = detect default,
+    # re-invoking `ghostty` either opens a new window in the live instance
+    # (D-Bus activation) or launches a fresh one — both states work.
+    info "Configuring Ghostty Ctrl+Alt+T (GNOME custom keybinding)"
+
+    if ! command -v ghostty >/dev/null 2>&1; then
+        warn "ghostty binary not on PATH — skipping Ctrl+Alt+T keybinding."
+        warn "Ghostty is installed by the bazzite-custom image; if you're"
+        warn "on stock Bazzite this will run cleanly after the rebase."
+        return
+    fi
+
+    # Resolve the binary's absolute path. GNOME shell spawns keybinding
+    # commands with the system PATH (/usr/local/sbin:/usr/local/bin:/usr/bin),
+    # which already contains /usr/bin/ghostty on the image — but using an
+    # absolute path makes the binding robust against future PATH changes
+    # and mirrors the same lesson learned with 1Password's keybinding.
+    local gh_bin
+    gh_bin=$(command -v ghostty)
+
+    # Register our path in the global custom-keybindings list without
+    # clobbering any other custom shortcuts the user already has. Only
+    # add it if missing.
+    local kb_path="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/ghostty/"
+    local current
+    current=$(gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings)
+    if [[ "$current" != *"$kb_path"* ]]; then
+        if [[ "$current" == "@as []" || "$current" == "[]" ]]; then
+            gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['$kb_path']"
+        else
+            gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "${current%]}, '$kb_path']"
+        fi
+    fi
+
+    # Set name/command/binding under our own sub-schema — safe to write
+    # unconditionally, no effect on anyone else's shortcuts. GNOME's stock
+    # `terminal` keybinding on the same combo is auto-superseded by ours.
+    gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
+      name "Ghostty New Window"
+    gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
+      command "$gh_bin"
+    gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$kb_path" \
+      binding "<Ctrl><Alt>t"
+
+    ok "Ctrl+Alt+T bound to $gh_bin (survives Ghostty process exit)"
+}

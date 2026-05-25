@@ -16,7 +16,7 @@ set -uo pipefail
 #   4. just zsh (templates ~/.zshrc.image, bootstraps ~/.zshrc once, tmux, starship, git identity, plugins)
 #   5. Per-user run_config_* (1Password keybinding/desktop, app icon
 #      overrides, PWAs, autostart, LocalSend dark titlebar, GNOME shell +
-#      Ptyxis dconf snapshots)
+#      Ptyxis dconf snapshots, Ghostty config + Ctrl+Alt+T keybinding)
 #
 # Why split? The custom image at ghcr.io/jakobhviid/bazzite-{custom,nvidia-custom}
 # bakes most of what this script used to do at the system layer (browsers,
@@ -289,6 +289,7 @@ phase2_userspace() {
     run_config_gnome_shell
     run_config_ptyxis
     run_config_ghostty
+    run_config_ghostty_keybinding
 
     echo
     ok "Phase 2 complete!"

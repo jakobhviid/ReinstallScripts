@@ -106,28 +106,34 @@ company, but just having good defaults at home on all machines."
   might reasonably want to do (e.g. disabling DevTools, blocking extension
   installs, force-installing extensions).
 
-### Universal tool settings go in the template, not .zshrc.local
+### Universal tool settings go in the template, per-machine in ~/.zshrc
 
 When a shell setting applies to a tool that's used on every machine, it
 belongs in the template (`Mac/assets/zshrc.template`,
-`Linux/assets/zshrc.template`), not in `~/.zshrc.local`.
+`Linux/assets/zshrc.template`) — rendered into `~/.zshrc.image` by
+`just zsh`. Per-machine settings go in the user-owned `~/.zshrc` (which
+sources `~/.zshrc.image`), not in a separate override file.
 
 **Why:** Jakob said: "Scripts don't care about local sometimes. but we use
-brew everywhere, even linux." `.zshrc.local` is for *per-machine*
-customizations — things only true on one machine. A setting that's true on
-every machine is a default, and defaults belong in the source-of-truth so
-every machine gets them.
+brew everywhere, even linux." A setting that's true on every machine is a
+default, and defaults belong in the source-of-truth so every machine gets
+them. Per-machine settings are anything only true on one machine.
+
+(Historical note: an `~/.zshrc.local` file was previously used as the
+per-machine slot, but was decommissioned 2026-05 when Mac aligned with
+Linux's two-file model and `~/.zshrc` itself became the user-owned slot.)
 
 **How to apply:**
-- When drift surfaces a "harmless" extra line in `~/.zshrc`, ask: is this
-  universal (every machine should have it) or per-machine (only here)?
+- When drift surfaces a "harmless" extra line in `~/.zshrc.image`, ask: is
+  this universal (every machine should have it) or per-machine (only here)?
   - **Universal** → bring it into the template; the next `just zsh`
     re-renders it everywhere. Examples: brew env vars (`HOMEBREW_NO_*`),
     aliases, default editors, locale settings.
-  - **Per-machine** → move it to `~/.zshrc.local` (work tokens,
-    machine-specific paths, hostname-conditional logic).
-- Don't default to "move it to .zshrc.local" when drift is detected. The
-  whole point of the templated approach is that good defaults are shared.
+  - **Per-machine** → it belongs in `~/.zshrc` directly (work tokens,
+    machine-specific paths, hostname-conditional logic, tool installers
+    like LM Studio's PATH export).
+- Don't default to "move it out of the template" when drift is detected.
+  The whole point of the templated approach is that good defaults are shared.
 
 ### Don't actually run destructive recipes on Jakob's machine while testing
 

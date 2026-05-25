@@ -165,7 +165,13 @@ drift machine="":
         fi
     done
     rm -f "$rendered"
-    (( zd )) && fixes+=("re-template ~/.zshrc, starship.toml, tmux.conf|just zsh")
+    # ~/.zshrc.local was the per-machine override under the old single-file
+    # model. Decommissioned 2026-05 — flag if it still exists so user migrates.
+    if [[ -f "$HOME/.zshrc.local" ]]; then
+        fail_line "~/.zshrc.local (decommissioned — no longer sourced; migrate into ~/.zshrc)"; zd=1
+        fixes+=("migrate ~/.zshrc.local into ~/.zshrc, then rm ~/.zshrc.local|manual")
+    fi
+    (( zd )) && fixes+=("re-template ~/.zshrc.image, starship.toml, tmux.conf|just zsh")
 
     # ── default shell ──────────────────────────────────────────────────
     # Read the CONFIGURED login shell from /etc/passwd via getent, not the
@@ -862,6 +868,16 @@ zsh:
         echo "Wrote bootstrap ~/.zshrc → sources ~/.zshrc.image"
     else
         echo "~/.zshrc has user content, leaving as-is (must contain 'source ~/.zshrc.image')"
+    fi
+
+    # ~/.zshrc.local was the per-machine override file under the old single-
+    # file model. Decommissioned 2026-05: per-machine settings now live in
+    # ~/.zshrc (user-owned). Warn on its presence so the user migrates.
+    if [[ -f ~/.zshrc.local ]]; then
+        echo ""
+        echo "⚠️  ~/.zshrc.local exists but is no longer sourced (decommissioned)."
+        echo "   Move its content into ~/.zshrc, then 'rm ~/.zshrc.local'."
+        echo ""
     fi
 
     mkdir -p ~/.config

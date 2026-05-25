@@ -150,8 +150,23 @@ drift machine="":
     rendered=$(mktemp)
     sed "s|BREW_PREFIX|$brew_prefix|g" "$here/assets/zshrc.template" > "$rendered"
     zd=0
+    # Sanity-check that the user-owned ~/.zshrc still sources the managed
+    # file. Without this, a user could remove the source line (intentionally
+    # or via misedit) and drift would still pass — but the managed config
+    # would silently not load. We only check for the source line, not the
+    # whole bootstrap content (~/.zshrc is user-owned and may have arbitrary
+    # additions around it).
+    if [[ ! -f "$HOME/.zshrc" ]]; then
+        fail_line "~/.zshrc (missing — run just zsh to bootstrap)"; zd=1
+    elif ! grep -qF 'source ~/.zshrc.image' "$HOME/.zshrc"; then
+        fail_line "~/.zshrc (missing 'source ~/.zshrc.image' line — managed config won't load)"; zd=1
+    else
+        ok_line "~/.zshrc (sources ~/.zshrc.image)"
+    fi
+    # Drift checks ~/.zshrc.image (the managed file), NOT ~/.zshrc body —
+    # the latter is user-owned and may diverge freely (see `just zsh` recipe).
     for pair in \
-        "$rendered:$HOME/.zshrc" \
+        "$rendered:$HOME/.zshrc.image" \
         "$here/../shared/starship.toml:$HOME/.config/starship.toml" \
         "$here/../shared/tmux.conf:$HOME/.tmux.conf"
     do
@@ -161,12 +176,18 @@ drift machine="":
         elif diff -q "$src" "$dst" >/dev/null 2>&1; then
             ok_line "$label"
         else
-            n=$(diff "$src" "$dst" 2>/dev/null | grep -c '^[<>]')
+            n=$(diff "$src" "$dst" 2>/dev/null | grep -c '^[<>]' || true)
             fail_line "$label ($n lines differ)"; zd=1
         fi
     done
     rm -f "$rendered"
-    (( zd )) && fixes+=("re-template ~/.zshrc, starship.toml, tmux.conf|just zsh")
+    # ~/.zshrc.local was the per-machine override under the old single-file
+    # model. Decommissioned 2026-05 — flag if it still exists so user migrates.
+    if [[ -f "$HOME/.zshrc.local" ]]; then
+        fail_line "~/.zshrc.local (decommissioned — no longer sourced; migrate into ~/.zshrc)"; zd=1
+        fixes+=("migrate ~/.zshrc.local into ~/.zshrc, then rm ~/.zshrc.local|manual")
+    fi
+    (( zd )) && fixes+=("re-template ~/.zshrc.image, starship.toml, tmux.conf|just zsh")
 
     # ── default shell ──────────────────────────────────────────────────
     # Read the CONFIGURED login shell from Directory Services via dscl, not
@@ -557,14 +578,51 @@ zsh:
         echo "Native Claude Code removed — now managed by Homebrew"
     fi
 
-    if [[ -f ~/.zshrc ]]; then
-        cp ~/.zshrc ~/.zshrc.bak
-        echo "Backed up existing .zshrc to .zshrc.bak"
-    fi
-
+    # ── Two-file model for .zshrc (added 2026-05) ─────────────────────────
+    # ~/.zshrc.image — auto-managed, rewritten on every `just zsh` from
+    #                  assets/zshrc.template. Drift checks this file.
+    # ~/.zshrc       — yours to edit. Initial bootstrap written ONCE if
+    #                  it doesn't yet exist or still has the old template
+    #                  content. Tools like nvm/bun/pyenv that auto-modify
+    #                  .zshrc no longer get clobbered on the next `just zsh`,
+    #                  and template updates land in .zshrc.image without
+    #                  touching your customizations.
     brew_prefix="$(brew --prefix)"
     chmod -R go-w "$brew_prefix/share" "$brew_prefix/share/zsh" 2>/dev/null || true
-    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/assets/zshrc.template" > ~/.zshrc
+
+    # Always rewrite the managed file from template (with BREW_PREFIX subst).
+    sed "s|BREW_PREFIX|$brew_prefix|g" "{{justfile_directory()}}/assets/zshrc.template" > ~/.zshrc.image
+    echo "Updated ~/.zshrc.image (managed)"
+
+    # Bootstrap ~/.zshrc only if it's missing OR doesn't yet have the
+    # `source ~/.zshrc.image` line. Anything containing that line is treated
+    # as a post-migration user file and left untouched. Pre-migration files
+    # (the old full-template content) get backed up and replaced.
+    needs_bootstrap=0
+    if [[ ! -f ~/.zshrc ]] || ! grep -qF 'source ~/.zshrc.image' ~/.zshrc; then
+        needs_bootstrap=1
+    fi
+    if (( needs_bootstrap )); then
+        if [[ -f ~/.zshrc ]]; then
+            cp ~/.zshrc ~/.zshrc.bak
+            echo "Backed up existing .zshrc to .zshrc.bak"
+        fi
+        cp "{{justfile_directory()}}/assets/zshrc-bootstrap" ~/.zshrc
+        echo "Wrote bootstrap ~/.zshrc → sources ~/.zshrc.image"
+    else
+        echo "~/.zshrc has user content, leaving as-is (must contain 'source ~/.zshrc.image')"
+    fi
+
+    # ~/.zshrc.local was the per-machine override file under the old single-
+    # file model. Decommissioned 2026-05: per-machine settings now live in
+    # ~/.zshrc (user-owned). Warn on its presence so the user migrates.
+    if [[ -f ~/.zshrc.local ]]; then
+        echo ""
+        echo "⚠️  ~/.zshrc.local exists but is no longer sourced (decommissioned)."
+        echo "   Move its content into ~/.zshrc, then 'rm ~/.zshrc.local'."
+        echo ""
+    fi
+
     mkdir -p ~/.config
     cp "{{justfile_directory()}}/../shared/starship.toml" ~/.config/starship.toml
     cp "{{justfile_directory()}}/../shared/tmux.conf" ~/.tmux.conf

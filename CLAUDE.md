@@ -96,13 +96,12 @@ just gnome-restore / just ptyxis-restore   # push the snapshot back to live (ask
 
 ## Zsh Config Sync
 
-**Mac:** `just zsh` fully overwrites `~/.zshrc` from `Mac/assets/zshrc.template` on every run.
+Mac and Linux both use the same two-file split (Linux: introduced 2026-05; Mac: aligned 2026-05):
 
-**Linux:** `just zsh` uses a two-file split (introduced 2026-05):
-- `~/.zshrc.image` — managed file, rewritten on every `just zsh` from `Linux/assets/zshrc.template`. Drift checks this file.
-- `~/.zshrc` — user-owned. Bootstrapped once from `Linux/assets/zshrc-bootstrap` if missing or if it doesn't yet contain the `source ~/.zshrc.image` line; left alone after that. Tools that auto-edit `.zshrc` (nvm, bun, pyenv) no longer get clobbered on the next `just zsh`.
+- `~/.zshrc.image` — managed file, rewritten on every `just zsh` from `<platform>/assets/zshrc.template`. Drift checks this file.
+- `~/.zshrc` — user-owned. Bootstrapped once from `<platform>/assets/zshrc-bootstrap` if missing or if it doesn't yet contain the `source ~/.zshrc.image` line; left alone after that. Per-machine settings (LM Studio's PATH export, work tokens, machine-specific aliases) and tools that auto-edit `.zshrc` (nvm, bun, pyenv) live here and are not clobbered on subsequent `just zsh` runs.
 
-Per-machine customizations go in `~/.zshrc.local` on both platforms, sourced at the end of the template if it exists.
+`~/.zshrc.local` was the per-machine override file under the old single-file Mac model. Decommissioned 2026-05 — per-machine settings now go directly in `~/.zshrc`. Both `just zsh` recipes warn if the file still exists on a machine; `just drift` flags it.
 
 The templates use `BREW_PREFIX` as a placeholder, substituted at install time via `sed`. The `shared/starship.toml` config is shared across all platforms and deployed to `~/.config/starship.toml` by each platform's `just zsh` recipe.
 

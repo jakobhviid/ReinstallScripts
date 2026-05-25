@@ -222,6 +222,3 @@ fi
 # ─── Zoxide (smart cd — must be last) ────────────────────────────────────────
 export _ZO_DOCTOR=0
 eval "$(zoxide init zsh --cmd cd)"
-
-# ─── Local overrides (not tracked by git) ───────────────────────────────────
-[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local

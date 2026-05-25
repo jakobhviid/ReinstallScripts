@@ -255,9 +255,13 @@ Your shell history is configured with:
 
 ---
 
-## Local Overrides
+## Per-Machine Overrides
 
-Per-machine customizations go in `~/.zshrc.local`. This file is sourced at the end of `.zshrc` if it exists, and is not overwritten by `just zsh`. Use it for machine-specific env vars, aliases, or tool config.
+Per-machine customizations go directly in `~/.zshrc` itself, which is user-owned: `just zsh` only writes it once on initial bootstrap (when missing or lacking the `source ~/.zshrc.image` line), and never touches it after that. The shared template content lives in `~/.zshrc.image` — that's the file `just zsh` rewrites every run.
+
+Add machine-specific env vars, aliases, work tokens, or tool installers (LM Studio's PATH export etc.) anywhere in `~/.zshrc` around the `source ~/.zshrc.image` line.
+
+`~/.zshrc.local` was the override file under the old single-file model. Decommissioned 2026-05 — `just zsh` warns if it still exists.
 
 ---
 
@@ -279,5 +283,5 @@ Per-machine customizations go in `~/.zshrc.local`. This file is sourced at the e
 | Git status | `gs` |
 | Git add, commit, push | `ga && gcp message` |
 | Customize prompt theme | Edit `~/.config/starship.toml` |
-| Per-machine zsh overrides | `~/.zshrc.local` |
+| Per-machine zsh overrides | Edit `~/.zshrc` directly (user-owned) |
 | Hide a command from history | Prefix with a space |

@@ -164,7 +164,7 @@ run_config_desktop_overrides() {
         "code.desktop|$HOME/.local/share/applications/code.desktop|code.png"
         "1password.desktop|/usr/share/applications/1password.desktop|1password.png"
         "org.gnome.Nautilus.desktop|/usr/share/applications/org.gnome.Nautilus.desktop|org.gnome.Nautilus.png"
-        "org.gnome.Ptyxis.desktop|/usr/share/applications/org.gnome.Ptyxis.desktop|org.gnome.Ptyxis.png"
+        "com.mitchellh.ghostty.desktop|/usr/share/applications/com.mitchellh.ghostty.desktop|com.mitchellh.ghostty.png"
         "com.discordapp.Discord.desktop|/var/lib/flatpak/exports/share/applications/com.discordapp.Discord.desktop|com.discordapp.Discord.png"
         "org.signal.Signal.desktop|/var/lib/flatpak/exports/share/applications/org.signal.Signal.desktop|org.signal.Signal.png"
         "proton.vpn.app.gtk.desktop|/usr/share/applications/proton.vpn.app.gtk.desktop|proton.vpn.app.gtk.png"

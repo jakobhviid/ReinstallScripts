@@ -56,7 +56,7 @@ Linux/
 ├── assets/
 │   ├── bazzite-custom.pub                ← vendored cosign pub key (sync target whenever bazzite-custom rotates its key)
 │   ├── bazzite-flatpak-ignore.txt        ← flatpak app IDs that drift/reconcile/prune treat as baseline
-│   ├── brave-policy.json                 ← canonical editable Brave policy (also lives in bazzite-custom image as a copy)
+│   ├── brave-origin-policy.json          ← Brave Origin policy fetched by bazzite-custom at image-build time
 │   ├── color-calibration/                ← X1 Carbon Gen 13 .icm color profiles + panel info
 │   ├── gnome/shell.dconf                 ← per-user GNOME shell dconf snapshot
 │   ├── ptyxis.dconf                      ← per-user Ptyxis (terminal) dconf snapshot
@@ -89,14 +89,13 @@ Run from the `Linux/` directory.
 | `just install-missing <machine>`         | Install Brewfile entries that are missing on this machine (formulas/casks/taps and flatpaks). Thin wrapper over `brew bundle install`. Additive only. |
 | `just zsh`                       | Re-template `~/.zshrc.image` (managed), bootstrap `~/.zshrc` once if missing, configure git/tmux/starship, install brew-only zsh plugins (image has the rest), set zsh as default |
 | `just speaker-eq`                | Install the PipeWire filter-chain EQ for thin laptop speakers (X1 Carbon Gen 13 only)        |
-| `just brave`                     | Deploy `assets/brave-policy.json` to `/etc/brave/policies/managed/`. Image bakes the same on rebased machines so this is normally redundant — kept for testing policy edits before syncing them into bazzite-custom. |
 | `just ghostty`                   | Deploy `assets/ghostty.config` to `~/.config/ghostty/config` (backs up any pre-existing differing config to `.bak`). Also runs as `run_config_ghostty` during install-bazzite.sh Phase 2. |
 | `just gnome-backup`              | Snapshot `/org/gnome/shell/` settings into `assets/gnome/shell.dconf`                        |
 | `just gnome-restore`             | Apply `assets/gnome/shell.dconf` to live `/org/gnome/shell/` (asks first, default no)        |
 | `just ptyxis-backup`             | Snapshot `/org/gnome/Ptyxis/` settings into `assets/ptyxis.dconf`                            |
 | `just ptyxis-restore`            | Apply `assets/ptyxis.dconf` to live `/org/gnome/Ptyxis/` (asks first, default no)            |
 
-**Editing the Brave policy:** edit `assets/brave-policy.json`, then `just brave` to deploy it on the local machine (image users will see the local copy override the image's baked-in copy). Once happy with the changes, sync the file into `../bazzite-custom/system_files/etc/brave/policies/managed/brave-policy.json` and push the bazzite-custom image so the change propagates fleet-wide.
+**Editing the Brave Origin policy:** edit `assets/brave-origin-policy.json`, commit + push. The bazzite-custom image's `build_files/build.sh` `curl`s this file from raw GitHub on the next image build, drops it at `/etc/brave/policies/managed/brave-policy.json`, and rebased machines pick it up after `rpm-ostree upgrade`. `just drift` flags any deployed key that's missing from or extra in this repo's copy.
 
 **Editing the Ghostty config:** edit `assets/ghostty.config`, then `just ghostty` to redeploy. Keep cross-platform settings (colors, palette, padding, cursor, behavior, font-feature, link, quick-terminal) in sync with `../Mac/assets/ghostty.config` — Mac-only (`macos-*`, `cmd+*`) and Linux-only (`font-family`) keys edit only the respective file. Ghostty itself is installed by the bazzite-custom image, not by this repo.
 
@@ -140,14 +139,11 @@ just backup chronos-redux                 # overwrites brewfiles/Brewfile.chrono
 
 No code edit needed for a new machine — the image variant is chosen at the prompt during step 1.
 
-## Brave policy
+## Brave Origin policy
 
-`assets/brave-policy.json` is the canonical editable source for the Brave policy across all platforms. Cross-platform sync targets:
-- `Mac/assets/brave-debloat.mobileconfig` (plist format)
-- `Windows/brave-policy.json` (json copy)
-- `bazzite-custom/system_files/etc/brave/policies/managed/brave-policy.json` (image's copy — what actually loads on rebased machines)
+`assets/brave-origin-policy.json` is the policy that gets baked into every Linux machine — `bazzite-custom/build_files/build.sh` fetches it from raw GitHub at image-build time and drops it at `/etc/brave/policies/managed/brave-policy.json`. To change it: edit + commit + push this repo, then rebuild + push the bazzite-custom image; rebased machines pick up the change.
 
-When changing the policy, edit this file then propagate to all three sync targets.
+It's deliberately leaner than the Mac/Windows policies because most of regular Brave's "extras" (Wallet, Rewards, Leo, Tor, News, Talk, VPN, Playlist, Speedreader, Wayback Machine, P3A, Web Discovery, Stats Ping, IPFS) are compiled out of the Brave Origin binary — the matching policy keys would be dead bytes. The Mac (`../Mac/assets/brave-debloat.mobileconfig`) and Windows (`../Windows/brave-policy.json`) policies are independent — they still target regular Brave and keep the full set. Cross-platform settings shared by all three (DoH, Qwant search provider, 1Password forcelist, autofill toggles, etc.) need updating in all three files when changed.
 
 ## Per-machine variation
 

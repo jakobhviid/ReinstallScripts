@@ -121,11 +121,12 @@ just            # list recipes
 ## Key Notes
 
 - **Never run justfile recipes, install scripts, or other destructive commands without explicit user consent.** These scripts install packages, modify system state, and open configuration profiles. When testing justfile changes, use `just --dry-run <recipe>` to inspect the generated script. Only run a recipe live if the user explicitly asks for it.
-- **Brave browser policies must stay in sync across all platforms.** Same policy set, three formats:
-  - **Mac:** `Mac/assets/brave-debloat.mobileconfig` (plist)
-  - **Linux:** `Linux/assets/brave-policy.json` (canonical editable source). The bazzite-custom image bakes a copy at `system_files/etc/brave/policies/managed/brave-policy.json` and is what actually loads on rebased machines — when changing the policy, edit this file, sync to bazzite-custom, push the image.
-  - **Windows:** `Windows/brave-policy.json`
-  When adding, removing, or changing a Brave policy, update all four locations (Mac, Linux source, Linux image copy, Windows).
+- **Brave policy files — three independent files, one per platform's browser.** Linux runs Brave Origin (privacy-stripped variant); Mac and Windows run regular Brave. The files are no longer a shared set with mirroring rules — each platform owns what it deploys:
+  - **Mac (regular Brave):** `Mac/assets/brave-debloat.mobileconfig` (plist)
+  - **Linux (Brave Origin):** `Linux/assets/brave-origin-policy.json` — the actually-deployed policy. The bazzite-custom image's `build_files/build.sh` `curl`s this file from `raw.githubusercontent.com/.../Linux/assets/brave-origin-policy.json` at image-build time, drops it at `/etc/brave/policies/managed/brave-policy.json`, and that's what loads on rebased machines. **No separate copy lives in bazzite-custom** — push this repo, rebuild the image, rebase. `just brave` was retired with the image rework; no in-place fix path from this repo.
+  - **Windows (regular Brave):** `Windows/brave-policy.json`
+  - The Brave Origin file deliberately omits a lot of policies that exist in the Mac/Windows files: (a) the ~14 toggles whose features are compiled out of the Origin binary (Wallet, Rewards, Leo, Tor, News, Talk, VPN, Playlist, Speedreader, Wayback Machine, P3A, Web Discovery, Stats Ping, IPFS) are dead bytes there, (b) PromotionalTabsEnabled stays ON so Brave's "what's new" tabs after updates are visible, (c) Privacy Sandbox is already off by default in Brave so the four explicit-disable keys are redundant. `just drift` on Linux flags any that show up at the deployed path as "extras" so old image versions get caught.
+  - Cross-platform settings still in all three files (DoH templates, Qwant default search, 1Password forcelist, autofill/payment toggles, AlternateErrorPagesEnabled, etc.) need updating in all three when changed. The relationship is parallel, not canonical-and-mirrors.
 - **Git identity across all platforms is "Jakob Hviid, PhD" / jakob@hviid.phd** with `pull.rebase true`. Set by `just zsh` on Mac/Linux.
 - **Shell config changes must be applied to all locations.** Each platform has its own template:
   - `Mac/assets/zshrc.template` + `Mac/justfile` zsh recipe

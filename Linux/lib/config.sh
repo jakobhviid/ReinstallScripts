@@ -118,8 +118,9 @@ run_config_1password() {
     # isn't present — means brew install hasn't run yet).
     #
     # Brave Origin is the privacy/Shields-only Brave build, baked into
-    # bazzite-custom alongside brave-browser. The desktop file's Exec
-    # points at /usr/bin/brave-origin-stable; 1P's check looks at the
+    # bazzite-custom as the sole Brave variant (brave-browser was removed
+    # when Linux migrated fully to Origin, 2026-06-05). The desktop file's
+    # Exec points at /usr/bin/brave-origin-stable; 1P's check looks at the
     # parent process basename. Adding both `brave-origin` (canonical
     # name + symlink) and `brave-origin-stable` (the actual binary)
     # covers either resolution path.
@@ -201,7 +202,6 @@ run_config_desktop_overrides() {
 
     # name | source .desktop | icon filename (under shared/app-icons)
     local overrides=(
-        "brave-browser.desktop|/usr/share/applications/brave-browser.desktop|brave-browser.png"
         "code.desktop|$HOME/.local/share/applications/code.desktop|code.png"
         "1password.desktop|/usr/share/applications/1password.desktop|1password.png"
         "org.gnome.Nautilus.desktop|/usr/share/applications/org.gnome.Nautilus.desktop|org.gnome.Nautilus.png"
@@ -230,16 +230,6 @@ run_config_desktop_overrides() {
         fi
         sed -i "s|^Icon=.*|Icon=$icon_dir/$icon|" "$app_dir/$name"
     done
-
-    # Brave: enable touchpad overscroll history nav + native Wayland hint
-    # Patches all three Exec= forms (main, New Window action, New Private Window action)
-    if [[ -f "$app_dir/brave-browser.desktop" ]]; then
-        sed -i \
-          -e 's|^Exec=/usr/bin/brave-browser-stable %U|Exec=/usr/bin/brave-browser-stable --enable-features=TouchpadOverscrollHistoryNavigation --ozone-platform-hint=auto %U|' \
-          -e 's|^Exec=/usr/bin/brave-browser-stable$|Exec=/usr/bin/brave-browser-stable --enable-features=TouchpadOverscrollHistoryNavigation --ozone-platform-hint=auto|' \
-          -e 's|^Exec=/usr/bin/brave-browser-stable --incognito$|Exec=/usr/bin/brave-browser-stable --enable-features=TouchpadOverscrollHistoryNavigation --ozone-platform-hint=auto --incognito|' \
-          "$app_dir/brave-browser.desktop"
-    fi
 
     update-desktop-database ~/.local/share/applications &>/dev/null || true
 

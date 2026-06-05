@@ -16,7 +16,6 @@ default:
     @echo "  just install-missing [machine]   Install Brewfile entries that are missing on this machine"
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
     @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
-    @echo "  just brave               Deploy assets/brave-policy.json (image bakes the same; useful for testing edits)"
     @echo "  just ghostty             Deploy assets/ghostty.config to ~/.config/ghostty/config"
     @echo "  just gnome-backup        Snapshot current GNOME shell settings"
     @echo "  just gnome-restore       Apply the snapshot to live GNOME shell (asks first)"
@@ -218,7 +217,15 @@ drift machine="":
     done
     (( gd )) && fixes+=("set git config (user.name, user.email, pull.rebase)|just zsh")
 
-    # ── brave policy ───────────────────────────────────────────────────
+    # ── brave-origin policy ────────────────────────────────────────────
+    # Linux is on Brave Origin (privacy-stripped variant), so the
+    # canonical policy file for this platform is brave-origin-policy.json
+    # — many of the toggles in the full brave-policy.json (Wallet, Rewards,
+    # Leo, News, Tor, VPN, Talk, Playlist, Speedreader, Wayback, P3A, Web
+    # Discovery, Stats Ping, IPFS) are no-ops on Origin because the
+    # corresponding features are compiled out of the binary. brave-policy.json
+    # still lives in this repo as the canonical "full Brave" policy that
+    # Mac/Windows mirror — don't drift-check it here.
     section "brave (policy file)"
     managed="/etc/brave/policies/managed/brave-policy.json"
     bd=0
@@ -226,28 +233,40 @@ drift machine="":
         fail_line "policy file not deployed (no $managed)"
         bd=1
     else
-        expected=$(jq -S . "$here/assets/brave-policy.json")
+        expected=$(jq -S . "$here/assets/brave-origin-policy.json")
         actual=$(jq -S . "$managed" 2>/dev/null || echo '{}')
+        # Surface BOTH missing-in-actual keys (need to land) AND
+        # extra-in-actual keys (stale full-Brave policies left over from
+        # before the Origin migration that should be dropped).
         mismatches=$(jq -r --argjson actual "$actual" '
             to_entries[] |
             select((.value | tojson) != ($actual[.key] | tojson)) |
             "\(.key)\t\(.value | tojson)\t\(($actual[.key] // null) | tojson)"
         ' <<< "$expected")
-        if [[ -z "$mismatches" ]]; then
-            ok_line "all keys match"
+        extras=$(jq -r --argjson expected "$expected" '
+            to_entries[] | select($expected[.key] == null) | .key
+        ' <<< "$actual")
+        if [[ -z "$mismatches" && -z "$extras" ]]; then
+            ok_line "all keys match brave-origin-policy.json"
         else
             while IFS=$'\t' read -r key exp act; do
+                [[ -z "$key" ]] && continue
                 fail_line "$key (expected $exp, actual $act)"
             done <<< "$mismatches"
+            while IFS= read -r key; do
+                [[ -z "$key" ]] && continue
+                fail_line "$key (extra — drop from deployed policy)"
+            done <<< "$extras"
             bd=1
         fi
     fi
-    # The deployed brave-policy.json comes from the bazzite-custom image now,
-    # not from `just brave` (which was deleted). If keys differ, the divergence
-    # is between this repo's canonical asset and the image's baked-in copy →
-    # sync assets/brave-policy.json into bazzite-custom/system_files/etc/brave/
-    # policies/managed/ and push the image.
-    (( bd )) && fixes+=("sync assets/brave-policy.json to bazzite-custom and push the image|cp assets/brave-policy.json ../bazzite-custom/system_files/etc/brave/policies/managed/")
+    # The deployed brave-policy.json comes from the bazzite-custom image,
+    # whose build.sh fetches assets/brave-origin-policy.json from this repo
+    # at image-build time. If keys differ, push the new policy in this repo
+    # (so the URL the image fetches starts returning the new content) and
+    # rebuild the image, then rebase. `just brave` was deleted with the
+    # image rework, so there's no in-place fix path from this repo.
+    (( bd )) && fixes+=("push assets/brave-origin-policy.json to GitHub, rebuild bazzite-custom, rebase|git push && (cd ../bazzite-custom && just build && just push)")
 
     # ── ghostty ────────────────────────────────────────────────────────
     # Flat-file deploy: no template substitution, just a byte-for-byte

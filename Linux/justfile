@@ -1021,13 +1021,12 @@ gnome-backup:
     out="{{justfile_directory()}}/assets/gnome/shell.dconf"
     mkdir -p "$(dirname "$out")"
     dconf dump /org/gnome/shell/ | awk '
-      /^\[\/\]$/                          { sect="root";  print; next }
       /^\[extensions\/dash-to-panel\]$/   { sect="keep";  print; next }
+      /^\[extensions\/dash-to-dock\]$/    { sect="keep";  print; next }
       /^\[extensions\/blur-my-shell\]$/   { sect="keep";  print; next }
       /^\[extensions\/blur-my-shell\//    { sect="keep";  print; next }
       /^\[extensions\/hotedge\]$/         { sect="keep";  print; next }
       /^\[/                                { sect="skip"; next }
-      sect=="root" && /^enabled-extensions=/ { print; next }
       sect=="keep" && /^(prefs-opened|extension-version|rounded-blur-found|settings-version|panel-anchors|panel-element-positions|panel-lengths|panel-positions|panel-sizes)=/ { next }
       sect=="keep" { print }
     ' > "$out"

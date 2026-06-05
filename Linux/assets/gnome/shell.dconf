@@ -1,5 +1,3 @@
-[/]
-enabled-extensions=['appindicatorsupport@rgcjonas.gmail.com', 'quick-settings-audio-panel@rayzeq.github.io', 'dash-to-panel@jderose9.github.com', 'blur-my-shell@aunetx', 'hide-minimized@danigm.net', 'copyous@boerdereinar.dev', 'caffeine@patapon.info', 'quicksettings-audio-devices-renamer@marcinjahn.com']
 [extensions/blur-my-shell]
 
 [extensions/blur-my-shell/appfolder]
@@ -35,10 +33,10 @@ pipeline='pipeline_default'
 style-components=2
 
 [extensions/blur-my-shell/panel]
-blur=false
+blur=true
 brightness=0.59999999999999998
 override-background=true
-override-background-dynamically=false
+override-background-dynamically=true
 pipeline='pipeline_default'
 sigma=30
 unblur-in-overview=false
@@ -49,6 +47,20 @@ pipeline='pipeline_default'
 [extensions/blur-my-shell/window-list]
 brightness=0.59999999999999998
 sigma=30
+
+[extensions/dash-to-dock]
+apply-custom-theme=false
+background-opacity=0.32000000000000001
+custom-background-color=false
+dash-max-icon-size=40
+disable-overview-on-startup=true
+dock-fixed=false
+dock-position='BOTTOM'
+height-fraction=0.90000000000000002
+preferred-monitor=-2
+preferred-monitor-by-connector='eDP-1'
+preview-size-scale=0.0
+transparency-mode='FIXED'
 
 [extensions/dash-to-panel]
 animate-appicon-hover=false
@@ -69,6 +81,7 @@ focus-highlight-opacity=20
 global-border-radius=4
 hotkeys-overlay-combo='TEMPORARILY'
 intellihide=true
+intellihide-close-delay=1000
 intellihide-hide-from-monitor-windows=false
 intellihide-hide-from-windows=false
 intellihide-revealed-hover=true
@@ -79,6 +92,7 @@ intellihide-use-pressure=false
 panel-side-margins=32
 panel-top-bottom-margins=12
 panel-top-bottom-padding=6
+show-apps-icon-file=''
 trans-bg-color='#000000'
 trans-panel-opacity=0.80000000000000004
 trans-use-custom-bg=true

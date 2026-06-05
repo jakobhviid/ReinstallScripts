@@ -261,15 +261,14 @@ drift machine="":
             bd=1
         fi
     fi
-    # The deployed brave-policy.json is baked into the image by the
-    # Stacks build (services/bazzite-build/image/system_files/etc/brave/
-    # policies/managed/brave-policy.json). This file is the mirror /
-    # canonical reference; drift means the deployed copy is out of sync
-    # with what this repo expects. To fix: edit + push the policy in
-    # Stacks (same byte content as this file), wait for the next daily
-    # image rebuild (10:00 UTC) or trigger it manually on Eternium,
-    # then `rpm-ostree upgrade` on the machine.
-    (( bd )) && fixes+=("sync policy to Stacks, rebuild image, upgrade|update Stacks services/bazzite-build/image/system_files/etc/brave/policies/managed/brave-policy.json then rpm-ostree upgrade")
+    # The deployed brave-policy.json is baked into the bazzite-custom
+    # image. The local fix is to pull the latest image and reboot — by
+    # the time a user sees drift here, the image has almost always been
+    # rebuilt with the corrected policy already (daily rebuild). If
+    # drift persists after the upgrade, the policy in this repo and the
+    # one in the image are out of sync — that's a build-side fix, not
+    # a machine-side fix.
+    (( bd )) && fixes+=("pull the latest image and reboot|rpm-ostree upgrade && systemctl reboot")
 
     # ── ghostty ────────────────────────────────────────────────────────
     # Flat-file deploy: no template substitution, just a byte-for-byte

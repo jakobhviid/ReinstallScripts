@@ -268,7 +268,7 @@ drift machine="":
     # drift persists after the upgrade, the policy in this repo and the
     # one in the image are out of sync — that's a build-side fix, not
     # a machine-side fix.
-    (( bd )) && fixes+=("update the system (pulls the latest image, then reboot)|topgrade")
+    (( bd )) && fixes+=("update the system (pulls the latest image, then reboot)|ujust update")
 
     # ── ghostty ────────────────────────────────────────────────────────
     # Flat-file deploy: no template substitution, just a byte-for-byte

@@ -33,16 +33,20 @@
 #
 #   3. The cask only installs NMH manifests for the major browsers it
 #      ships defaults for (Brave, Chrome variants, Chromium, Edge, Vivaldi,
-#      Vivaldi-snapshot, Firefox). Vivaldi and Zen also need to be
-#      whitelisted in custom_allowed_browsers (1P's hardcoded trusted
-#      basenames are only chrome/chromium-browser-privacy/msedge/brave/
-#      firefox/firefox-bin/firefox-esr). Zen further needs a Firefox-style
-#      NMH manifest copied into ~/.zen/native-messaging-hosts/ — the cask
-#      doesn't know about Zen at all.
+#      Vivaldi-snapshot, Firefox). Vivaldi, Zen, and Brave Origin also
+#      need to be whitelisted in custom_allowed_browsers (1P's hardcoded
+#      trusted basenames are only chrome/chromium-browser-privacy/msedge/
+#      brave/firefox/firefox-bin/firefox-esr — note "brave" matches
+#      brave-browser/brave-browser-stable but NOT brave-origin's binaries
+#      /usr/bin/brave-origin and /usr/bin/brave-origin-stable). Zen
+#      further needs a Firefox-style NMH manifest copied into
+#      ~/.zen/native-messaging-hosts/ — the cask doesn't know about Zen
+#      at all.
 #
 # This function therefore: validates the group state, adds the keybinding
-# and dark-titlebar tweak (the "make it nice" part), appends vivaldi-bin
-# and zen-bin to custom_allowed_browsers, and installs Zen's NMH manifest.
+# and dark-titlebar tweak (the "make it nice" part), appends vivaldi-bin,
+# zen-bin, brave-origin, and brave-origin-stable to
+# custom_allowed_browsers, and installs Zen's NMH manifest.
 
 run_config_1password() {
     info "Configuring 1Password (per-user GNOME keybinding + dark titlebar + browser allowlist)"
@@ -100,14 +104,22 @@ run_config_1password() {
           ~/.local/share/applications/1password.desktop
     fi
 
-    # Lesson 3a: Vivaldi (vivaldi-bin) and Zen (zen-bin) are not in 1P's
-    # hardcoded trusted-browser basename list. Append them to the cask-
-    # installed custom_allowed_browsers (skip the block entirely if the
-    # cask file isn't present — means brew install hasn't run yet).
+    # Lesson 3a: Vivaldi (vivaldi-bin), Zen (zen-bin), and Brave Origin
+    # (brave-origin + brave-origin-stable) are not in 1P's hardcoded
+    # trusted-browser basename list. Append them to the cask-installed
+    # custom_allowed_browsers (skip the block entirely if the cask file
+    # isn't present — means brew install hasn't run yet).
+    #
+    # Brave Origin is the privacy/Shields-only Brave build, baked into
+    # bazzite-custom alongside brave-browser. The desktop file's Exec
+    # points at /usr/bin/brave-origin-stable; 1P's check looks at the
+    # parent process basename. Adding both `brave-origin` (canonical
+    # name + symlink) and `brave-origin-stable` (the actual binary)
+    # covers either resolution path.
     local cab=/etc/1password/custom_allowed_browsers
     if [[ -f "$cab" ]]; then
         local need_append=()
-        for entry in vivaldi-bin zen-bin; do
+        for entry in vivaldi-bin zen-bin brave-origin brave-origin-stable; do
             if ! sudo grep -qxF "$entry" "$cab"; then
                 need_append+=("$entry")
             fi

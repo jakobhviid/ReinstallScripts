@@ -295,8 +295,9 @@ run_config_pwa() {
 
     # Remove legacy Brave-installed PWA .desktop entries (from the previous
     # --app-id=<crx> era). Pattern matches Brave's auto-generated naming
-    # `brave-<32-char-crx-id>-Default.desktop` so we never touch the main
-    # `brave-browser.desktop`.
+    # `brave-<32-char-crx-id>-Default.desktop` — main browser .desktops
+    # (brave-origin.desktop today, brave-browser.desktop historically) can't
+    # match because the regex requires the 32-char [a-p] CRX-ID segment.
     shopt -s nullglob
     for legacy in "$app_dir"/brave-*-Default.desktop; do
         if [[ "$(basename "$legacy")" =~ ^brave-[a-p]{32}-[A-Za-z]+\.desktop$ ]]; then

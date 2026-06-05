@@ -219,13 +219,14 @@ drift machine="":
 
     # ── brave-origin policy ────────────────────────────────────────────
     # Linux is on Brave Origin (privacy-stripped variant), so the
-    # canonical policy file for this platform is brave-origin-policy.json
-    # — many of the toggles in the full brave-policy.json (Wallet, Rewards,
+    # canonical policy file for this platform is brave-origin-policy.json.
+    # ~14 toggles from the historical full-Brave policy (Wallet, Rewards,
     # Leo, News, Tor, VPN, Talk, Playlist, Speedreader, Wayback, P3A, Web
     # Discovery, Stats Ping, IPFS) are no-ops on Origin because the
-    # corresponding features are compiled out of the binary. brave-policy.json
-    # still lives in this repo as the canonical "full Brave" policy that
-    # Mac/Windows mirror — don't drift-check it here.
+    # corresponding features are compiled out of the binary, so they're
+    # omitted here; PromotionalTabs + the 4 PrivacySandbox keys are also
+    # omitted (Brave defaults align). The Mac (mobileconfig) and Windows
+    # (.json) policies keep the full set because they target regular Brave.
     section "brave (policy file)"
     managed="/etc/brave/policies/managed/brave-policy.json"
     bd=0
@@ -260,13 +261,15 @@ drift machine="":
             bd=1
         fi
     fi
-    # The deployed brave-policy.json comes from the bazzite-custom image,
-    # whose build.sh fetches assets/brave-origin-policy.json from this repo
-    # at image-build time. If keys differ, push the new policy in this repo
-    # (so the URL the image fetches starts returning the new content) and
-    # rebuild the image, then rebase. `just brave` was deleted with the
-    # image rework, so there's no in-place fix path from this repo.
-    (( bd )) && fixes+=("push assets/brave-origin-policy.json to GitHub, rebuild bazzite-custom, rebase|git push && (cd ../bazzite-custom && just build && just push)")
+    # The deployed brave-policy.json is baked into the image by the
+    # Stacks build (services/bazzite-build/image/system_files/etc/brave/
+    # policies/managed/brave-policy.json). This file is the mirror /
+    # canonical reference; drift means the deployed copy is out of sync
+    # with what this repo expects. To fix: edit + push the policy in
+    # Stacks (same byte content as this file), wait for the next daily
+    # image rebuild (10:00 UTC) or trigger it manually on Eternium,
+    # then `rpm-ostree upgrade` on the machine.
+    (( bd )) && fixes+=("sync policy to Stacks, rebuild image, upgrade|update Stacks services/bazzite-build/image/system_files/etc/brave/policies/managed/brave-policy.json then rpm-ostree upgrade")
 
     # ── ghostty ────────────────────────────────────────────────────────
     # Flat-file deploy: no template substitution, just a byte-for-byte
@@ -1077,14 +1080,6 @@ ptyxis-restore:
     else
         info "Aborted."
     fi
-
-# Deploy assets/brave-policy.json locally — useful for testing policy edits before syncing them into the bazzite-custom image (rebased machines normally use the image's baked-in copy of the same file).
-brave:
-    #!/usr/bin/env bash
-    echo "Deploying Brave browser policy from assets/brave-policy.json..."
-    sudo mkdir -p /etc/brave/policies/managed
-    sudo cp "{{justfile_directory()}}/assets/brave-policy.json" /etc/brave/policies/managed/brave-policy.json
-    echo "✓ Brave policy applied — restart Brave to load (brave://policy to verify)"
 
 # Deploy Ghostty config from assets/ghostty.config to ~/.config/ghostty/config
 ghostty:

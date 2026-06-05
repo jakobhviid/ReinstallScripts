@@ -5,6 +5,6 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;AudioVideo;Audio;Music;Player;
 Name=YouTube Music
-Exec=brave-browser --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-YouTubeMusic --ozone-platform=x11 --force-dark-mode --app=https://music.youtube.com --class=WebApp-YouTubeMusic --name=WebApp-YouTubeMusic
+Exec=brave-origin-stable --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-YouTubeMusic --ozone-platform=x11 --force-dark-mode --app=https://music.youtube.com --class=WebApp-YouTubeMusic --name=WebApp-YouTubeMusic
 StartupWMClass=WebApp-YouTubeMusic
 Icon=youtube-music

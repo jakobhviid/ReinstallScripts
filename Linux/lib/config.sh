@@ -209,6 +209,7 @@ run_config_desktop_overrides() {
         "com.discordapp.Discord.desktop|/var/lib/flatpak/exports/share/applications/com.discordapp.Discord.desktop|com.discordapp.Discord.png"
         "org.signal.Signal.desktop|/var/lib/flatpak/exports/share/applications/org.signal.Signal.desktop|org.signal.Signal.png"
         "proton.vpn.app.gtk.desktop|/usr/share/applications/proton.vpn.app.gtk.desktop|proton.vpn.app.gtk.png"
+        "proton-mail.desktop|/usr/share/applications/proton-mail.desktop|proton-mail.png"
         "vivaldi-stable.desktop|/usr/share/applications/vivaldi-stable.desktop|vivaldi-stable.png"
         "org.mozilla.firefox.desktop|/usr/share/applications/org.mozilla.firefox.desktop|org.mozilla.firefox.png"
         "claude-desktop.desktop|/usr/share/applications/claude-desktop.desktop|claude-desktop.png"
@@ -257,6 +258,24 @@ run_config_pwa() {
     local app_dir=~/.local/share/applications
     local icon_dir=~/.local/share/icons/reinstall-scripts/pwa
     mkdir -p "$app_dir" "$icon_dir"
+
+    # Prune PWAs we previously deployed but have since retired. The
+    # `cp -u $src_dir/icons/*` line below only adds files; it never
+    # removes a stale destination, so without this loop an old PWA's
+    # .desktop entry and cached icon would linger in the menu forever
+    # on machines that had it. ONLY name PWAs we know this function
+    # previously deployed — do not generalize this to "anything in
+    # $app_dir not in $src_dir/", which would clobber user-installed
+    # PWAs and other system menu entries.
+    local retired_pwas=(
+        # 2026-06-05: Proton Mail + Calendar migrated to the proton-mail
+        # RPM (proton-mail.desktop, wired into run_config_desktop_overrides).
+        "WebApp-ProtonMail"
+        "WebApp-ProtonCalendar"
+    )
+    for stem in "${retired_pwas[@]}"; do
+        rm -f "$app_dir/$stem.desktop" "$icon_dir/$stem.png" "$icon_dir/$stem.webp"
+    done
 
     cp -u "$src_dir/icons/"* "$icon_dir/"
 

@@ -519,6 +519,28 @@ drift machine="":
         ok_line "1Password not installed (skipping integration checks)"
     fi
 
+    # ── retired PWAs ──────────────────────────────────────────────────
+    # PWAs that this repo used to deploy via run_config_pwa but have
+    # been retired in favor of native apps. The cleanup runs as part
+    # of `just install` (run_config_pwa explicitly rm's each one); this
+    # check just surfaces the stale state on machines that haven't been
+    # re-provisioned since the migration. Add a new stem here whenever
+    # a PWA is retired in lockstep with the cleanup list in
+    # lib/config.sh.
+    section "retired PWAs"
+    pwa_apps_dir=~/.local/share/applications
+    retired_pwa_stuck=()
+    for stem in WebApp-ProtonMail WebApp-ProtonCalendar; do
+        [[ -f "$pwa_apps_dir/$stem.desktop" ]] && retired_pwa_stuck+=("$stem.desktop")
+    done
+    if (( ${#retired_pwa_stuck[@]} > 0 )); then
+        fail_line "${#retired_pwa_stuck[@]} retired PWA entries still present:"
+        printf '      %s\n' "${retired_pwa_stuck[@]}"
+        fixes+=("remove retired PWAs (Proton Mail/Calendar migrated to the proton-mail RPM)|./install-bazzite.sh $machine")
+    else
+        ok_line "no retired PWAs lingering"
+    fi
+
     # ── Summary ────────────────────────────────────────────────────────
     section "Summary"
     if (( ${#fixes[@]} == 0 )); then

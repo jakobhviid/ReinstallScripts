@@ -5,23 +5,23 @@ Terminal=false
 StartupNotify=true
 Categories=GTK;Office;
 Name=Craft
-Exec=brave-browser --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app=https://docs.craft.do --class=WebApp-Craft --name=WebApp-Craft
+Exec=brave-origin-stable --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app=https://docs.craft.do --class=WebApp-Craft --name=WebApp-Craft
 StartupWMClass=WebApp-Craft
 Icon=craft
 Actions=New-document;New-task;Search;Today
 
 [Desktop Action New-document]
 Name=New document
-Exec=brave-browser --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app=https://docs.craft.do/editor/new --class=WebApp-Craft --name=WebApp-Craft
+Exec=brave-origin-stable --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app=https://docs.craft.do/editor/new --class=WebApp-Craft --name=WebApp-Craft
 
 [Desktop Action New-task]
 Name=New task
-Exec=brave-browser --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app="https://docs.craft.do/home?go=new-task" --class=WebApp-Craft --name=WebApp-Craft
+Exec=brave-origin-stable --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app="https://docs.craft.do/home?go=new-task" --class=WebApp-Craft --name=WebApp-Craft
 
 [Desktop Action Search]
 Name=Search
-Exec=brave-browser --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app="https://docs.craft.do/home?go=quick-search" --class=WebApp-Craft --name=WebApp-Craft
+Exec=brave-origin-stable --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app="https://docs.craft.do/home?go=quick-search" --class=WebApp-Craft --name=WebApp-Craft
 
 [Desktop Action Today]
 Name=Today
-Exec=brave-browser --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app=https://docs.craft.do/editor/today --class=WebApp-Craft --name=WebApp-Craft
+Exec=brave-origin-stable --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-Craft --ozone-platform=x11 --force-dark-mode --app=https://docs.craft.do/editor/today --class=WebApp-Craft --name=WebApp-Craft

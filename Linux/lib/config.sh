@@ -41,12 +41,19 @@
 #      /usr/bin/brave-origin and /usr/bin/brave-origin-stable). Zen
 #      further needs a Firefox-style NMH manifest copied into
 #      ~/.zen/native-messaging-hosts/ — the cask doesn't know about Zen
-#      at all.
+#      at all. Brave Origin needs the SAME treatment as Zen, on the
+#      Chromium side: it reads NMH manifests from
+#      ~/.config/BraveSoftware/Brave-Origin/NativeMessagingHosts/ (a
+#      sibling dir to Brave-Browser/), which the cask never populates.
+#      Without the manifest there, Brave Origin's extension can't even
+#      attempt to launch the NMH process — the allowlist entries from
+#      Lesson 3 are necessary but not sufficient.
 #
 # This function therefore: validates the group state, adds the keybinding
 # and dark-titlebar tweak (the "make it nice" part), appends vivaldi-bin,
 # zen-bin, brave-origin, and brave-origin-stable to
-# custom_allowed_browsers, and installs Zen's NMH manifest.
+# custom_allowed_browsers, installs Zen's NMH manifest, and mirrors the
+# Brave-Browser NMH manifest into Brave Origin's config dir.
 
 run_config_1password() {
     info "Configuring 1Password (per-user GNOME keybinding + dark titlebar + browser allowlist)"
@@ -156,6 +163,28 @@ run_config_1password() {
         cp -f "$moz_manifest" "$zen_dir/com.1password.1password.json"
         [[ -f "$moz_wrapper" ]] && cp -f "$moz_wrapper" "$zen_dir/1PasswordWrapper.sh"
         info "Installed Zen 1Password NMH manifest"
+    fi
+
+    # Lesson 3c: Brave Origin uses ~/.config/BraveSoftware/Brave-Origin/
+    # as its config dir (peer to Brave-Browser/). 1P's NMH installer
+    # only writes the manifest into Brave-Browser/NativeMessagingHosts/,
+    # so Brave Origin's matching dir stays empty and its extension's
+    # native-messaging launch fails before 1P's IPC layer ever sees the
+    # connection. Mirror the manifest + wrapper from Brave-Browser and
+    # rewrite the `path` field in the JSON to point at the Brave-Origin
+    # copy of the wrapper (the wrapper script itself is portable — it
+    # execs the brew-installed BrowserSupport binary unchanged, so the
+    # allowed_origins / extension IDs in the manifest carry over as-is).
+    # Same shape as Zen (Lesson 3b), on the Chromium side.
+    local bo_dir=~/.config/BraveSoftware/Brave-Origin/NativeMessagingHosts
+    local bb_manifest=~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.1password.1password.json
+    local bb_wrapper=~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/1PasswordWrapper.sh
+    if [[ -d ~/.config/BraveSoftware/Brave-Origin && -f "$bb_manifest" && -f "$bb_wrapper" ]]; then
+        mkdir -p "$bo_dir"
+        cp -f "$bb_wrapper" "$bo_dir/1PasswordWrapper.sh"
+        sed 's|/BraveSoftware/Brave-Browser/|/BraveSoftware/Brave-Origin/|g' \
+            "$bb_manifest" > "$bo_dir/com.1password.1password.json"
+        info "Installed Brave Origin 1Password NMH manifest"
     fi
 
     ok "1Password configured"

@@ -432,7 +432,11 @@ drift machine="":
     #      (writable-only-by-root check; 0444 fails because root has no
     #      write bit).
     #   3. Zen needs its own NMH manifest at ~/.zen/native-messaging-hosts/
-    #      — the cask doesn't write one for Zen.
+    #      — the cask doesn't write one for Zen. Brave Origin needs the
+    #      same shape on the Chromium side: a manifest at
+    #      ~/.config/BraveSoftware/Brave-Origin/NativeMessagingHosts/
+    #      (cask only populates Brave-Browser/'s peer dir, not
+    #      Brave-Origin/'s).
     section "1password integration"
     op_drift=0
     if command -v 1password >/dev/null 2>&1; then
@@ -476,6 +480,19 @@ drift machine="":
                 ok_line "Zen NMH manifest present"
             else
                 fail_line "Zen installed but no $zen_manifest"
+                op_drift=1
+            fi
+        fi
+        # Brave Origin NMH manifest (only if Brave Origin is installed).
+        # The cask installs the manifest for Brave-Browser but not for
+        # Brave-Origin's config dir; without it the extension's NMH
+        # launch fails before 1P's IPC ever sees the connection.
+        if [[ -d /opt/brave.com/brave-origin || -d ~/.config/BraveSoftware/Brave-Origin ]]; then
+            bo_manifest=~/.config/BraveSoftware/Brave-Origin/NativeMessagingHosts/com.1password.1password.json
+            if [[ -f "$bo_manifest" ]]; then
+                ok_line "Brave Origin NMH manifest present"
+            else
+                fail_line "Brave Origin installed but no $bo_manifest"
                 op_drift=1
             fi
         fi

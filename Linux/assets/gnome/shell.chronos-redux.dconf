@@ -58,7 +58,7 @@ static-blur=true
 style-dash-to-dock=0
 
 [extensions/blur-my-shell/dash-to-panel]
-blur-original-panel=true
+blur-original-panel=false
 
 [extensions/blur-my-shell/hidetopbar]
 compatibility=false
@@ -73,12 +73,16 @@ style-components=2
 
 [extensions/blur-my-shell/panel]
 blur=true
-brightness=0.59999999999999998
+brightness=0.72999999999999998
 override-background=true
 override-background-dynamically=true
 pipeline='pipeline_default'
 sigma=30
+static-blur=false
 unblur-in-overview=false
+
+[extensions/blur-my-shell/popup]
+pipeline='pipeline_default_rounded'
 
 [extensions/blur-my-shell/screenshot]
 pipeline='pipeline_default'

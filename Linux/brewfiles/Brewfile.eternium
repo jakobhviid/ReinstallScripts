@@ -1,4 +1,3 @@
-tap "joshmedeski/sesh"
 brew "bat"
 brew "btop"
 brew "eza"

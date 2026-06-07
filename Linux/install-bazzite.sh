@@ -254,7 +254,12 @@ phase2_userspace() {
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     fi
 
-    # Brewfile — userspace formulae, casks, taps, flatpaks
+    # Brewfile — userspace formulae, casks, taps, flatpaks.
+    # Trust the third-party taps the Brewfile pulls from before `brew bundle`
+    # so HOMEBREW_REQUIRE_TAP_TRUST (default in Homebrew 5.2 / 6.0) doesn't
+    # silently skip them. Per-user state in ~/.homebrew/trust.json — has to
+    # run on every machine, can't be declared in the Brewfile itself.
+    brew trust --tap ublue-os/tap colindean/fonts-nonfree 2>/dev/null || true
     info "Applying Brewfile ($MACHINE)"
     brew bundle --file="$BREWFILE"
     ok "Brewfile applied"

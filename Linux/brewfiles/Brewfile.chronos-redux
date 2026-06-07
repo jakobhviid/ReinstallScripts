@@ -21,7 +21,6 @@
 # Refresh with: just backup chronos-redux  (then hand-edit before commit —
 # the dump pulls in default GNOME flatpaks that ship with Bazzite).
 
-tap "joshmedeski/sesh"
 tap "ublue-os/tap"
 tap "colindean/fonts-nonfree"
 

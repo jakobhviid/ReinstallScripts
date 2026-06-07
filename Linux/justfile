@@ -873,7 +873,6 @@ zsh:
     # (c) the disk cost is small. Stock-Bazzite users run this and get a
     # complete shell with no image dependency.
     echo "Installing Zsh plugins + CLI baseline + brew-only tools..."
-    brew tap joshmedeski/sesh 2>/dev/null || true
     brew install \
         zsh-autosuggestions \
         zsh-syntax-highlighting \

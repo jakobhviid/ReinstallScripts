@@ -547,7 +547,6 @@ install-missing machine="":
 zsh:
     #!/usr/bin/env zsh
     echo "Installing Zsh plugins and CLI tools via Homebrew..."
-    brew tap joshmedeski/sesh 2>/dev/null || true
     brew install \
         zsh-autosuggestions \
         zsh-syntax-highlighting \

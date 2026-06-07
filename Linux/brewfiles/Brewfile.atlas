@@ -1,4 +1,3 @@
-tap "joshmedeski/sesh"
 tap "ublue-os/tap"
 tap "colindean/fonts-nonfree"
 brew "bat"

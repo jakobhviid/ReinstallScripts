@@ -270,9 +270,10 @@ brewfile section.
   `~/.config/starship.toml`, `~/.tmux.conf`), default shell, git identity,
   brave (policy file at `/etc/brave/policies/managed/brave-policy.json`),
   rpm-ostree layered packages, brewfile (missing + extras with flatpak
-  ignore-list applied), 1password integration (group membership,
-  `custom_allowed_browsers` perms+entries, Zen NMH manifest, Alt+Shift+2
-  keybinding command path).
+  ignore-list applied), gnome shell (filtered live state vs
+  `assets/gnome/shell.<machine>.dconf`), 1password integration (group
+  membership, `custom_allowed_browsers` perms+entries, Zen NMH manifest,
+  Alt+Shift+2 keybinding command path).
 - **Mac drift sections**: zsh (`~/.zshrc` matches rendered template,
   starship, tmux), default shell, git identity, brave (mobileconfig keys
   vs Managed Preferences plist), brewfile.
@@ -291,11 +292,14 @@ brewfile section.
   `assets/brave-debloat.mobileconfig` against
   `/Library/Managed Preferences/<user>/com.brave.Browser.plist` via
   `plutil → jq`.
-- Categories deliberately *not* tracked: dconf (use `just gnome-restore` /
-  `just ptyxis-restore` for explicit re-apply), `.desktop` overrides +
-  autostart, GNOME extensions, registered repos, PipeWire EQ, PWAs/icons,
-  speaker EQ. Add only if the maintenance is worth it.
-- Companion recipes: `just gnome-restore` and `just ptyxis-restore` apply
-  the dconf snapshots back to live state with a y/N prompt that defaults
-  to **no** (via `confirm()` in `lib/common.sh`) because they overwrite
-  live GNOME prefs.
+- Categories deliberately *not* tracked: Ptyxis dconf (shared single
+  file, no per-machine variance), `.desktop` overrides + autostart,
+  GNOME extensions (gext-installed set; the *configured* state is
+  in the gnome-shell drift check), registered repos, PipeWire EQ,
+  PWAs/icons, speaker EQ. Add only if the maintenance is worth it.
+- Companion recipes: `just gnome-restore <machine>` loads shared
+  `shell.dconf` then per-machine `shell.<machine>.dconf` into live
+  state, with a y/N prompt that defaults to **no** (via `confirm()` in
+  `lib/common.sh`). `just ptyxis-restore` applies the single Ptyxis
+  snapshot the same way. Both overwrite live state — the prompt is
+  there for a reason.

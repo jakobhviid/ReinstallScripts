@@ -55,6 +55,9 @@ else
     fi
 fi
 BREWFILE="$SCRIPT_DIR/brewfiles/Brewfile.${MACHINE}"
+# Exported so run_config_gnome_shell can resolve the per-machine dconf
+# snapshot at assets/gnome/shell.${MACHINE}.dconf.
+export MACHINE
 
 # True if the booted rpm-ostree deployment is on one of our bazzite-custom
 # image variants. Two fixes vs the previous version:

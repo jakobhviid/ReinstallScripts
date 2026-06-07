@@ -438,6 +438,43 @@ drift machine="":
     (( bf_missing || bf_extras )) && fixes+=("interactively pick which extras to add and which missing entries to drop from the Brewfile|just reconcile $machine")
     (( bf_missing || bf_extras )) && fixes+=("save this machine's current state to the Brewfile (captures extras, drops missing entries, full overwrite)|just backup $machine")
 
+    # ── gnome shell (per-machine dconf snapshot) ───────────────────────
+    # Two checks against assets/gnome/shell.<machine>.dconf:
+    #   1. Per-machine snapshot exists at all (machines need to be seeded
+    #      with `just gnome-backup <m>` once after first sit-down).
+    #   2. Live state (filtered the same way gnome-backup filters) matches
+    #      the snapshot key-for-key. We don't separately check the shared
+    #      shell.dconf — once a machine has a per-machine file, that file
+    #      fully owns its state via dconf load order.
+    shell_snap_name="shell.$machine.dconf"
+    shell_snap="$here/assets/gnome/$shell_snap_name"
+    section "gnome shell ($shell_snap_name)"
+    shell_drift=0
+    if ! command -v dconf >/dev/null 2>&1; then
+        ok_line "dconf not available — skipping (non-GNOME session)"
+    elif [[ ! -f "$shell_snap" ]]; then
+        fail_line "no per-machine snapshot at $shell_snap"
+        fixes+=("seed $shell_snap_name from this machine's live GNOME state|just gnome-backup $machine")
+        shell_drift=1
+    else
+        # Re-run the same awk filter `just gnome-backup` uses, diff against
+        # the on-disk snapshot. `diff -q` exits non-zero on any difference.
+        live_filtered=$(dconf dump /org/gnome/shell/ | awk '
+          /^(prefs-opened|extension-version|rounded-blur-found|settings-version|welcome-dialog-last-shown-version|last-version-name-installed|panel-anchors|panel-element-positions|panel-lengths|panel-positions|panel-sizes)=/ { next }
+          { print }
+        ')
+        if diff -q <(echo "$live_filtered") "$shell_snap" >/dev/null 2>&1; then
+            ok_line "live state matches $shell_snap_name"
+        else
+            diff_count=$(diff <(echo "$live_filtered") "$shell_snap" | grep -cE '^[<>]' || true)
+            fail_line "$diff_count line(s) differ between live and $shell_snap_name"
+            fixes+=("show full diff between live GNOME shell state and the snapshot|diff <(dconf dump /org/gnome/shell/) $shell_snap")
+            fixes+=("apply $shell_snap_name to live state (asks first)|just gnome-restore $machine")
+            fixes+=("capture this machine's current state into $shell_snap_name|just gnome-backup $machine")
+            shell_drift=1
+        fi
+    fi
+
     # ── 1Password integration ─────────────────────────────────────────
     # 1Password browser integration has three machine-state requirements
     # that have bitten us multiple times. Surface them here so future drift
@@ -1013,23 +1050,80 @@ speaker-eq:
         echo "⚠ Filter loaded but could not find node ID — select 'Internal Speakers' in sound settings"
     fi
 
-# Snapshot GNOME shell settings to assets/gnome/shell.dconf — strips transient bookkeeping + per-monitor panel layout.
-gnome-backup:
+# Snapshot GNOME shell settings to assets/gnome/shell.<machine>.dconf — full /org/gnome/shell/ state minus transient bookkeeping and per-monitor panel keys.
+gnome-backup machine="":
     #!/usr/bin/env bash
-    set -euo pipefail
-    out="{{justfile_directory()}}/assets/gnome/shell.dconf"
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
+        machine=$(pick_machine "Pick a machine (number, name, or new name): " "${choices[@]}")
+    fi
+    if [[ -z "$machine" ]]; then
+        warn "No machine selected, exiting."
+        exit 0
+    fi
+    out="{{justfile_directory()}}/assets/gnome/shell.${machine}.dconf"
     mkdir -p "$(dirname "$out")"
+    # Full /org/gnome/shell/ dump — keep every section (including [/] so
+    # enabled-extensions is captured). Drop two key classes that don't
+    # belong in committed snapshots:
+    #   - bookkeeping keys GNOME rewrites on its own
+    #   - per-monitor panel keys encoding display connector IDs; rewritten
+    #     transiently on monitor plug/unplug, so a backup→restore cycle on
+    #     the same machine can land the wrong values
     dconf dump /org/gnome/shell/ | awk '
-      /^\[extensions\/dash-to-panel\]$/   { sect="keep";  print; next }
-      /^\[extensions\/dash-to-dock\]$/    { sect="keep";  print; next }
-      /^\[extensions\/blur-my-shell\]$/   { sect="keep";  print; next }
-      /^\[extensions\/blur-my-shell\//    { sect="keep";  print; next }
-      /^\[extensions\/hotedge\]$/         { sect="keep";  print; next }
-      /^\[/                                { sect="skip"; next }
-      sect=="keep" && /^(prefs-opened|extension-version|rounded-blur-found|settings-version|panel-anchors|panel-element-positions|panel-lengths|panel-positions|panel-sizes)=/ { next }
-      sect=="keep" { print }
+      /^(prefs-opened|extension-version|rounded-blur-found|settings-version|welcome-dialog-last-shown-version|last-version-name-installed|panel-anchors|panel-element-positions|panel-lengths|panel-positions|panel-sizes)=/ { next }
+      { print }
     ' > "$out"
     echo "✓ Wrote $out ($(wc -l < "$out") lines)"
+
+# Add this machine's live enabled-extensions to the shared shell.dconf seed (union — never removes). Use this when you've installed a new extension and want it picked up on next install across all machines. Per-machine snapshots still win for any machine that has explicitly overridden enabled-extensions in its own file.
+extensions-sync:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    shared="{{justfile_directory()}}/assets/gnome/shell.dconf"
+    if ! command -v dconf >/dev/null 2>&1; then
+        err "dconf not available"
+        exit 1
+    fi
+    live_raw=$(dconf read /org/gnome/shell/enabled-extensions 2>/dev/null || echo "[]")
+    live_uuids=$(echo "$live_raw" | grep -oE "'[^']+'" | tr -d "'" | sort -u)
+    shared_uuids=""
+    if [[ -f "$shared" ]]; then
+        shared_uuids=$(awk '
+          /^\[\/\]/ { root=1; next }
+          /^\[/ && !/^\[\/\]/ { root=0; next }
+          root && /^enabled-extensions=/ { print; exit }
+        ' "$shared" | grep -oE "'[^']+'" | tr -d "'" | sort -u)
+    fi
+    additions=$(comm -23 <(echo "$live_uuids") <(echo "$shared_uuids") | grep -v '^$' || true)
+    if [[ -z "$additions" ]]; then
+        ok "shared shell.dconf already has every extension enabled on this machine"
+        exit 0
+    fi
+    echo "Adding to shared shell.dconf:"
+    echo "$additions" | sed 's/^/  + /'
+    union=$(printf "%s\n%s\n" "$live_uuids" "$shared_uuids" | sort -u | grep -v '^$')
+    new_line="enabled-extensions=[$(echo "$union" | sed "s/^/'/;s/$/'/" | paste -sd',' -)]"
+    if [[ ! -f "$shared" ]]; then
+        printf '[/]\n%s\n' "$new_line" > "$shared"
+    elif grep -q '^enabled-extensions=' "$shared"; then
+        awk -v repl="$new_line" '
+          !done && /^enabled-extensions=/ { print repl; done=1; next }
+          { print }
+        ' "$shared" > "$shared.tmp" && mv "$shared.tmp" "$shared"
+    elif grep -q '^\[/\]' "$shared"; then
+        awk -v line="$new_line" '
+          /^\[\/\]/ { print; print line; next }
+          { print }
+        ' "$shared" > "$shared.tmp" && mv "$shared.tmp" "$shared"
+    else
+        { printf '[/]\n%s\n\n' "$new_line"; cat "$shared"; } > "$shared.tmp" && mv "$shared.tmp" "$shared"
+    fi
+    ok "Updated $shared"
 
 # Snapshot Ptyxis settings (profiles, shortcuts, window prefs) to assets/ptyxis.dconf.
 ptyxis-backup:
@@ -1040,21 +1134,36 @@ ptyxis-backup:
     dconf dump /org/gnome/Ptyxis/ > "$out"
     echo "✓ Wrote $out ($(wc -l < "$out") lines)"
 
-# Apply assets/gnome/shell.dconf to live /org/gnome/shell/. Asks first, default no — overwrites GNOME shell prefs.
-gnome-restore:
+# Load shared assets/gnome/shell.dconf then per-machine assets/gnome/shell.<machine>.dconf into live /org/gnome/shell/. Asks first, default no — overwrites GNOME shell prefs.
+gnome-restore machine="":
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
-    snapshot="{{justfile_directory()}}/assets/gnome/shell.dconf"
-    if [[ ! -f "$snapshot" ]]; then
-        err "$snapshot not found"
+    machine="{{machine}}"
+    if [[ -z "$machine" ]]; then
+        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
+        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
+    fi
+    if [[ -z "$machine" ]]; then
+        warn "No machine selected, exiting."
+        exit 0
+    fi
+    shared="{{justfile_directory()}}/assets/gnome/shell.dconf"
+    per_machine="{{justfile_directory()}}/assets/gnome/shell.${machine}.dconf"
+    if [[ ! -f "$shared" && ! -f "$per_machine" ]]; then
+        err "Neither $shared nor $per_machine found"
         exit 1
     fi
-    warn "About to load $(wc -l < "$snapshot") lines of dconf state into /org/gnome/shell/"
-    warn "This overwrites your live GNOME shell prefs (dash-to-panel, blur-my-shell, hotedge, enabled-extensions)."
-    if confirm "Apply snapshot?"; then
-        dconf load /org/gnome/shell/ < "$snapshot"
-        ok "Applied $snapshot"
+    plan=()
+    [[ -f "$shared" ]] && plan+=("$shared ($(wc -l < "$shared") lines, shared seed)")
+    [[ -f "$per_machine" ]] && plan+=("$per_machine ($(wc -l < "$per_machine") lines, per-machine)")
+    warn "About to load into /org/gnome/shell/:"
+    printf '      %s\n' "${plan[@]}"
+    warn "Shared loads first, per-machine overrides any keys it also sets (including enabled-extensions if present)."
+    if confirm "Apply?"; then
+        [[ -f "$shared" ]] && dconf load /org/gnome/shell/ < "$shared"
+        [[ -f "$per_machine" ]] && dconf load /org/gnome/shell/ < "$per_machine"
+        ok "Applied $machine snapshot stack"
     else
         info "Aborted."
     fi

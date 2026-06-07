@@ -392,18 +392,32 @@ run_config_localsend() {
 }
 
 run_config_gnome_shell() {
-    local src="$SCRIPT_DIR/assets/gnome/shell.dconf"
-    if [[ ! -f "$src" ]]; then
-        warn "shell.dconf not found at $src — skipping"
-        return
-    fi
     if ! command -v dconf &>/dev/null; then
         warn "dconf not available — skipping GNOME shell settings"
         return
     fi
 
-    info "Applying GNOME shell settings (extensions on/off + dash-to-panel/blur-my-shell/hotedge)"
-    dconf load /org/gnome/shell/ < "$src"
+    local shared="$SCRIPT_DIR/assets/gnome/shell.dconf"
+    local per_machine="$SCRIPT_DIR/assets/gnome/shell.${MACHINE:-}.dconf"
+
+    if [[ ! -f "$shared" && ! -f "$per_machine" ]]; then
+        warn "no GNOME shell snapshot found (neither shared nor shell.${MACHINE:-<unset>}.dconf) — skipping"
+        return
+    fi
+
+    # Load order: shared seed first (defaults for any unseeded machine),
+    # then per-machine override (wins on any key it declares, including
+    # enabled-extensions). Either file may be absent — both are independent.
+    if [[ -f "$shared" ]]; then
+        info "Applying shared GNOME shell defaults"
+        dconf load /org/gnome/shell/ < "$shared"
+    fi
+    if [[ -f "$per_machine" ]]; then
+        info "Applying per-machine GNOME shell settings ($MACHINE)"
+        dconf load /org/gnome/shell/ < "$per_machine"
+    else
+        warn "no per-machine snapshot at $per_machine — run 'just gnome-backup $MACHINE' once to capture this machine's state"
+    fi
 
     # xwayland-native-scaling makes XWayland apps render at native resolution
     # under fractional scaling instead of being bitmap-scaled by mutter — fixes

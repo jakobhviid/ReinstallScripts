@@ -940,6 +940,23 @@ zsh:
         echo "Native Claude Code removed — now managed by Homebrew"
     fi
 
+    # Silence zoxide's doctor warning inside Claude Code's Bash tool. The
+    # tool replays a cached shell snapshot (~/.claude/shell-snapshots/) that
+    # captures function bodies + PATH but NOT other env vars, and skips
+    # zoxide's `add-zsh-hook chpwd __zoxide_hook` side-effect. So
+    # __zoxide_doctor fires on every command and prints the misleading
+    # "init zoxide last in ~/.zshrc" message. Setting _ZO_DOCTOR=0 in
+    # Claude Code's own env makes the doctor short-circuit regardless of
+    # what the snapshot captured.
+    mkdir -p "$HOME/.claude"
+    settings="$HOME/.claude/settings.json"
+    [[ -f "$settings" ]] || echo '{}' > "$settings"
+    if [[ "$(jq -r '.env._ZO_DOCTOR // ""' "$settings")" != "0" ]]; then
+        jq '.env._ZO_DOCTOR = "0"' "$settings" > "$settings.tmp" \
+            && mv "$settings.tmp" "$settings"
+        echo "Set _ZO_DOCTOR=0 in $settings (silences zoxide doctor in Claude Code)"
+    fi
+
     # All four Nerd Fonts: the symbols-only one is also in the image as
     # `nerd-fonts` RPM, but listing it here keeps stock-Bazzite users covered
     # and matches the brewfile (avoids prune cycle).

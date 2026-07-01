@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+StartupNotify=true
+Categories=GTK;Network;
+Name=Open WebUI
+Exec=brave-origin-stable --user-data-dir=__HOME__/.config/BraveSoftware/WebApps/WebApp-OpenWebUI --ozone-platform=x11 --force-dark-mode --app=https://webui.hviid.cloud/ --class=WebApp-OpenWebUI --name=WebApp-OpenWebUI
+StartupWMClass=WebApp-OpenWebUI
+Icon=open-webui

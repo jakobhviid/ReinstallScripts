@@ -17,6 +17,7 @@ default:
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
     @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
     @echo "  just ghostty             Deploy assets/ghostty.config to ~/.config/ghostty/config"
+    @echo "  just opencode            Deploy shared/opencode.jsonc to ~/.config/opencode/opencode.jsonc"
     @echo "  just gnome-backup        Snapshot current GNOME shell settings"
     @echo "  just gnome-restore       Apply the snapshot to live GNOME shell (asks first)"
     @echo "  just ptyxis-backup       Snapshot current Ptyxis settings"
@@ -310,6 +311,29 @@ drift machine="":
             ok_line "Ctrl+Alt+T keybinding ($gh_kb_exe)"
         fi
     fi
+
+    # ── opencode ───────────────────────────────────────────────────────
+    # Flat-file deploy of three shared files: main config, tui.json (theme
+    # selection), and the hviid.cloud custom theme. Byte-for-byte diff each.
+    section "opencode"
+    for pair in \
+        "opencode.jsonc:$HOME/.config/opencode/opencode.jsonc" \
+        "opencode-tui.json:$HOME/.config/opencode/tui.json" \
+        "opencode-theme.json:$HOME/.config/opencode/themes/hviid.cloud.json"; do
+        oc_src="$here/../shared/${pair%%:*}"
+        oc_dst="${pair#*:}"
+        oc_label="~/${oc_dst#$HOME/}"
+        if [[ ! -f "$oc_dst" ]]; then
+            fail_line "$oc_label (missing)"
+            fixes+=("deploy opencode config|just opencode")
+        elif diff -q "$oc_src" "$oc_dst" >/dev/null 2>&1; then
+            ok_line "$oc_label"
+        else
+            n=$(diff "$oc_src" "$oc_dst" 2>/dev/null | grep -c '^[<>]' || true)
+            fail_line "$oc_label ($n lines differ)"
+            fixes+=("re-deploy opencode config|just opencode")
+        fi
+    done
 
     # ── rpm-ostree layered packages ────────────────────────────────────
     section "rpm-ostree layered packages"
@@ -1222,3 +1246,30 @@ ghostty:
     fi
     cp "$src" "$dst"
     ok "Deployed Ghostty config to $dst"
+
+# Deploy opencode config from shared/ — main config, tui.json (selects the
+# hviid.cloud theme), and the hviid.cloud custom theme (transparent background).
+opencode:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    shared="{{justfile_directory()}}/../shared"
+    deploy() {
+        local src="$1" dst="$2"
+        if [[ ! -f "$src" ]]; then
+            err "$src not found"
+            return 1
+        fi
+        mkdir -p "$(dirname "$dst")"
+        if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+            cp "$dst" "$dst.bak"
+            info "Backed up existing $dst to $dst.bak"
+        fi
+        cp "$src" "$dst"
+        ok "Deployed $dst"
+    }
+    # tui.json holds the theme selection — in opencode.json it's a stripped legacy key.
+    # The theme filename (minus .json) IS the theme name referenced by tui.json.
+    deploy "$shared/opencode.jsonc"      "$HOME/.config/opencode/opencode.jsonc"
+    deploy "$shared/opencode-tui.json"   "$HOME/.config/opencode/tui.json"
+    deploy "$shared/opencode-theme.json" "$HOME/.config/opencode/themes/hviid.cloud.json"

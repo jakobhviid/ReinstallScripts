@@ -466,6 +466,36 @@ run_config_ghostty() {
     ok "Ghostty config deployed to $dst"
 }
 
+# Deploy opencode config from shared/. Three flat-file copies (no template
+# substitution): the main config, tui.json (which selects the hviid.cloud
+# theme — theme is a stripped legacy key in opencode.json, so it must live in
+# tui.json), and the hviid.cloud custom theme (transparent background). Only
+# these are vendored — opencode auto-manages package.json/node_modules/
+# lockfiles in the same dir. The theme filename (minus .json) IS the theme
+# name referenced by tui.json. Backs up any differing pre-existing file to .bak.
+run_config_opencode() {
+    local shared="$SCRIPT_DIR/../shared"
+    info "Deploying opencode config"
+    _deploy_opencode_file "$shared/opencode.jsonc"      "$HOME/.config/opencode/opencode.jsonc"
+    _deploy_opencode_file "$shared/opencode-tui.json"   "$HOME/.config/opencode/tui.json"
+    _deploy_opencode_file "$shared/opencode-theme.json" "$HOME/.config/opencode/themes/hviid.cloud.json"
+}
+
+_deploy_opencode_file() {
+    local src="$1" dst="$2"
+    if [[ ! -f "$src" ]]; then
+        warn "$src not found — skipping"
+        return
+    fi
+    mkdir -p "$(dirname "$dst")"
+    if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+        cp "$dst" "$dst.bak"
+        info "Backed up existing $dst to $dst.bak"
+    fi
+    cp "$src" "$dst"
+    ok "opencode config deployed to $dst"
+}
+
 run_config_ghostty_keybinding() {
     # Bind Ctrl+Alt+T to launch Ghostty via GNOME custom-keybinding rather
     # than Ghostty's own portal `keybind = global:` mechanism. The portal

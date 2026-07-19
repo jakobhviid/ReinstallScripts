@@ -28,6 +28,7 @@ brew "mpv"
 brew "utf8proc", args: ["HEAD"]
 brew "neovim"
 brew "nmap"
+brew "opencode"
 brew "openssh"
 brew "pgcli"
 brew "pgformatter"

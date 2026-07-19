@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Never expose a "share this conversation" upload path to opencode's cloud —
+  // everything stays on-box, matching the self-hosted / privacy-hardened fleet.
+  "share": "disabled",
+  "provider": {
+    "hviid": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "hviid.cloud",
+      "options": {
+        "baseURL": "https://openai.hviid.cloud/v1"
+      },
+      "models": {
+        "dolphin-mixtral-q6": { "name": "Dolphin Mixtral Q6" },
+        "dolphin-mixtral-q8": { "name": "Dolphin Mixtral Q8" },
+        "gemma-4-26b": { "name": "Gemma 4 26B" },
+        "gemma-4-26b-abliterated": { "name": "Gemma 4 26B (abliterated)" },
+        "gemma-4-26b-q8": { "name": "Gemma 4 26B Q8" },
+        "glm-4.5-air": { "name": "GLM 4.5 Air" },
+        "glm-4.5-iceblink-v3": { "name": "GLM 4.5 Iceblink v3" },
+        "nous-hermes-2-mixtral": { "name": "Nous Hermes 2 Mixtral" },
+        "ornith-35b-q4": { "name": "Ornith 35B Q4" },
+        "ornith-35b-q6": { "name": "Ornith 35B Q6" },
+        "ornith-35b-q8": { "name": "Ornith 35B Q8" },
+        "qwen3.6-35b": { "name": "Qwen 3.6 35B" }
+      }
+    }
+  },
+  "mcp": {
+    // SearXNG web search. Requires the instance to expose the JSON format
+    // (formats: [html, json] in settings.yml). If using a public instance you
+    // don't control, add "SEARXNG_HTML_FALLBACK": "true" to the environment.
+    "searxng": {
+      "type": "local",
+      "command": ["npx", "-y", "mcp-searxng"],
+      "enabled": true,
+      "environment": {
+        "SEARXNG_URL": "https://websearch.hviid.cloud"
+      }
+    }
+  },
+  "model": "hviid/glm-4.5-air"
+}

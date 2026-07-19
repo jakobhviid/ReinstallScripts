@@ -45,5 +45,5 @@
       }
     }
   },
-  "model": "hviid/glm-4.7-flash-q6"
+  "model": "hviid/qwen3-coder-30b-q6"
 }

@@ -11,6 +11,8 @@
         "baseURL": "https://openai.hviid.cloud/v1"
       },
       "models": {
+        "cydonia-24b-v4.3-q4": { "name": "Cydonia 24B v4.3 Q4" },
+        "cydonia-24b-v4.3-q6": { "name": "Cydonia 24B v4.3 Q6" },
         "dolphin-mixtral-q6": { "name": "Dolphin Mixtral Q6" },
         "dolphin-mixtral-q8": { "name": "Dolphin Mixtral Q8" },
         "gemma-4-26b": { "name": "Gemma 4 26B" },
@@ -20,11 +22,14 @@
         "glm-4.5-iceblink-v3": { "name": "GLM 4.5 Iceblink v3" },
         "glm-4.7-flash-q4": { "name": "GLM 4.7 Flash Q4" },
         "glm-4.7-flash-q6": { "name": "GLM 4.7 Flash Q6" },
+        "mixtral-8x7b-q4": { "name": "Mixtral 8x7B Q4" },
+        "mixtral-8x7b-q6": { "name": "Mixtral 8x7B Q6" },
+        "noromaid-mixtral-q6": { "name": "Noromaid Mixtral Q6" },
+        "noromaid-mixtral-q8": { "name": "Noromaid Mixtral Q8" },
         "nous-hermes-2-mixtral": { "name": "Nous Hermes 2 Mixtral" },
         "ornith-35b-q4": { "name": "Ornith 35B Q4" },
         "ornith-35b-q6": { "name": "Ornith 35B Q6" },
         "ornith-35b-q8": { "name": "Ornith 35B Q8" },
-        "ornith-36b-q6": { "name": "Ornith 36B Q6" },
         "qwen3-coder-30b-q4": { "name": "Qwen3 Coder 30B Q4" },
         "qwen3-coder-30b-q6": { "name": "Qwen3 Coder 30B Q6" },
         "qwen3-coder-30b-q8": { "name": "Qwen3 Coder 30B Q8" },
@@ -39,6 +44,8 @@
         "baseURL": "http://localhost:1234/v1"
       },
       "models": {
+        "cydonia-24b-v4.3-q4": { "name": "Cydonia 24B v4.3 Q4" },
+        "cydonia-24b-v4.3-q6": { "name": "Cydonia 24B v4.3 Q6" },
         "dolphin-mixtral-q6": { "name": "Dolphin Mixtral Q6" },
         "dolphin-mixtral-q8": { "name": "Dolphin Mixtral Q8" },
         "gemma-4-26b": { "name": "Gemma 4 26B" },
@@ -48,11 +55,14 @@
         "glm-4.5-iceblink-v3": { "name": "GLM 4.5 Iceblink v3" },
         "glm-4.7-flash-q4": { "name": "GLM 4.7 Flash Q4" },
         "glm-4.7-flash-q6": { "name": "GLM 4.7 Flash Q6" },
+        "mixtral-8x7b-q4": { "name": "Mixtral 8x7B Q4" },
+        "mixtral-8x7b-q6": { "name": "Mixtral 8x7B Q6" },
+        "noromaid-mixtral-q6": { "name": "Noromaid Mixtral Q6" },
+        "noromaid-mixtral-q8": { "name": "Noromaid Mixtral Q8" },
         "nous-hermes-2-mixtral": { "name": "Nous Hermes 2 Mixtral" },
         "ornith-35b-q4": { "name": "Ornith 35B Q4" },
         "ornith-35b-q6": { "name": "Ornith 35B Q6" },
         "ornith-35b-q8": { "name": "Ornith 35B Q8" },
-        "ornith-36b-q6": { "name": "Ornith 36B Q6" },
         "qwen3-coder-30b-q4": { "name": "Qwen3 Coder 30B Q4" },
         "qwen3-coder-30b-q6": { "name": "Qwen3 Coder 30B Q6" },
         "qwen3-coder-30b-q8": { "name": "Qwen3 Coder 30B Q8" },
@@ -74,5 +84,5 @@
       }
     }
   },
-  "model": "nous/ornith-36b-q6"
+  "model": "nous/ornith-35b-q6"
 }

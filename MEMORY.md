@@ -217,6 +217,28 @@ the cumulative top gap was noticeable in both Ghostty and iTerm2 on Mac.
   approach (e.g. `2> >(grep -v "can't change option: zle" >&2)`) rather than
   reverting.
 
+### `LANG=en_GB.UTF-8` in both zshrc templates is deliberate — 24h clock
+
+Both `Mac/assets/zshrc.template` and `Linux/assets/zshrc.template` export
+`LANG=en_GB.UTF-8`. **Do not "correct" this to `en_US`/`en_DK`/`da_DK`** thinking
+it looks wrong for a Danish user.
+
+**Why:** opencode (and other locale-aware CLI apps) render clock times from the
+process locale, not macOS's GUI "24-hour time" toggle — that toggle is Cocoa-only
+and CLI tools never see it. `en_US` = 12h ("1:29 pm"); `en_GB` = 24h ("13:29")
+while keeping English messages. JS runtimes (opencode is one) only honour
+`LANG`/`LC_ALL` for the default `Intl` locale, **not** `LC_TIME` — so `LC_TIME`
+alone does nothing; it has to be `LANG`. Jakob explicitly chose global/"everywhere"
+over an opencode-only alias.
+
+**How to apply:**
+- Leave `en_GB.UTF-8`. The accepted side effect is DD/MM/YYYY date order in CLI
+  tools. If Jakob ever dislikes that, `en_DK.UTF-8` gives 24h + ISO dates but
+  dot-separated times (`13.29`).
+- opencode has **no** config key for time format (checked `config.json` +
+  `tui.json` schemas + TUI source). The env var is the only lever. Don't go
+  looking for an opencode setting.
+
 ### Tmux theme should track Jakob's Gruvbox tweaks for Starship
 
 Jakob modified the Gruvbox color palette in `shared/starship.toml` so white

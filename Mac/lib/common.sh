@@ -210,3 +210,48 @@ deploy_ssh_config() {
     fi
     ok "Managed SSH config deployed to $managed"
 }
+
+# ── Brewfile / package drift helpers (drift, reconcile, prune) ───────────────
+
+# file_drift <src> <dst> — status of a managed flat file vs its deployed copy.
+# Echoes "" if identical, "missing" if dst absent, else "<n> lines differ".
+# Byte-identical to Linux/lib/common.sh's copy.
+file_drift() {
+    [[ -f "$2" ]] || { echo "missing"; return; }
+    diff -q "$1" "$2" >/dev/null 2>&1 && return
+    echo "$(diff "$1" "$2" 2>/dev/null | grep -c '^[<>]') lines differ"
+}
+
+# brew_cleanup_extras <brewfile> — formulae/casks/taps installed but not in the
+# Brewfile, per `brew bundle cleanup` (dependency-aware: a kept entry's deps are
+# NOT listed). One token per line; callers type-tag against `brew list`.
+# Byte-identical to Linux/lib/common.sh's copy.
+brew_cleanup_extras() {
+    brew bundle cleanup --file="$1" --formula --cask --tap 2>&1 \
+        | sed -n '/^Would uninstall/,/^[A-Z]/p' \
+        | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true
+}
+
+# brewfile_missing <brewfile> — Brewfile entries NOT installed on this machine,
+# one per line as: TYPE<TAB>NAME<TAB>RAWLINE (TYPE ∈ brew|cask|tap|mas|vscode).
+# Callers use whichever fields they need (drift: "TYPE NAME"; reconcile: RAWLINE,
+# filtered to brew/cask/tap). mas NAME is "AppName (id)"; vscode is
+# case-insensitive; mas/vscode arms skip when that tool isn't installed. This is
+# the macOS sibling of the Linux copy (mas/vscode arms instead of flatpak).
+brewfile_missing() {
+    local bf="$1" casks="" formulae="" taps="" mas_ids="" vscode="" line name id
+    casks=$(brew list --cask 2>/dev/null)
+    formulae=$(brew list --formula 2>/dev/null)
+    taps=$(brew tap 2>/dev/null)
+    command -v mas  &>/dev/null && mas_ids=$(mas list 2>/dev/null | awk '{print $1}')
+    command -v code &>/dev/null && vscode=$(code --list-extensions 2>/dev/null)
+    while IFS= read -r line; do
+        case "$line" in
+            'brew '*)   name=$(sed -E 's/^brew "([^"]+)".*/\1/' <<<"$line");    grep -qFx "${name##*/}" <<<"$formulae" || printf 'brew\t%s\t%s\n' "$name" "$line" ;;
+            'cask '*)   name=$(sed -E 's/^cask "([^"]+)".*/\1/' <<<"$line");    grep -qFx "${name##*/}" <<<"$casks"    || printf 'cask\t%s\t%s\n' "$name" "$line" ;;
+            'tap '*)    name=$(sed -E 's/^tap "([^"]+)".*/\1/' <<<"$line");     grep -qFx "$name"        <<<"$taps"     || printf 'tap\t%s\t%s\n' "$name" "$line" ;;
+            'mas '*)    name=$(sed -E 's/^mas "([^"]+)".*/\1/' <<<"$line"); id=$(sed -E 's/.*id: ([0-9]+).*/\1/' <<<"$line"); [[ -n "$mas_ids" ]] && { grep -qFx "$id" <<<"$mas_ids" || printf 'mas\t%s (%s)\t%s\n' "$name" "$id" "$line"; } ;;
+            'vscode '*) name=$(sed -E 's/^vscode "([^"]+)".*/\1/' <<<"$line");  [[ -n "$vscode" ]] && { grep -qFix "$name" <<<"$vscode" || printf 'vscode\t%s\t%s\n' "$name" "$line"; } ;;
+        esac
+    done < <(grep -vE '^\s*#|^\s*$' "$bf")
+}

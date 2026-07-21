@@ -147,14 +147,8 @@ drift machine="":
         "$here/../shared/tmux.conf:$HOME/.tmux.conf"
     do
         src="${pair%%:*}"; dst="${pair#*:}"; label="${dst/#$HOME/~}"
-        if [[ ! -f "$dst" ]]; then
-            fail_line "$label (missing)"; zd=1
-        elif diff -q "$src" "$dst" >/dev/null 2>&1; then
-            ok_line "$label"
-        else
-            n=$(diff "$src" "$dst" 2>/dev/null | grep -c '^[<>]' || true)
-            fail_line "$label ($n lines differ)"; zd=1
-        fi
+        d=$(file_drift "$src" "$dst")
+        if [[ -z "$d" ]]; then ok_line "$label"; else fail_line "$label ($d)"; zd=1; fi
     done
     rm -f "$rendered"
     # ~/.zshrc.local was the per-machine override under the old single-file
@@ -236,14 +230,14 @@ drift machine="":
     section "ghostty"
     gh_src="$here/assets/ghostty.config"
     gh_dst="$HOME/.config/ghostty/config"
-    if [[ ! -f "$gh_dst" ]]; then
+    d=$(file_drift "$gh_src" "$gh_dst")
+    if [[ -z "$d" ]]; then
+        ok_line "~/.config/ghostty/config"
+    elif [[ "$d" == missing ]]; then
         fail_line "~/.config/ghostty/config (missing)"
         fixes+=("deploy Ghostty config|just ghostty")
-    elif diff -q "$gh_src" "$gh_dst" >/dev/null 2>&1; then
-        ok_line "~/.config/ghostty/config"
     else
-        n=$(diff "$gh_src" "$gh_dst" 2>/dev/null | grep -c '^[<>]')
-        fail_line "~/.config/ghostty/config ($n lines differ)"
+        fail_line "~/.config/ghostty/config ($d)"
         fixes+=("re-deploy Ghostty config|just ghostty")
     fi
 
@@ -258,14 +252,14 @@ drift machine="":
         oc_src="$here/../shared/${pair%%:*}"
         oc_dst="${pair#*:}"
         oc_label="~/${oc_dst#$HOME/}"
-        if [[ ! -f "$oc_dst" ]]; then
+        d=$(file_drift "$oc_src" "$oc_dst")
+        if [[ -z "$d" ]]; then
+            ok_line "$oc_label"
+        elif [[ "$d" == missing ]]; then
             fail_line "$oc_label (missing)"
             fixes+=("deploy opencode config|just opencode")
-        elif diff -q "$oc_src" "$oc_dst" >/dev/null 2>&1; then
-            ok_line "$oc_label"
         else
-            n=$(diff "$oc_src" "$oc_dst" 2>/dev/null | grep -c '^[<>]')
-            fail_line "$oc_label ($n lines differ)"
+            fail_line "$oc_label ($d)"
             fixes+=("re-deploy opencode config|just opencode")
         fi
     done
@@ -275,50 +269,11 @@ drift machine="":
     bf="brewfiles/Brewfile.$machine"
     bfd=0
 
-    # Missing entries — direct brew/mas/code checks; brew bundle check is
-    # unreliable for auto-updating casks (Discord, VS Code etc.) where the
-    # manifest drifts from disk.
-    casks_installed=$(brew list --cask 2>/dev/null)
-    formulae_installed=$(brew list --formula 2>/dev/null)
-    taps_installed=$(brew tap 2>/dev/null)
-    mas_installed=""
-    command -v mas &>/dev/null && mas_installed=$(mas list 2>/dev/null | awk '{print $1}')
-    vscode_installed=""
-    command -v code &>/dev/null && vscode_installed=$(code --list-extensions 2>/dev/null)
-
+    # Missing entries (brewfile_missing → TYPE<TAB>NAME<TAB>RAW; drift wants "TYPE NAME").
     typeset -a missing_bf
-    while IFS= read -r line; do
-        case "$line" in
-            'brew '*)
-                name=$(echo "$line" | sed -E 's/^brew "([^"]+)".*/\1/')
-                # Strip tap prefix: "tap/repo/formula" → "formula" (brew list returns short names).
-                short="${name##*/}"
-                echo "$formulae_installed" | grep -qFx "$short" || missing_bf+=("brew $name")
-                ;;
-            'cask '*)
-                name=$(echo "$line" | sed -E 's/^cask "([^"]+)".*/\1/')
-                short="${name##*/}"
-                echo "$casks_installed" | grep -qFx "$short" || missing_bf+=("cask $name")
-                ;;
-            'tap '*)
-                name=$(echo "$line" | sed -E 's/^tap "([^"]+)".*/\1/')
-                echo "$taps_installed" | grep -qFx "$name" || missing_bf+=("tap $name")
-                ;;
-            'mas '*)
-                id=$(echo "$line" | sed -E 's/.*id: ([0-9]+).*/\1/')
-                name=$(echo "$line" | sed -E 's/^mas "([^"]+)".*/\1/')
-                if [[ -n "$mas_installed" ]]; then
-                    echo "$mas_installed" | grep -qFx "$id" || missing_bf+=("mas $name ($id)")
-                fi
-                ;;
-            'vscode '*)
-                ext=$(echo "$line" | sed -E 's/^vscode "([^"]+)".*/\1/')
-                if [[ -n "$vscode_installed" ]]; then
-                    echo "$vscode_installed" | grep -qFix "$ext" || missing_bf+=("vscode $ext")
-                fi
-                ;;
-        esac
-    done < <(grep -vE '^\s*#|^\s*$' "$bf")
+    while IFS=$'\t' read -r mtype mname _; do
+        missing_bf+=("$mtype $mname")
+    done < <(brewfile_missing "$bf")
 
     bf_missing=0 bf_extras=0
     if (( ${#missing_bf[@]} == 0 )); then
@@ -329,9 +284,8 @@ drift machine="":
         bf_missing=1
     fi
 
-    # Extras
-    cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
-    extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
+    # Extras (brew bundle cleanup, dependency-aware; shown raw with a count).
+    extras=$(brew_cleanup_extras "$bf")
     if [[ -z "$extras" ]]; then
         ok_line "no extras (everything installed is in the Brewfile)"
     else
@@ -369,46 +323,27 @@ reconcile machine="":
     # ── Detect drift (same logic as 'just drift') ──────────────────────
     casks_installed=$(brew list --cask 2>/dev/null)
     formulae_installed=$(brew list --formula 2>/dev/null)
-    taps_installed=$(brew tap 2>/dev/null)
 
-    # missing_lines: full Brewfile lines whose package is not on the machine
+    # missing_lines: full Brewfile lines whose package isn't installed. Reconcile
+    # scope is brew/cask/tap (mas/vscode aren't reconciled here), so filter
+    # brewfile_missing's output — which also emits mas/vscode — to those types.
     typeset -a missing_lines=()
-    while IFS= read -r line; do
-        case "$line" in
-            'brew '*)
-                name=$(echo "$line" | sed -E 's/^brew "([^"]+)".*/\1/')
-                # Strip tap prefix: "tap/repo/formula" → "formula" (brew list returns short names).
-                short="${name##*/}"
-                echo "$formulae_installed" | grep -qFx "$short" || missing_lines+=("$line")
-                ;;
-            'cask '*)
-                name=$(echo "$line" | sed -E 's/^cask "([^"]+)".*/\1/')
-                short="${name##*/}"
-                echo "$casks_installed" | grep -qFx "$short" || missing_lines+=("$line")
-                ;;
-            'tap '*)
-                name=$(echo "$line" | sed -E 's/^tap "([^"]+)".*/\1/')
-                echo "$taps_installed" | grep -qFx "$name" || missing_lines+=("$line")
-                ;;
-        esac
-    done < <(grep -vE '^\s*#|^\s*$' "$bf")
+    while IFS=$'\t' read -r mtype _ raw; do
+        case "$mtype" in brew|cask|tap) missing_lines+=("$raw") ;; esac
+    done < <(brewfile_missing "$bf")
 
-    # extras_typed: "type|name" pairs for packages installed but not in Brewfile
-    cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
-    extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
+    # extras_typed: "type|name" for packages installed but not in the Brewfile.
     typeset -a extras_typed=()
-    if [[ -n "$extras" ]]; then
-        while IFS= read -r pkg; do
-            [[ -z "$pkg" ]] && continue
-            if echo "$casks_installed" | grep -qFx "$pkg"; then
-                extras_typed+=("cask|$pkg")
-            elif echo "$formulae_installed" | grep -qFx "$pkg"; then
-                extras_typed+=("brew|$pkg")
-            else
-                warn "skipping $pkg (can't determine type — not a cask or formula)"
-            fi
-        done <<< "$extras"
-    fi
+    while IFS= read -r pkg; do
+        [[ -z "$pkg" ]] && continue
+        if echo "$casks_installed" | grep -qFx "$pkg"; then
+            extras_typed+=("cask|$pkg")
+        elif echo "$formulae_installed" | grep -qFx "$pkg"; then
+            extras_typed+=("brew|$pkg")
+        else
+            warn "skipping $pkg (can't determine type — not a cask or formula)"
+        fi
+    done < <(brew_cleanup_extras "$bf")
 
     if (( ${#missing_lines[@]} == 0 && ${#extras_typed[@]} == 0 )); then
         ok "$bf is already in sync. Nothing to reconcile."

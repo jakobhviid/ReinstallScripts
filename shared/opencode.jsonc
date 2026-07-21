@@ -76,5 +76,5 @@
       }
     }
   },
-  "model": "nous/ornith-35b-q6"
+  "model": "nous/qwen3-coder-next-q6"
 }

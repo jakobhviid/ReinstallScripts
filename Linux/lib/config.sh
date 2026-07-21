@@ -527,6 +527,49 @@ _deploy_opencode_file() {
     ok "opencode config deployed to $dst"
 }
 
+# Deploy the managed SSH host inventory (shared/ssh-shared.conf) to
+# ~/.ssh/config.d/shared.conf and make sure ~/.ssh/config pulls it in via an
+# Include. The drop-in is rewritten every run (managed); ~/.ssh/config is
+# bootstrapped ONCE (Include prepended, with a .bak) then left alone — the
+# user's own `Host *` / agent block (1Password IdentityAgent, ForwardAgent) is
+# preserved and never touched. Universal: runs on desktops AND servers (the
+# file carries no agent config and its LAN test is portable). ssh reads the
+# first value per option, so the Include goes at the TOP: the managed host
+# defs win, the user's catch-all `Host *` stays last.
+run_config_ssh() {
+    local src="$SCRIPT_DIR/../shared/ssh-shared.conf"
+    if [[ ! -f "$src" ]]; then
+        warn "ssh-shared.conf not found at $src — skipping SSH config"
+        return
+    fi
+    info "Deploying managed SSH config"
+
+    local ssh_dir="$HOME/.ssh"
+    local dropin_dir="$ssh_dir/config.d"
+    local managed="$dropin_dir/shared.conf"
+    local cfg="$ssh_dir/config"
+
+    mkdir -p "$dropin_dir"
+    chmod 700 "$ssh_dir" "$dropin_dir" 2>/dev/null || true
+    cp "$src" "$managed"
+    chmod 600 "$managed"
+
+    local include_line="Include config.d/shared.conf"
+    if [[ ! -f "$cfg" ]]; then
+        printf '%s\n' "$include_line" > "$cfg"
+        chmod 600 "$cfg"
+        info "Created ~/.ssh/config with Include for the managed drop-in"
+    elif ! grep -qF 'config.d/shared.conf' "$cfg"; then
+        cp "$cfg" "$cfg.bak"
+        { printf '%s\n\n' "$include_line"; cat "$cfg"; } > "$cfg.tmp"
+        mv "$cfg.tmp" "$cfg"
+        chmod 600 "$cfg"
+        info "Prepended Include to ~/.ssh/config (backup at ~/.ssh/config.bak)"
+        warn "Any existing manual Host eternium/nous/pve blocks are now redundant (managed wins) — safe to delete."
+    fi
+    ok "Managed SSH config deployed to $managed"
+}
+
 run_config_ghostty_keybinding() {
     # Bind Ctrl+Alt+T to launch Ghostty via GNOME custom-keybinding rather
     # than Ghostty's own portal `keybind = global:` mechanism. The portal

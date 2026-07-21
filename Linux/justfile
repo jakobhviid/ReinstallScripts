@@ -19,6 +19,7 @@ default:
     @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
     @echo "  just ghostty             Deploy assets/ghostty.config to ~/.config/ghostty/config"
     @echo "  just opencode            Deploy shared/opencode.jsonc to ~/.config/opencode/opencode.jsonc"
+    @echo "  just ssh-config          Deploy managed SSH hosts to ~/.ssh/config.d/shared.conf (on-LAN direct, off-LAN via jump)"
     @echo "  just gnome-backup        Snapshot current GNOME shell settings"
     @echo "  just gnome-restore       Apply the snapshot to live GNOME shell (asks first)"
     @echo "  just ptyxis-backup       Snapshot current Ptyxis settings"
@@ -46,7 +47,7 @@ install machine="":
     fi
     "{{justfile_directory()}}/install-bazzite.sh" "$machine"
 
-# Update everything already installed (brew, flatpak, GNOME extensions, zsh toolchain) and re-apply every per-user fix (desktop icon/Exec overrides, 1Password, PWAs, autostart, ghostty, opencode). Machine-agnostic — takes no argument, and server-safe: on a headless/CoreOS image (no gnome-shell) the flatpak, GNOME-extension and .desktop-override steps are skipped, so brew/zsh/opencode still update. Does NOT install new Brewfile entries (use 'just install' / 'just install-missing'), does NOT reload the GNOME/Ptyxis dconf snapshots (those would overwrite live tweaks — use 'just gnome-restore' / 'just ptyxis-restore'), and does NOT touch the OS image (use 'ujust update').
+# Update everything already installed (brew, flatpak, GNOME extensions, zsh toolchain incl. re-templating ~/.zshrc.image) and re-apply every per-user fix (desktop icon/Exec overrides, 1Password, PWAs, autostart, ghostty, opencode, managed SSH config). Machine-agnostic — takes no argument, and server-safe: on a headless/CoreOS image (no gnome-shell) the flatpak, GNOME-extension and .desktop-override steps are skipped, so brew/zsh/opencode still update. Does NOT install new Brewfile entries (use 'just install' / 'just install-missing'), does NOT reload the GNOME/Ptyxis dconf snapshots (those would overwrite live tweaks — use 'just gnome-restore' / 'just ptyxis-restore'), and does NOT touch the OS image (use 'ujust update').
 update:
     #!/usr/bin/env bash
     set -uo pipefail
@@ -131,6 +132,7 @@ update:
     fi
     run_config_ghostty
     run_config_opencode
+    run_config_ssh
 
     echo
     ok "Update complete."
@@ -1418,3 +1420,12 @@ opencode:
     deploy "$shared/opencode.jsonc"      "$HOME/.config/opencode/opencode.jsonc"
     deploy "$shared/opencode-tui.json"   "$HOME/.config/opencode/tui.json"
     deploy "$shared/opencode-theme.json" "$HOME/.config/opencode/themes/hviid.cloud.json"
+
+# Deploy the managed SSH host inventory (shared/ssh-shared.conf) to ~/.ssh/config.d/shared.conf and ensure ~/.ssh/config includes it (bootstrapped once; your Host */agent block is left untouched). On-LAN connects direct, off-LAN via the eternium jump.
+ssh-config:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    export SCRIPT_DIR="{{justfile_directory()}}"
+    source "$SCRIPT_DIR/lib/common.sh"
+    source "$SCRIPT_DIR/lib/config.sh"
+    run_config_ssh

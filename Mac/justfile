@@ -12,6 +12,7 @@ default:
     @echo ""
     @echo "Commands:"
     @echo "  just install [machine]    Install Homebrew packages from a machine's Brewfile"
+    @echo "  just update               Upgrade brew + re-apply managed configs (zsh, ghostty, opencode, ssh); no new installs"
     @echo "  just backup [machine]     Dump current Homebrew state to a Brewfile (or create new)"
     @echo "  just drift [machine]      Show what's out of sync with the repo (read-only)"
     @echo "  just reconcile [machine]  Interactively add extras / drop missing from a machine's Brewfile"
@@ -22,6 +23,7 @@ default:
     @echo "  just zsh                  Set up Zsh with plugins, Starship prompt, and config"
     @echo "  just ghostty              Deploy Ghostty config to ~/.config/ghostty/config"
     @echo "  just opencode             Deploy opencode config to ~/.config/opencode/opencode.jsonc"
+    @echo "  just ssh-config           Deploy managed SSH hosts to ~/.ssh/config.d/shared.conf (on-LAN direct, off-LAN via jump)"
     @echo ""
     @echo "Available machines: {{_machines}}"
     @echo "Available profiles: {{_profiles}}"
@@ -50,6 +52,7 @@ install machine="":
     just brave
     just ghostty
     just opencode
+    just ssh-config
 
 # Dump current Homebrew state to a Brewfile (or create a new one)
 backup machine="":
@@ -734,3 +737,63 @@ opencode:
     deploy "$shared/opencode.jsonc"      "$HOME/.config/opencode/opencode.jsonc"
     deploy "$shared/opencode-tui.json"   "$HOME/.config/opencode/tui.json"
     deploy "$shared/opencode-theme.json" "$HOME/.config/opencode/themes/hviid.cloud.json"
+
+# Deploy the managed SSH host inventory (shared/ssh-shared.conf) to ~/.ssh/config.d/shared.conf and ensure ~/.ssh/config includes it (bootstrapped once; your Host */agent block is left untouched). On-LAN connects direct, off-LAN via the eternium jump. Shared with Linux — the LAN test uses ifconfig on macOS.
+ssh-config:
+    #!/usr/bin/env zsh
+    source "{{justfile_directory()}}/lib/common.sh"
+    src="{{justfile_directory()}}/../shared/ssh-shared.conf"
+    if [[ ! -f "$src" ]]; then
+        err "$src not found"
+        exit 1
+    fi
+    info "Deploying managed SSH config"
+    ssh_dir="$HOME/.ssh"
+    dropin_dir="$ssh_dir/config.d"
+    managed="$dropin_dir/shared.conf"
+    cfg="$ssh_dir/config"
+    mkdir -p "$dropin_dir"
+    chmod 700 "$ssh_dir" "$dropin_dir" 2>/dev/null || true
+    cp "$src" "$managed"
+    chmod 600 "$managed"
+    include_line="Include config.d/shared.conf"
+    if [[ ! -f "$cfg" ]]; then
+        printf '%s\n' "$include_line" > "$cfg"
+        chmod 600 "$cfg"
+        info "Created ~/.ssh/config with Include for the managed drop-in"
+    elif ! grep -qF 'config.d/shared.conf' "$cfg"; then
+        cp "$cfg" "$cfg.bak"
+        { printf '%s\n\n' "$include_line"; cat "$cfg"; } > "$cfg.tmp"
+        mv "$cfg.tmp" "$cfg"
+        chmod 600 "$cfg"
+        info "Prepended Include to ~/.ssh/config (backup at ~/.ssh/config.bak)"
+        warn "Any existing manual Host eternium/nous/pve blocks are now redundant (managed wins) — safe to delete."
+    fi
+    ok "Managed SSH config deployed to $managed"
+
+# Update what's already installed — brew upgrade + Mac App Store apps (mas upgrade, if mas is present) — and re-apply the managed configs (zsh incl. re-templating ~/.zshrc.image, ghostty, opencode, SSH). Installs nothing new (use 'just install' / 'just install-missing'); doesn't touch macOS configuration profiles (use 'just brave' / 'just profile') or macOS system/OS updates.
+update:
+    #!/usr/bin/env zsh
+    source "{{justfile_directory()}}/lib/common.sh"
+    if ! command -v brew >/dev/null 2>&1; then
+        err "Homebrew not on PATH — run 'just install' first."
+        exit 1
+    fi
+    info "Upgrading Homebrew packages"
+    brew update
+    brew upgrade
+    brew cleanup
+    # Mac App Store apps (installed via `mas "…", id:` in the Brewfile) aren't
+    # touched by brew upgrade — bump them with the mas CLI if it's present.
+    if command -v mas >/dev/null 2>&1; then
+        info "Upgrading Mac App Store apps (mas)"
+        mas upgrade
+    fi
+    info "Re-applying managed configs"
+    just zsh
+    just ghostty
+    just opencode
+    just ssh-config
+    echo
+    ok "Update complete."
+    info "Not covered: new packages ('just install-missing'), macOS profiles ('just brave' / 'just profile'), macOS system/OS updates."

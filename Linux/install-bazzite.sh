@@ -243,9 +243,9 @@ phase2_userspace() {
     printf '  %-22s %s\n' "Brewfile:"           "$(basename "$BREWFILE")"
     printf '  %-22s %s\n' "Zsh setup:"          "$zsh_action"
     if [[ "$role" == desktop ]]; then
-        printf '  %-22s %s\n' "Configs:"        "1password (if installed), desktop overrides, PWAs, autostart, localsend, GNOME shell, Ptyxis, Ghostty, opencode"
+        printf '  %-22s %s\n' "Configs:"        "1password (if installed), desktop overrides, PWAs, autostart, localsend, GNOME shell, Ptyxis, Ghostty, opencode, ssh"
     else
-        printf '  %-22s %s\n' "Configs:"        "opencode (all GUI config skipped on server)"
+        printf '  %-22s %s\n' "Configs:"        "opencode + ssh (all GUI config skipped on server)"
     fi
     echo
 
@@ -327,8 +327,10 @@ phase2_userspace() {
         run_config_ghostty
         run_config_ghostty_keybinding
     fi
-    # opencode config is wanted everywhere (eternium/nous run opencode too).
+    # opencode + SSH config are wanted everywhere (eternium/nous run opencode
+    # too, and the SSH host inventory is useful on servers).
     run_config_opencode
+    run_config_ssh
 
     echo
     ok "Phase 2 complete!"

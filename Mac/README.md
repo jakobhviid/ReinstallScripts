@@ -33,8 +33,9 @@ Run from the `Mac/` directory.
 | Command                          | What it does                                                                  |
 |----------------------------------|-------------------------------------------------------------------------------|
 | `just`                           | List recipes + available machines/profiles                                    |
-| `just install <machine>`         | `brew bundle --file=brewfiles/Brewfile.<machine>`, then `just zsh` + `just brave` + `just ghostty` |
+| `just install <machine>`         | `brew bundle --file=brewfiles/Brewfile.<machine>`, then `just zsh` + `just brave` + `just ghostty` + `just opencode` + `just ssh-config` |
 | `just install`                   | Interactive — pick a machine from a numbered menu                             |
+| `just update`                    | Upgrade installed packages — `brew upgrade` + Mac App Store apps (`mas upgrade`, if `mas` is installed) — then re-apply the managed configs: `just zsh` (incl. re-templating `~/.zshrc.image`), `just ghostty`, `just opencode`, `just ssh-config`. Installs nothing new (use `just install-missing`); doesn't touch macOS profiles (`just brave`/`just profile`) or macOS system/OS updates. |
 | `just backup <machine>`          | `brew bundle dump` current state into `brewfiles/Brewfile.<machine>`          |
 | `just backup`                    | Interactive — pick existing or type a new machine name                        |
 | `just drift <machine>`           | Show what's out of sync with the repo (zsh templates, brave, ghostty config, git, brewfile, default shell). Read-only — points at the recipes that converge. |
@@ -45,6 +46,8 @@ Run from the `Mac/` directory.
 | `just profile <name>`            | Install `assets/<name>.mobileconfig` (opens System Settings)                  |
 | `just zsh`                       | Re-template `~/.zshrc`, configure git/tmux/starship, install zsh plugins      |
 | `just ghostty`                   | Deploy `assets/ghostty.config` to `~/.config/ghostty/config` (backs up if changed) |
+| `just opencode`                  | Deploy the shared opencode config (`shared/opencode*`) to `~/.config/opencode/` |
+| `just ssh-config`                | Deploy `shared/ssh-shared.conf` (host inventory + home/away routing) to `~/.ssh/config.d/shared.conf`; bootstrap an `Include` into `~/.ssh/config` once (your `Host *`/agent block is left untouched). On-LAN direct, off-LAN via the `eternium` jump. |
 
 ## Workflow
 

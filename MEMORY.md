@@ -296,6 +296,36 @@ deployed override always carries `StartupWMClass=cider`. `xprop` can't see this
 to re-associate the window. If another app shows the same "separate window, no
 icon" symptom, it's the same cause — add its `app_id` as the 4th field.
 
+### Managed SSH host config is shared (Mac + Linux), agent config is not
+
+`shared/ssh-shared.conf` is the managed SSH **host inventory + home/away routing**,
+deployed verbatim to `~/.ssh/config.d/shared.conf` (0600) by `run_config_ssh`
+(Linux `lib/config.sh`, also `just ssh-config`) and the Mac `just ssh-config`
+recipe. `~/.ssh/config` is bootstrapped **once** — `Include config.d/shared.conf`
+prepended at the top (with a `.bak`) — then left alone.
+
+- **Agent config is deliberately NOT managed.** The user's own `~/.ssh/config`
+  `Host *` block (1Password `IdentityAgent`, `ForwardAgent`) stays put; the
+  managed file never mentions agents (it differs per machine — desktops use the
+  1Password agent, servers use a forwarded one). Don't add agent lines to
+  `ssh-shared.conf`.
+- **Routing:** on the home LAN (machine holds a `192.168.1.x` addr) → connect
+  DIRECT to internal IPs; off-LAN → internal hosts go through the `eternium`
+  jump (`hviid.cloud`, key-only). Done with `Match … exec "<lan test>"` blocks
+  placed BEFORE the default `Host` blocks (ssh keeps the first value per option;
+  on-LAN blocks set `HostName 192.168.1.4` for eternium and `ProxyJump none` for
+  the rest). Verify with `ssh -G <host>` (prints resolved config, no connect).
+- **LAN test is portable:** `{ ip -4 -o addr show || ifconfig; } | grep -qF
+  'inet 192.168.1.'` — `ip` on Linux (desktops + servers), `ifconfig` fallback
+  on macOS. Runs on servers too (no agent/GUI assumptions), so it's universal in
+  install-bazzite.sh Phase 2 (outside the desktop gate, like opencode).
+- Hosts: eternium (jump, `hviid.cloud`/192.168.1.4), helios (.2), nous (.6),
+  pve (.5), all `User jakob`. Committed to a **public** repo — deliberate: no
+  secrets, private IPs are non-routable, and the exposed host is key-only.
+- `just update` on **both** platforms re-deploys this file (and re-templates
+  `~/.zshrc.image` via `just zsh`). Mac gained a `just update` for this (brew
+  upgrade + zsh + ghostty + opencode + ssh-config; no flatpak/rpm/GUI).
+
 ### `fzf --zsh` stderr suppression in both zshrc templates
 
 Line in both `Mac/assets/zshrc.template` and `Linux/assets/zshrc.template`:

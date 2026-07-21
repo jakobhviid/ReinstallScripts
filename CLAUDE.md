@@ -47,6 +47,7 @@ Windows/
 shared/
 ├── starship.toml                      ← Starship prompt config (all platforms)
 ├── tmux.conf                          ← Tmux config (Mac + Linux)
+├── ssh-shared.conf                     ← Managed SSH host inventory + home/away routing (Mac + Linux)
 ├── zsh-guide.md                       ← Keybindings + workflow reference
 └── app-icons/                         ← Custom icons for Linux .desktop overrides
 ```
@@ -67,7 +68,8 @@ shared/
 Requires Homebrew + [just](https://github.com/casey/just). Run from `Mac/`:
 
 ```sh
-just install huginn        # brew bundle --file=brewfiles/Brewfile.huginn + just zsh + just brave + just ghostty
+just install huginn        # brew bundle --file=brewfiles/Brewfile.huginn + just zsh + just brave + just ghostty + just opencode + just ssh-config
+just update                # brew upgrade + re-apply managed configs (zsh/ghostty/opencode/ssh); no new installs, no profiles
 just backup huginn         # brew bundle dump --file=brewfiles/Brewfile.huginn
 just drift huginn          # show what's out of sync with the repo (read-only)
 just backup mynewmac       # create a new machine's Brewfile (then hand-edit + commit)
@@ -93,6 +95,7 @@ just drift chronos-redux             # show what's out of sync with the repo (re
 just zsh                             # re-template ~/.zshrc.image (managed) + bootstrap ~/.zshrc (once) + tmux/tpm + git identity
 just speaker-eq                      # PipeWire filter-chain EQ for thin laptop speakers
 just ghostty                         # deploy assets/ghostty.config to ~/.config/ghostty/config
+just ssh-config                      # deploy shared/ssh-shared.conf to ~/.ssh/config.d/shared.conf (on-LAN direct, off-LAN via jump)
 just gnome-backup / just ptyxis-backup     # snapshot live dconf state to assets/
 just gnome-restore / just ptyxis-restore   # push the snapshot back to live (asks first)
 ```
@@ -144,6 +147,7 @@ just            # list recipes
   - **`background-blur-radius` on GNOME/Mutter is a silent no-op** (no compositor blur API). Kept in the file for forward-compat with KDE/Hyprland — don't remove it as "dead" code.
   - **Ghostty itself is installed by the bazzite-custom image on Linux** (not via Brewfile, not via this script). The repo only ships the config; the binary's lifecycle is image-side.
   - **No Windows counterpart yet.** If Ghostty is added on Windows, treat it as a fourth file in the same sync set.
+- **Managed SSH config is shared** — `shared/ssh-shared.conf` (single source, like `starship.toml`) is the SSH **host inventory + home/away routing**, deployed to `~/.ssh/config.d/shared.conf` by `just ssh-config` on both platforms (Linux also via `run_config_ssh` in `lib/config.sh` during install-bazzite.sh Phase 2 — universal, runs on servers too). `~/.ssh/config` is bootstrapped once with `Include config.d/shared.conf` at the top, then left alone. **Agent config (1Password `IdentityAgent`, `ForwardAgent`) is deliberately NOT managed** — it stays in the user's own `Host *` block and differs per machine (desktops use the 1Password agent, servers a forwarded one); never put agent lines in `ssh-shared.conf`. Routing: on-LAN (machine holds a `192.168.1.x` addr) connect direct; off-LAN, internal hosts (`helios`/`nous`/`pve`) go through the `eternium` jump (`hviid.cloud`, key-only) — done with `Match … exec "<portable ip/ifconfig LAN test>"` blocks placed before the default `Host` blocks. `just update` (both platforms) re-deploys it. Verify routing with `ssh -G <host>`.
 - **opencode config is shared, not per-platform** — three files in `shared/` (single source of truth, like `starship.toml`/`tmux.conf`, since they're byte-identical cross-platform with no substitution) are deployed by `just opencode` on both Mac and Linux (Linux also via `run_config_opencode` in `lib/config.sh` during install-bazzite.sh Phase 2). The deploy is a small copy-with-backup loop; `just drift` byte-diffs all three on both platforms. **The three files and their targets:**
   - `shared/opencode.jsonc` → `~/.config/opencode/opencode.jsonc` — main config: internal `hviid.cloud` provider + model list + SearXNG MCP entry + `"share": "disabled"`. No secrets.
   - `shared/opencode-tui.json` → `~/.config/opencode/tui.json` — selects the default theme (`"theme": "hviid.cloud"`). **`theme` MUST live here, not in `opencode.jsonc`** — opencode ≥ the version we use strips `theme`/`keybinds`/`tui` from `opencode.json` as legacy keys (`normalizeLoadedConfig` in the opencode source deletes them) and migrates them to `tui.json`.

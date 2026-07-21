@@ -12,6 +12,12 @@ is_rpm_installed() {
     done
 }
 is_flatpak_installed() { flatpak info "$1" &>/dev/null 2>&1; }
+# True on a graphical Bazzite desktop, false on a headless/server image (Fedora
+# CoreOS / bootc server, e.g. eternium) that ships no desktop. gnome-shell is
+# the tell: every desktop variant has it, server variants don't. Used to gate
+# GUI-only work (flatpak, GNOME extensions, .desktop overrides) so `just update`
+# runs cleanly on both server and desktop.
+is_desktop() { command -v gnome-shell &>/dev/null; }
 is_gext_installed()    { gnome-extensions list 2>/dev/null | grep -qF "$1"; }
 is_cli_installed() {
     case "$1" in

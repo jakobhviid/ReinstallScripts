@@ -46,7 +46,7 @@ install machine="":
     fi
     "{{justfile_directory()}}/install-bazzite.sh" "$machine"
 
-# Update everything already installed (brew, flatpak, zsh toolchain) and re-apply every per-user fix (desktop icon/Exec overrides, 1Password, PWAs, autostart, ghostty, opencode). Machine-agnostic — takes no argument. Does NOT install new Brewfile entries (use 'just install' / 'just install-missing'), does NOT reload the GNOME/Ptyxis dconf snapshots (those would overwrite live tweaks — use 'just gnome-restore' / 'just ptyxis-restore'), and does NOT touch the OS image (use 'ujust update').
+# Update everything already installed (brew, flatpak, GNOME extensions, zsh toolchain) and re-apply every per-user fix (desktop icon/Exec overrides, 1Password, PWAs, autostart, ghostty, opencode). Machine-agnostic — takes no argument, and server-safe: on a headless/CoreOS image (no gnome-shell) the flatpak, GNOME-extension and .desktop-override steps are skipped, so brew/zsh/opencode still update. Does NOT install new Brewfile entries (use 'just install' / 'just install-missing'), does NOT reload the GNOME/Ptyxis dconf snapshots (those would overwrite live tweaks — use 'just gnome-restore' / 'just ptyxis-restore'), and does NOT touch the OS image (use 'ujust update').
 update:
     #!/usr/bin/env bash
     set -uo pipefail
@@ -77,21 +77,28 @@ update:
     brew upgrade
     brew cleanup
 
-    # ── Flatpak: update installed apps + runtimes (no new installs).
-    if command -v flatpak &>/dev/null; then
-        info "Updating Flatpaks"
-        flatpak update -y
-    fi
-
-    # ── GNOME Shell extensions (gext-managed, live in ~/.local/share/gnome-shell).
-    # Nothing else updates these: brew/flatpak don't own them, and `ujust update`
-    # (topgrade) deliberately excludes the gnome-extensions step in its config —
-    # so without this they'd only ever move on a full reinstall. gext lives in
-    # ~/.local/bin, which isn't always on PATH in a non-interactive recipe.
-    export PATH="$HOME/.local/bin:$PATH"
-    if command -v gext &>/dev/null; then
-        info "Updating GNOME Shell extensions (gext)"
-        gext update || warn "gext update reported issues — continuing"
+    # Desktop vs headless: gate the GUI-only steps so this recipe runs cleanly
+    # on both a graphical desktop and a headless/server image (CoreOS/bootc,
+    # e.g. eternium) where flatpak, GNOME extensions and .desktop overrides make
+    # no sense. is_desktop keys off gnome-shell (see lib/install.sh).
+    if is_desktop; then
+        # ── Flatpak: update installed apps + runtimes (no new installs).
+        if command -v flatpak &>/dev/null; then
+            info "Updating Flatpaks"
+            flatpak update -y
+        fi
+        # ── GNOME Shell extensions (gext-managed, in ~/.local/share/gnome-shell).
+        # Nothing else updates these: brew/flatpak don't own them, and `ujust
+        # update` (topgrade) excludes the gnome-extensions step — so without this
+        # they'd only ever move on a full reinstall. gext lives in ~/.local/bin,
+        # not always on PATH in a non-interactive recipe.
+        export PATH="$HOME/.local/bin:$PATH"
+        if command -v gext &>/dev/null; then
+            info "Updating GNOME Shell extensions (gext)"
+            gext update || warn "gext update reported issues — continuing"
+        fi
+    else
+        info "Headless/server (no gnome-shell) — skipping flatpak + GNOME extensions"
     fi
 
     # ── Zsh toolchain + config (plugins, prompt, tmux plugins, git identity).
@@ -106,15 +113,23 @@ update:
     # upgrades and apps' own self-updaters restore pristine .desktop launchers,
     # so we re-apply icon/Exec overrides, 1Password integration, autostart flags.
     info "Re-applying per-user configuration"
+    # Universal (also meaningful on a server): 1Password is self-guarded on the
+    # binary; ghostty/opencode configs are just dotfiles (opencode is used on
+    # eternium). The .desktop/icon/autostart/PWA overrides and the ghostty GNOME
+    # keybinding are GUI-only, so they run on desktops only — on a server their
+    # sources (system .desktop files, flatpak exports) don't exist and gsettings
+    # has no session.
     if command -v 1password >/dev/null 2>&1; then
         run_config_1password
     fi
-    run_config_desktop_overrides
-    run_config_pwa
-    run_config_autostart
-    run_config_localsend
+    if is_desktop; then
+        run_config_desktop_overrides
+        run_config_pwa
+        run_config_autostart
+        run_config_localsend
+        run_config_ghostty_keybinding
+    fi
     run_config_ghostty
-    run_config_ghostty_keybinding
     run_config_opencode
 
     echo

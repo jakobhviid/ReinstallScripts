@@ -194,6 +194,14 @@ drift machine="":
     brew_prefix="$(brew --prefix)"
     here="{{justfile_directory()}}"
 
+    # Role gate (same gnome-shell signal as install/update): a headless server
+    # (any distro — FCOS eternium/nous, or Ubuntu/Debian) has none of the
+    # desktop surface, so its image/brave/ghostty/gnome/PWA/rpm-layer checks are
+    # skipped to avoid a wall of false failures. Universal checks (zsh, shell,
+    # git, brewfile, opencode) still run.
+    desktop=1
+    command -v gnome-shell >/dev/null 2>&1 || desktop=0
+
     # ── image rebase ───────────────────────────────────────────────────
     # Confirm the machine is on a bazzite-custom variant. The rest of
     # this drift script assumes image-baked behavior (CLI tools live at
@@ -203,22 +211,29 @@ drift machine="":
     # `.container-image-reference`, not `.origin` (which is null in this
     # case). Use `select(.booted)` instead of `[0]` so a staged pending
     # doesn't shadow the actually-running deployment.
-    section "image rebase"
+    section "image / os"
     current_origin=$(rpm-ostree status --json 2>/dev/null \
         | jq -r '.deployments[] | select(.booted) | (.["container-image-reference"] // .origin // "")' 2>/dev/null)
-    case "$current_origin" in
-        *ghcr.io/jakobhviid/bazzite-custom:latest*)
-            ok_line "bazzite-custom:latest"
-            ;;
-        *ghcr.io/jakobhviid/bazzite-nvidia-custom:latest*)
-            ok_line "bazzite-nvidia-custom:latest"
-            ;;
-        *)
-            short_current="${current_origin##*:}"
-            fail_line "currently on ${current_origin:-<no deployment>}, expected ghcr.io/jakobhviid/bazzite-{,nvidia-}custom:latest"
-            fixes+=("rebase to the bazzite-custom image|./install-bazzite.sh $machine")
-            ;;
-    esac
+    if (( ! desktop )); then
+        # Servers self-manage their OS (FCOS via zincati/rpm-ostree, or an
+        # apt-based distro); this repo doesn't track or rebase it, so just
+        # report what's booted (empty on non-rpm-ostree distros).
+        ok_line "server / headless — OS not managed by this repo${current_origin:+ (${current_origin##*/})}"
+    else
+        case "$current_origin" in
+            *ghcr.io/jakobhviid/bazzite-custom:latest*)
+                ok_line "bazzite-custom:latest"
+                ;;
+            *ghcr.io/jakobhviid/bazzite-nvidia-custom:latest*)
+                ok_line "bazzite-nvidia-custom:latest"
+                ;;
+            *)
+                short_current="${current_origin##*:}"
+                fail_line "currently on ${current_origin:-<no deployment>}, expected ghcr.io/jakobhviid/bazzite-{,nvidia-}custom:latest"
+                fixes+=("rebase to the bazzite-custom image|./install-bazzite.sh $machine")
+                ;;
+        esac
+    fi
 
     # ── zsh templates ──────────────────────────────────────────────────
     section "zsh"
@@ -308,6 +323,11 @@ drift machine="":
         fi
     done
     (( gd )) && fixes+=("set git config (user.name, user.email, pull.rebase)|just zsh")
+
+    # ── desktop-only checks (brave + ghostty) ─────────────────────────
+    # Wrapped as one gnome-shell-gated block; bodies keep their original
+    # indent to keep the diff reviewable.
+    if (( desktop )); then
 
     # ── brave-origin policy ────────────────────────────────────────────
     # Linux is on Brave Origin (privacy-stripped variant), so the
@@ -403,6 +423,8 @@ drift machine="":
         fi
     fi
 
+    fi  # end desktop-only (brave + ghostty)
+
     # ── opencode ───────────────────────────────────────────────────────
     # Flat-file deploy of three shared files: main config, tui.json (theme
     # selection), and the hviid.cloud custom theme. Byte-for-byte diff each.
@@ -426,7 +448,8 @@ drift machine="":
         fi
     done
 
-    # ── rpm-ostree layered packages ────────────────────────────────────
+    # ── rpm-ostree layered packages (desktop-only: proton-vpn) ─────────
+    if (( desktop )); then
     section "rpm-ostree layered packages"
     mapfile -t expected_rpms < <(awk '/^RPM_PACKAGES=\(/,/^\)/' "$here/install-bazzite.sh" | grep -oE '"[^"]+"' | tr -d '"')
     missing_rpms=()
@@ -440,6 +463,8 @@ drift machine="":
         printf '      %s\n' "${missing_rpms[@]}"
         fixes+=("install missing system packages|./install-bazzite.sh $machine")
     fi
+
+    fi  # end desktop-only (rpm-ostree layered packages)
 
     # ── brewfile ───────────────────────────────────────────────────────
     section "brewfile (Brewfile.$machine)"
@@ -552,6 +577,9 @@ drift machine="":
     (( bf_extras ))  && fixes+=("uninstall packages not in the Brewfile (asks first)|just prune $machine")
     (( bf_missing || bf_extras )) && fixes+=("interactively pick which extras to add and which missing entries to drop from the Brewfile|just reconcile $machine")
     (( bf_missing || bf_extras )) && fixes+=("save this machine's current state to the Brewfile (captures extras, drops missing entries, full overwrite)|just backup $machine")
+
+    # ── desktop-only checks (gnome shell + 1Password + retired PWAs) ───
+    if (( desktop )); then
 
     # ── gnome shell (per-machine dconf snapshot) ───────────────────────
     # Two checks against assets/gnome/shell.<machine>.dconf:
@@ -713,6 +741,8 @@ drift machine="":
     else
         ok_line "no retired PWAs lingering"
     fi
+
+    fi  # end desktop-only (gnome shell + 1Password + retired PWAs)
 
     # ── Summary ────────────────────────────────────────────────────────
     section "Summary"
@@ -1168,6 +1198,10 @@ zsh:
 # Install speaker EQ for thin laptop speakers (PipeWire filter-chain)
 speaker-eq:
     #!/usr/bin/env bash
+    if ! command -v gnome-shell >/dev/null 2>&1; then
+        echo "speaker-eq is desktop-only (needs PipeWire + a graphical session) — skipping on this headless host."
+        exit 0
+    fi
     echo "Installing speaker EQ..."
     mkdir -p ~/.config/pipewire/pipewire.conf.d
     cp "{{justfile_directory()}}/assets/speaker-eq.conf" ~/.config/pipewire/pipewire.conf.d/speaker-eq.conf
@@ -1187,6 +1221,10 @@ gnome-backup machine="":
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
+    if ! command -v gnome-shell >/dev/null 2>&1; then
+        warn "gnome-backup is desktop-only (no gnome-shell on this host) — nothing to snapshot."
+        exit 0
+    fi
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
         mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
@@ -1216,6 +1254,10 @@ extensions-sync:
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
+    if ! command -v gnome-shell >/dev/null 2>&1; then
+        warn "extensions-sync is desktop-only (no gnome-shell on this host) — skipping."
+        exit 0
+    fi
     shared="{{justfile_directory()}}/assets/gnome/shell.dconf"
     if ! command -v dconf >/dev/null 2>&1; then
         err "dconf not available"
@@ -1261,6 +1303,10 @@ extensions-sync:
 ptyxis-backup:
     #!/usr/bin/env bash
     set -euo pipefail
+    if ! command -v gnome-shell >/dev/null 2>&1; then
+        echo "ptyxis-backup is desktop-only (no gnome-shell on this host) — skipping."
+        exit 0
+    fi
     out="{{justfile_directory()}}/assets/ptyxis.dconf"
     mkdir -p "$(dirname "$out")"
     dconf dump /org/gnome/Ptyxis/ > "$out"
@@ -1271,6 +1317,10 @@ gnome-restore machine="":
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
+    if ! command -v gnome-shell >/dev/null 2>&1; then
+        warn "gnome-restore is desktop-only (no gnome-shell on this host) — skipping."
+        exit 0
+    fi
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
         mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
@@ -1305,6 +1355,10 @@ ptyxis-restore:
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
+    if ! command -v gnome-shell >/dev/null 2>&1; then
+        warn "ptyxis-restore is desktop-only (no gnome-shell on this host) — skipping."
+        exit 0
+    fi
     snapshot="{{justfile_directory()}}/assets/ptyxis.dconf"
     if [[ ! -f "$snapshot" ]]; then
         err "$snapshot not found"

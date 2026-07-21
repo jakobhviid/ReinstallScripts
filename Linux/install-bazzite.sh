@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-# Bazzite setup script — phase-aware.
+# Bazzite setup script — phase-aware AND role-aware.
+#
+# Role (auto-detected from the OS, no per-machine flag): a graphical desktop
+# has gnome-shell; a headless server does not. Servers may be any distro —
+# Fedora CoreOS (eternium, nous) or Ubuntu/Debian — the detection doesn't care.
+# On a SERVER this script skips Phase 1 and all GUI config entirely and runs
+# only the userspace tier (brew + zsh + Brewfile + opencode), which is fully
+# distro-agnostic; the server owns its own OS lifecycle, so we never rebase or
+# cosign-trust it. The two phases below apply to DESKTOPS (Bazzite).
 #
 # Phase 1 (auto-detected: machine NOT yet rebased to bazzite-custom image):
 #   1. Install vendored cosign public key to /etc/pki/containers/
@@ -208,8 +216,17 @@ phase2_userspace() {
         exit 1
     fi
 
-    mapfile -t rpm_to_install   < <(filter_to_install is_rpm_installed     "${RPM_PACKAGES[@]}")
-    mapfile -t gext_to_install  < <(filter_to_install is_gext_installed    "${GNOME_EXTENSIONS[@]}")
+    # Role gate — desktop-only pieces (RPM layer, GNOME extensions, GUI
+    # configs) are skipped on a headless server. Same gnome-shell signal as
+    # main() / `just update`.
+    local role=server
+    is_desktop && role=desktop
+
+    local -a rpm_to_install=() gext_to_install=()
+    if [[ "$role" == desktop ]]; then
+        mapfile -t rpm_to_install   < <(filter_to_install is_rpm_installed     "${RPM_PACKAGES[@]}")
+        mapfile -t gext_to_install  < <(filter_to_install is_gext_installed    "${GNOME_EXTENSIONS[@]}")
+    fi
 
     local brew_action="present"
     is_cli_installed brew      || brew_action="install Homebrew"
@@ -217,13 +234,19 @@ phase2_userspace() {
     is_cli_installed zsh-setup || zsh_action="run just zsh"
 
     echo
-    info "Phase 2 Plan:"
-    printf '  %-22s %s\n' "RPM (rpm-ostree):"   "${rpm_to_install[*]:-(nothing to install)}"
-    printf '  %-22s %s\n' "GNOME extensions:"   "${gext_to_install[*]:-(nothing to install)}"
+    info "Phase 2 Plan ($role):"
+    if [[ "$role" == desktop ]]; then
+        printf '  %-22s %s\n' "RPM (rpm-ostree):"   "${rpm_to_install[*]:-(nothing to install)}"
+        printf '  %-22s %s\n' "GNOME extensions:"   "${gext_to_install[*]:-(nothing to install)}"
+    fi
     printf '  %-22s %s\n' "Homebrew:"           "$brew_action"
     printf '  %-22s %s\n' "Brewfile:"           "$(basename "$BREWFILE")"
     printf '  %-22s %s\n' "Zsh setup:"          "$zsh_action"
-    printf '  %-22s %s\n' "Configs:"            "1password keybinding (if installed), desktop overrides, PWAs, autostart, localsend, GNOME shell, Ptyxis, Ghostty"
+    if [[ "$role" == desktop ]]; then
+        printf '  %-22s %s\n' "Configs:"        "1password (if installed), desktop overrides, PWAs, autostart, localsend, GNOME shell, Ptyxis, Ghostty, opencode"
+    else
+        printf '  %-22s %s\n' "Configs:"        "opencode (all GUI config skipped on server)"
+    fi
     echo
 
     confirm "Proceed?" || { warn "Cancelled."; exit 0; }
@@ -291,17 +314,20 @@ phase2_userspace() {
     # ── and the three unlock services already; this is just the per-user state.
     # 1Password is installed via brew cask (ublue-os/tap/1password-gui-linux)
     # rather than image-baked or rpm-ostree-layered, so check by binary not RPM.
-    if command -v 1password >/dev/null 2>&1; then
-        run_config_1password
+    if [[ "$role" == desktop ]]; then
+        if command -v 1password >/dev/null 2>&1; then
+            run_config_1password
+        fi
+        run_config_desktop_overrides
+        run_config_pwa
+        run_config_autostart
+        run_config_localsend
+        run_config_gnome_shell
+        run_config_ptyxis
+        run_config_ghostty
+        run_config_ghostty_keybinding
     fi
-    run_config_desktop_overrides
-    run_config_pwa
-    run_config_autostart
-    run_config_localsend
-    run_config_gnome_shell
-    run_config_ptyxis
-    run_config_ghostty
-    run_config_ghostty_keybinding
+    # opencode config is wanted everywhere (eternium/nous run opencode too).
     run_config_opencode
 
     echo
@@ -319,6 +345,20 @@ phase2_userspace() {
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 main() {
+    # Role is auto-detected from the OS, no per-machine flag: a graphical
+    # desktop has gnome-shell; a headless server (any distro — Fedora CoreOS
+    # eternium/nous, or Ubuntu/Debian) does not. Servers NEVER get Phase 1 —
+    # they own their own OS lifecycle; this script only does their userspace
+    # tier, which is distro-agnostic. The misdetection failure mode is
+    # deliberately safe: a server can't look like a desktop (no gnome-shell),
+    # so we can never wrongly cosign-trust + rebase a server onto a bazzite image.
+    if ! is_desktop; then
+        info "Server setup (machine: $MACHINE) — headless (no desktop)."
+        info "OS left to the server's own lifecycle; doing userspace only (brew, zsh, CLI tools, opencode)."
+        phase2_userspace
+        return
+    fi
+
     info "Bazzite Setup (machine: $MACHINE)"
 
     # Preflight — Bazzite check (loose: Fedora Silverblue would also work for Phase 2)

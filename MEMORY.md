@@ -241,6 +241,42 @@ that name is **gone** on the current image.
 - If a future image renames it again, update the row's name + src together and
   re-check the cleanup guard.
 
+### Linux fleet has two roles, auto-detected via gnome-shell (no manual flag)
+
+Not every Linux machine is a Bazzite desktop. **eternium and nous are stock
+Fedora CoreOS servers** (`VARIANT_ID=coreos`, booted on
+`quay.io/fedora/fedora-coreos:stable` — *not* a jakobhviid custom image), with
+rpm-ostree/bootc/zsh/podman/docker but **no gnome-shell, flatpak, brew, gext,
+or just**. atlas / chronos-redux / kira are the desktops. **Servers may be any
+distro** — the userspace tier (brew + zsh + opencode) is distro-agnostic, so
+Ubuntu/Debian servers are handled by the exact same headless path as FCOS; the
+detection keys on gnome-shell, not on the distro.
+
+**Role is detected from the OS, not a per-machine flag:** `is_desktop()`
+(`Linux/lib/install.sh`) = `command -v gnome-shell`. Desktops have it (even
+stock Bazzite pre-rebase); FCOS servers never do. The same check is inlined in
+the `just update` / `just drift` recipes. **The misdetection failure mode is
+deliberately safe:** a server can't look like a desktop, so we can never
+wrongly cosign-trust + rebase a server onto a bazzite image.
+
+**How it's wired:**
+- `install-bazzite.sh` `main()` → on a server, **skip Phase 1 entirely** (no
+  rebase/cosign — FCOS self-manages its image via zincati/rpm-ostree) and run a
+  reduced Phase 2: brew + zsh + Brewfile + opencode. `phase2_userspace` gates
+  RPM layer, GNOME extensions, and every GUI `run_config_*` behind the role;
+  `run_config_opencode` stays universal (servers run opencode too).
+- `just update` and `just drift` skip flatpak / gext / desktop checks on a server.
+- `just speaker-eq`, `gnome-backup/restore`, `ptyxis-backup/restore`,
+  `extensions-sync` early-exit with a "desktop-only" message on a server.
+
+**Servers are userspace-only by decision** (2026-07): the installer never
+touches a server's OS image, regardless of distro. If a signed custom *server*
+image is ever built, that's a new Phase-1-like path — don't retrofit the desktop
+rebase onto servers. Entry point on a fresh server is `./install-bazzite.sh
+<machine>` (just isn't present yet; the script bootstraps it via the
+distro-agnostic bootstrap.sh), then `just update` works like on desktops. Each
+server needs its own `brewfiles/Brewfile.<machine>` (eternium + nous exist).
+
 ### `fzf --zsh` stderr suppression in both zshrc templates
 
 Line in both `Mac/assets/zshrc.template` and `Linux/assets/zshrc.template`:

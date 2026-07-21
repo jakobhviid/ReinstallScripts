@@ -20,9 +20,18 @@ A fresh Bazzite GNOME install (KDE-based variants like the default `bazzite` or 
 
 `install-bazzite.sh` also bootstraps `brew` + `just` internally during Phase 2, so you can go straight to it. If you want `just` available in your shell beforehand to use other recipes (`just drift` etc.), run `./bootstrap.sh` first.
 
-## Two phases
+## Machine roles (desktop vs server)
 
-`install-bazzite.sh` is **phase-aware** — it auto-detects via `rpm-ostree status` whether the machine is on the bazzite-custom image, and runs the appropriate phase:
+The Linux fleet isn't all Bazzite desktops. **eternium and nous are headless servers** (Fedora CoreOS today — no gnome-shell/flatpak/brew/gext; they run `quay.io/fedora/fedora-coreos:stable`, not a jakobhviid image). `install-bazzite.sh` is **role-aware**: `is_desktop()` (`lib/install.sh`, = `command -v gnome-shell`) auto-detects the role — no per-machine flag, and it's distro-agnostic (an Ubuntu/Debian server takes the same headless path; the userspace tier has no Fedora/rpm-ostree assumptions).
+
+- **Desktop** → the two phases below (image rebase + full userspace).
+- **Server** (any distro) → Phase 1 is skipped entirely (the server self-manages its OS — FCOS via zincati/rpm-ostree, or an apt distro; the installer never rebases or cosign-trusts it), and only the distro-agnostic userspace tier runs: brew + `just zsh` + Brewfile + opencode config. All GUI `run_config_*`, GNOME extensions, and the proton-vpn RPM are skipped. Each server needs its own `brewfiles/Brewfile.<machine>` (eternium + nous exist).
+
+The failure mode is safe by construction: a server can't look like a desktop (no gnome-shell), so a server is never mistakenly rebased onto a bazzite image. `just update` / `just drift` skip the flatpak/gext/desktop pieces on a server too, and the purely-desktop recipes (`speaker-eq`, `gnome-*`, `ptyxis-*`, `extensions-sync`) early-exit with a "desktop-only" message. Entry point on a fresh server is `./install-bazzite.sh <machine>` (just isn't there yet — the script bootstraps it).
+
+## Two phases (desktop)
+
+`install-bazzite.sh` is **phase-aware** — for a desktop it auto-detects via `rpm-ostree status` whether the machine is on the bazzite-custom image, and runs the appropriate phase:
 
 **Phase 1 — fresh stock Bazzite install** (machine NOT yet on bazzite-custom):
 1. Install vendored cosign pub key (`assets/bazzite-custom.pub`) to `/etc/pki/containers/`

@@ -212,7 +212,7 @@ run_config_desktop_overrides() {
         "proton-mail.desktop|/usr/share/applications/proton-mail.desktop|proton-mail.png"
         "vivaldi-stable.desktop|/usr/share/applications/vivaldi-stable.desktop|vivaldi-stable.png"
         "org.mozilla.firefox.desktop|/usr/share/applications/org.mozilla.firefox.desktop|org.mozilla.firefox.png"
-        "claude-desktop.desktop|/usr/share/applications/claude-desktop.desktop|claude-desktop.png"
+        "claude-desktop-unofficial.desktop|/usr/share/applications/claude-desktop-unofficial.desktop|claude-desktop.png"
         "Cider.desktop|/usr/share/applications/Cider.desktop|Cider.png"
         "dev.zed.Zed.desktop|/var/lib/flatpak/exports/share/applications/dev.zed.Zed.desktop|dev.zed.Zed.png"
     )
@@ -230,6 +230,20 @@ run_config_desktop_overrides() {
         fi
         sed -i "s|^Icon=.*|Icon=$icon_dir/$icon|" "$app_dir/$name"
     done
+
+    # One-time migration cleanup: older images shipped Claude Desktop as
+    # `claude-desktop` (binary /usr/bin/claude-desktop) and we deployed an
+    # override under that name. The current image renamed everything to
+    # `claude-desktop-unofficial` (handled by the override row above), leaving
+    # the old user-level claude-desktop.desktop as a second, now-broken "Claude"
+    # menu entry (its Exec points at the absent /usr/bin/claude-desktop). Remove
+    # it — but only if it's the file WE deployed (Icon under our icon dir), so a
+    # future legitimate claude-desktop.desktop wouldn't be clobbered.
+    local stale_claude="$app_dir/claude-desktop.desktop"
+    if [[ -f "$stale_claude" ]] && grep -q "^Icon=$icon_dir/" "$stale_claude"; then
+        rm -f "$stale_claude"
+        info "Removed stale claude-desktop.desktop (renamed to claude-desktop-unofficial in the image)"
+    fi
 
     update-desktop-database ~/.local/share/applications &>/dev/null || true
 

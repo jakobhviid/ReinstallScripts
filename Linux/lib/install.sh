@@ -68,13 +68,20 @@ DESKTOP_CUSTOMIZED_CASKS=(
 
 reset_desktop_customized_casks() {
     command -v brew &>/dev/null || return 0
-    local cask leaf
+    # Only casks brew actually wants to upgrade would trip the modified-artifact
+    # guard. `brew outdated --cask` lists exactly those (an up-to-date cask, or a
+    # :latest/auto_updates one brew won't touch without --greedy, is skipped), so
+    # we don't needlessly re-download VS Code / 1Password on every run. Resetting
+    # the outdated ones to pristine here lets the subsequent `brew bundle`/`brew
+    # upgrade` upgrade them cleanly; the config step re-applies our edits after.
+    local outdated cask leaf
+    outdated=$(brew outdated --cask --quiet 2>/dev/null || true)
     for cask in "${DESKTOP_CUSTOMIZED_CASKS[@]}"; do
         leaf="${cask##*/}"
-        if brew list --cask "$leaf" &>/dev/null; then
-            info "Force-reinstalling $leaf (resets customized .desktop so brew bundle won't choke)"
+        if grep -qxF "$leaf" <<<"$outdated"; then
+            info "Force-reinstalling $leaf (pending upgrade would trip its modified .desktop; resetting first)"
             brew reinstall --cask --force "$cask" \
-                || warn "brew reinstall of $cask failed — brew bundle may need --force"
+                || warn "brew reinstall of $cask failed — its upgrade may need --force"
         fi
     done
 }

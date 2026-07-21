@@ -181,7 +181,7 @@ because his commit cadence is his own choice.
 
 ## Project
 
-### ublue desktop-customized casks are force-reinstalled before `brew bundle`
+### ublue desktop-customized casks are reset before any brew upgrade
 
 `run_config_desktop_overrides` (in `Linux/lib/config.sh`) rewrites the `.desktop`
 launchers deposited into `~/.local/share/applications/` by two ublue casks —
@@ -193,23 +193,53 @@ deliberate.
 **Why the force step exists:** brew tracks that launcher as a cask artifact.
 Once we've modified it, a later `brew bundle` upgrade/reinstall of the cask
 aborts with a "modified artifact — use `--force`" error. Fixed by
-`reset_desktop_customized_casks` in `Linux/lib/install.sh`, called in
-`phase2_userspace` *before* `brew bundle`: it `brew reinstall --cask --force`s
-each already-installed cask in `DESKTOP_CUSTOMIZED_CASKS`, resetting the
-launcher to pristine so bundle upgrades cleanly. `run_config_desktop_overrides`
-re-applies the edits afterward.
+`reset_desktop_customized_casks` in `Linux/lib/install.sh`, called *before*
+brew's upgrade step in two places — `phase2_userspace` (before `brew bundle`)
+and the `just update` recipe (before `brew upgrade`). It `brew reinstall
+--cask --force`s each cask in `DESKTOP_CUSTOMIZED_CASKS` **that `brew outdated
+--cask` reports as outdated**, resetting the launcher to pristine so the
+pending upgrade lands cleanly. `run_config_desktop_overrides` (and
+`run_config_1password` for the Exec=) re-apply the edits afterward.
+
+**Only outdated casks are reset**, not every installed one — an up-to-date
+cask (or a `:latest`/`auto_updates` cask brew won't touch without `--greedy`)
+is exactly one brew won't try to upgrade, so it can't trip the guard and
+needs no reset. This keeps `just update` from re-downloading VS Code /
+1Password on every run when nothing's changed.
 
 **How to apply:**
-- Reset runs *before* bundle (not after) so bundle never sees a modified
-  artifact — keep that ordering.
-- Only casks already installed are reset; on a fresh machine they don't exist
-  yet and bundle installs them clean, so the guard `brew list --cask <leaf>`
-  skips them.
+- Reset runs *before* the brew upgrade step (not after) so brew never sees a
+  modified artifact — keep that ordering in both call sites.
+- The `brew outdated --cask` guard also means fresh machines skip it (nothing
+  installed → nothing outdated), so `brew bundle` installs those casks clean
+  and there's nothing to reset.
 - If a new override in `run_config_desktop_overrides` targets a launcher that a
   brew cask (not the image / not a flatpak) deposits, add that cask's
   tap-qualified token to `DESKTOP_CUSTOMIZED_CASKS`. Image-baked
   (`/usr/share/applications/…`) and flatpak (`/var/lib/flatpak/…`) sources
   don't need it — brew doesn't manage those.
+
+### Claude Desktop's launcher is `claude-desktop-unofficial.desktop`, not `claude-desktop.desktop`
+
+The bazzite-custom image ships Claude Desktop as **`claude-desktop-unofficial`**:
+launcher `/usr/share/applications/claude-desktop-unofficial.desktop`, binary
+`/usr/bin/claude-desktop-unofficial`, `StartupWMClass=com.anthropic.Claude`.
+An older image used the name `claude-desktop` (binary `/usr/bin/claude-desktop`);
+that name is **gone** on the current image.
+
+**How to apply:**
+- The `run_config_desktop_overrides` row for Claude targets
+  `claude-desktop-unofficial.desktop`. Don't "correct" it back to
+  `claude-desktop.desktop` — that source path doesn't exist on the image, so
+  the override would silently skip (dead `src`) and no icon would ever apply.
+- The function also removes a stale user-level `claude-desktop.desktop` **iff**
+  its `Icon=` sits under our icon dir (i.e. one we deployed under the old name)
+  — leftover on machines migrated from the old image, where its
+  `Exec=/usr/bin/claude-desktop` now points at an absent binary. That's why the
+  icon looked "never applied": the working menu entry was the untouched
+  `-unofficial` one while our override re-skinned the broken duplicate.
+- If a future image renames it again, update the row's name + src together and
+  re-check the cleanup guard.
 
 ### `fzf --zsh` stderr suppression in both zshrc templates
 

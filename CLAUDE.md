@@ -34,7 +34,7 @@ Linux/
 ├── brewfiles/Brewfile.<machine>      ← per-machine userspace bundle (chronos-redux, atlas)
 ├── assets/                            ← deployable data (zshrc template, dconf snapshots, brave policy, ghostty.config, EQ, PWAs, icons)
 ├── lib/{common,install,repos,config}.sh
-├── justfile                           ← install / backup / drift / zsh / speaker-eq / brave / ghostty / *-backup / *-restore
+├── justfile                           ← install / update / backup / drift / zsh / speaker-eq / brave / ghostty / *-backup / *-restore
 └── README.md
 
 Windows/
@@ -87,6 +87,7 @@ Requires a fresh Bazzite. Homebrew and `just` are bootstrapped by the script. Ru
 ```sh
 ./install-bazzite.sh chronos-redux   # full flow — rpm-ostree → brew bundle → gext → configs
 just install chronos-redux           # equivalent, via justfile
+just update                          # upgrade brew/flatpak/zsh + re-apply machine-agnostic run_config_* fixes (no arg, no new installs, no dconf reload, no image change)
 just backup chronos-redux            # dump live brew + flatpak state to brewfiles/Brewfile.chronos-redux
 just drift chronos-redux             # show what's out of sync with the repo (read-only)
 just zsh                             # re-template ~/.zshrc.image (managed) + bootstrap ~/.zshrc (once) + tmux/tpm + git identity

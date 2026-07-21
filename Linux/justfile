@@ -9,6 +9,7 @@ default:
     @echo ""
     @echo "Commands:"
     @echo "  just install [machine]   Run install-bazzite.sh with the given machine's Brewfile"
+    @echo "  just update              Update brew/flatpak/zsh + re-apply all per-user fixes (no new installs, no machine arg)"
     @echo "  just backup [machine]    Dump current Homebrew + Flatpak state to Brewfile.<machine>"
     @echo "  just drift [machine]     Show what's out of sync with the repo (read-only)"
     @echo "  just reconcile [machine] Interactively add extras / drop missing from a machine's Brewfile"
@@ -44,6 +45,81 @@ install machine="":
         exit 1
     fi
     "{{justfile_directory()}}/install-bazzite.sh" "$machine"
+
+# Update everything already installed (brew, flatpak, zsh toolchain) and re-apply every per-user fix (desktop icon/Exec overrides, 1Password, PWAs, autostart, ghostty, opencode). Machine-agnostic — takes no argument. Does NOT install new Brewfile entries (use 'just install' / 'just install-missing'), does NOT reload the GNOME/Ptyxis dconf snapshots (those would overwrite live tweaks — use 'just gnome-restore' / 'just ptyxis-restore'), and does NOT touch the OS image (use 'ujust update').
+update:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    here="{{justfile_directory()}}"
+    source "$here/lib/common.sh"
+    source "$here/lib/install.sh"
+    source "$here/lib/config.sh"
+    if ! command -v brew &>/dev/null; then
+        err "Homebrew not on PATH — run 'just install' first."
+        exit 1
+    fi
+    # The run_config_* helpers resolve assets via $SCRIPT_DIR. Nothing update
+    # touches is per-machine: the only machine-specific state is the GNOME/Ptyxis
+    # dconf snapshots, which are restore operations left to gnome-restore/
+    # ptyxis-restore (re-loading them here would clobber live-tuned settings).
+    # So no MACHINE / Brewfile / machine arg is needed.
+    export SCRIPT_DIR="$here"
+
+    # ── Homebrew: refresh metadata, then upgrade installed formulae/casks.
+    # Reset the desktop-customized casks BEFORE upgrade so brew's modified-
+    # artifact guard doesn't abort their upgrade (see lib/install.sh). Only
+    # fires when an upgrade is actually pending. `brew upgrade` never installs
+    # anything not already present, so this stays update-only.
+    info "Updating Homebrew metadata"
+    brew update
+    reset_desktop_customized_casks
+    info "Upgrading installed Homebrew packages"
+    brew upgrade
+    brew cleanup
+
+    # ── Flatpak: update installed apps + runtimes (no new installs).
+    if command -v flatpak &>/dev/null; then
+        info "Updating Flatpaks"
+        flatpak update -y
+    fi
+
+    # ── GNOME Shell extensions (gext-managed, live in ~/.local/share/gnome-shell).
+    # Nothing else updates these: brew/flatpak don't own them, and `ujust update`
+    # (topgrade) deliberately excludes the gnome-extensions step in its config —
+    # so without this they'd only ever move on a full reinstall. gext lives in
+    # ~/.local/bin, which isn't always on PATH in a non-interactive recipe.
+    export PATH="$HOME/.local/bin:$PATH"
+    if command -v gext &>/dev/null; then
+        info "Updating GNOME Shell extensions (gext)"
+        gext update || warn "gext update reported issues — continuing"
+    fi
+
+    # ── Zsh toolchain + config (plugins, prompt, tmux plugins, git identity).
+    # Re-runs the zsh recipe; its brew installs are idempotent no-ops for
+    # already-present tools and pull updates via the brew upgrade above.
+    info "Updating Zsh setup"
+    "{{just_executable()}}" zsh
+
+    # ── Re-apply the machine-agnostic per-user fixes (same helpers as
+    # install-bazzite.sh Phase 2, minus the two dconf restores). This is the
+    # "ensure everything still has proper desktop files etc." part: brew/flatpak
+    # upgrades and apps' own self-updaters restore pristine .desktop launchers,
+    # so we re-apply icon/Exec overrides, 1Password integration, autostart flags.
+    info "Re-applying per-user configuration"
+    if command -v 1password >/dev/null 2>&1; then
+        run_config_1password
+    fi
+    run_config_desktop_overrides
+    run_config_pwa
+    run_config_autostart
+    run_config_localsend
+    run_config_ghostty
+    run_config_ghostty_keybinding
+    run_config_opencode
+
+    echo
+    ok "Update complete."
+    info "Not covered (by design): OS image + layered rpms + firmware ('ujust update' = topgrade, which also re-does brew/flatpak); GNOME/Ptyxis dconf snapshots ('just gnome-restore' / 'just ptyxis-restore'); new packages ('just install-missing <machine>')."
 
 # Dump current Homebrew + Flatpak state to brewfiles/Brewfile.<machine>. Hand-edit before commit — the dump pulls in default Bazzite flatpaks.
 backup machine="":

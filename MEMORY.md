@@ -326,6 +326,36 @@ prepended at the top (with a `.bak`) — then left alone.
   `~/.zshrc.image` via `just zsh`). Mac gained a `just update` for this (brew
   upgrade + zsh + ghostty + opencode + ssh-config; no flatpak/rpm/GUI).
 
+### Third-party brew taps must be trusted before EVERY brew install/upgrade
+
+Homebrew 5.2+ gates non-official taps behind explicit trust
+(`HOMEBREW_REQUIRE_TAP_TRUST`, per-user `~/.homebrew/trust.json`). Without it,
+any `brew bundle` / `brew upgrade` / `brew reinstall` / `brew install` touching
+a cask/formula from a third-party tap **fails or is silently skipped**. It's not
+a one-time first-install step — it must run before *every* such operation, on
+**both platforms**.
+
+**One shared list: `shared/brew-trusted-taps`** (plain text, `#` comments).
+Deliberately an explicit list, NOT derived from the Brewfiles — `joshmedeski/
+sesh` is used (sesh) but appears nowhere as a `tap "…"` line (`brew "sesh"` is
+bare and resolves to a machine's existing tap / core), so a Brewfile scan can't
+find it. Current entries: `colindean/fonts-nonfree`, `joshmedeski/sesh`,
+`ublue-os/tap`. **TRUST ONLY** — this list never runs `brew tap`; tapping is
+done by the Brewfiles' `tap "…"` lines (or not at all).
+
+Consumed by **`trust_brew_taps <list-path>`**, duplicated byte-for-byte in
+`Linux/lib/install.sh` and `Mac/lib/common.sh` (keep in sync). Body is portable
+bash+zsh (a `while read` loop, no `mapfile`/process-substitution) so the Mac zsh
+recipes can call it. Callers pass `.../shared/brew-trusted-taps`:
+- Linux: install-bazzite.sh Phase 2, `just update`, `just install-missing`, `just zsh`.
+- Mac: `just install`, `just update`, `just zsh`.
+
+- **`reset_desktop_customized_casks` reinstalls `ublue-os/tap` casks**, so trust
+  MUST precede it in `just update` — that was the original bug.
+- **`just zsh` needs it on both platforms** — it installs `sesh` (and other
+  tools that may resolve to a tap) directly, outside `brew bundle`.
+- `reconcile`/`prune`/`backup` don't need it (cleanup/dump/list don't install).
+
 ### `fzf --zsh` stderr suppression in both zshrc templates
 
 Line in both `Mac/assets/zshrc.template` and `Linux/assets/zshrc.template`:

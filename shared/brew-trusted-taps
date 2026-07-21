@@ -1,0 +1,20 @@
+# Third-party Homebrew taps to `brew trust` on every machine (Mac + Linux),
+# before any brew install / upgrade / reinstall. Homebrew 5.2+ gates non-
+# official taps behind explicit trust (~/.homebrew/trust.json); without it a
+# `brew bundle` / `brew upgrade` / `brew install` touching one of these taps
+# fails or is silently skipped.
+#
+# TRUST ONLY — this list never runs `brew tap`. Actual tapping happens via the
+# `tap "..."` lines in the Brewfiles (for ublue-os/tap, colindean/fonts-nonfree)
+# or not at all (joshmedeski/sesh's `sesh` is installed bare and may resolve to
+# a machine's existing tap); we just make sure whatever's used is trusted.
+#
+# One list for the whole fleet. It's the union of the third-party taps used
+# across all Brewfiles on both platforms, plus taps like joshmedeski/sesh that
+# tools resolve to without an explicit `tap` line. Add a line when a new
+# third-party tap is introduced anywhere. One tap per line; '#' comments; blanks
+# ignored.
+
+colindean/fonts-nonfree
+joshmedeski/sesh
+ublue-os/tap

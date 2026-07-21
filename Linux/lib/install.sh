@@ -93,6 +93,37 @@ reset_desktop_customized_casks() {
     done
 }
 
+# Trust the third-party Homebrew taps the fleet uses. Homebrew 5.2+ gates non-
+# official taps behind explicit trust (HOMEBREW_REQUIRE_TAP_TRUST, per-user
+# ~/.homebrew/trust.json); without it any `brew bundle` / `brew upgrade` /
+# `brew reinstall` / `brew install` touching one of those taps fails or is
+# silently skipped. MUST run before every such brew operation — not just first
+# install — so install-bazzite.sh, `just update`, `just install-missing`, and
+# `just zsh` all call it.
+#
+# The tap list is the single shared file shared/brew-trusted-taps (one list for
+# both platforms — Mac's lib/common.sh has a byte-identical copy of this
+# function). TRUST ONLY: we never `brew tap` here. Best-effort — trusting an
+# un-tapped or already-trusted tap is harmless, and a brew too old to have the
+# `trust` subcommand just no-ops via `|| true`. Body is portable bash/zsh (no
+# mapfile/process-substitution) so the Mac zsh copy is identical.
+#   $1 — path to the shared/brew-trusted-taps list
+trust_brew_taps() {
+    command -v brew &>/dev/null || return 0
+    local list="$1"
+    [[ -f "$list" ]] || { warn "brew-trusted-taps list not found at $list — skipping trust"; return 0; }
+    local -a taps=()
+    local line
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        line="${line%%#*}"                       # strip comments
+        line="${line//[[:space:]]/}"             # strip all whitespace
+        [[ -n "$line" ]] && taps+=("$line")
+    done < "$list"
+    (( ${#taps[@]} )) || return 0
+    info "Trusting Homebrew taps: ${taps[*]}"
+    brew trust --tap "${taps[@]}" 2>/dev/null || true
+}
+
 # ─── CLI tool install/uninstall ───────────────────────────────────────────────
 
 install_zsh_setup() {

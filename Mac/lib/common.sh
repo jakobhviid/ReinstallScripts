@@ -75,6 +75,29 @@ pick_choice() {
     fi
 }
 
+# Trust the third-party Homebrew taps the fleet uses. Homebrew 5.2+ gates non-
+# official taps behind explicit trust (~/.homebrew/trust.json); without it a
+# `brew bundle` / `brew upgrade` / `brew install` touching one of those taps
+# fails or is silently skipped. Reads the single shared list
+# shared/brew-trusted-taps (one list for both platforms). TRUST ONLY — never
+# `brew tap` here. Byte-identical to Linux/lib/install.sh's copy; keep in sync.
+#   $1 — path to the shared/brew-trusted-taps list
+trust_brew_taps() {
+    command -v brew &>/dev/null || return 0
+    local list="$1"
+    [[ -f "$list" ]] || { warn "brew-trusted-taps list not found at $list — skipping trust"; return 0; }
+    local -a taps=()
+    local line
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        line="${line%%#*}"                       # strip comments
+        line="${line//[[:space:]]/}"             # strip all whitespace
+        [[ -n "$line" ]] && taps+=("$line")
+    done < "$list"
+    (( ${#taps[@]} )) || return 0
+    info "Trusting Homebrew taps: ${taps[*]}"
+    brew trust --tap "${taps[@]}" 2>/dev/null || true
+}
+
 # current_machine_name — short hostname, lowercased, ".local" stripped.
 # Used by pick_machine to detect which Brewfile matches this box.
 current_machine_name() {

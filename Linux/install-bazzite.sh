@@ -283,9 +283,8 @@ phase2_userspace() {
     # Brewfile — userspace formulae, casks, taps, flatpaks.
     # Trust the third-party taps the Brewfile pulls from before `brew bundle`
     # so HOMEBREW_REQUIRE_TAP_TRUST (default in Homebrew 5.2 / 6.0) doesn't
-    # silently skip them. Per-user state in ~/.homebrew/trust.json — has to
-    # run on every machine, can't be declared in the Brewfile itself.
-    brew trust --tap ublue-os/tap colindean/fonts-nonfree 2>/dev/null || true
+    # silently skip them (see trust_brew_taps in lib/install.sh).
+    trust_brew_taps "$SCRIPT_DIR/../shared/brew-trusted-taps"
     # Reset casks whose .desktop launcher run_config_desktop_overrides rewrites
     # (VS Code, 1Password) to pristine BEFORE bundle, so brew's modified-artifact
     # guard doesn't abort their upgrade. Overrides re-apply the edits later.

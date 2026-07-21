@@ -45,6 +45,7 @@ install machine="":
         err "brewfiles/Brewfile.$machine not found"
         exit 1
     fi
+    trust_brew_taps "{{justfile_directory()}}/../shared/brew-trusted-taps"
     info "Installing from brewfiles/Brewfile.$machine..."
     brew bundle --file="brewfiles/Brewfile.$machine"
 
@@ -574,6 +575,10 @@ install-missing machine="":
 # Set up Zsh with plugins, Starship prompt, and configuration
 zsh:
     #!/usr/bin/env zsh
+    source "{{justfile_directory()}}/lib/common.sh"
+    # sesh (and any future zsh tool) may resolve to a third-party tap; trust the
+    # shared brew-trust list before installing (Homebrew 5.2+ blocks untrusted taps).
+    trust_brew_taps "{{justfile_directory()}}/../shared/brew-trusted-taps"
     echo "Installing Zsh plugins and CLI tools via Homebrew..."
     brew install \
         zsh-autosuggestions \
@@ -781,6 +786,7 @@ update:
     fi
     info "Upgrading Homebrew packages"
     brew update
+    trust_brew_taps "{{justfile_directory()}}/../shared/brew-trusted-taps"
     brew upgrade
     brew cleanup
     # Mac App Store apps (installed via `mas "…", id:` in the Brewfile) aren't

@@ -73,6 +73,9 @@ update:
     # anything not already present, so this stays update-only.
     info "Updating Homebrew metadata"
     brew update
+    # Trust third-party taps BEFORE any reinstall/upgrade — reset_desktop_customized_casks
+    # reinstalls ublue-os/tap casks, and brew upgrade pulls from the taps too.
+    trust_brew_taps "$SCRIPT_DIR/../shared/brew-trusted-taps"
     reset_desktop_customized_casks
     info "Upgrading installed Homebrew packages"
     brew upgrade
@@ -1028,7 +1031,9 @@ prune machine="":
 install-missing machine="":
     #!/usr/bin/env bash
     set -uo pipefail
-    source "{{justfile_directory()}}/lib/common.sh"
+    export SCRIPT_DIR="{{justfile_directory()}}"
+    source "$SCRIPT_DIR/lib/common.sh"
+    source "$SCRIPT_DIR/lib/install.sh"
     machine="{{machine}}"
     if [[ -z "$machine" ]]; then
         mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
@@ -1043,6 +1048,9 @@ install-missing machine="":
         err "$bf not found"
         exit 1
     fi
+    # Trust third-party taps first so brew bundle can install casks/formulae
+    # from ublue-os/tap etc. (Homebrew gates non-official taps behind trust).
+    trust_brew_taps "$SCRIPT_DIR/../shared/brew-trusted-taps"
     brew bundle install --file="$bf"
 
 # Set up Zsh with plugins, Starship prompt, and configuration
@@ -1056,6 +1064,13 @@ zsh:
     # (b) brewfile listing them keeps `just drift`/`just prune` consistent,
     # (c) the disk cost is small. Stock-Bazzite users run this and get a
     # complete shell with no image dependency.
+    # Trust third-party taps before installing — sesh (and any future zsh tool)
+    # may resolve to a tap rather than homebrew/core; Homebrew 5.2+ blocks
+    # untrusted taps. Uses the shared brew-trust list (see lib/install.sh).
+    export SCRIPT_DIR="{{justfile_directory()}}"
+    source "$SCRIPT_DIR/lib/common.sh"
+    source "$SCRIPT_DIR/lib/install.sh"
+    trust_brew_taps "$SCRIPT_DIR/../shared/brew-trusted-taps"
     echo "Installing Zsh plugins + CLI baseline + brew-only tools..."
     brew install \
         zsh-autosuggestions \

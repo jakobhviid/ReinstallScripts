@@ -1,26 +1,59 @@
+tap "joshmedeski/sesh"
+# Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
+# Resource monitor. C++ version and continuation of bashtop and bpytop
 brew "btop"
-brew "eza"
-brew "fzf"
-brew "fzf-tab"
+# Command-line interface for SQLite
 brew "sqlite"
+# Extraction utility for .zip compressed archives
 brew "unzip"
+# Core component of the AcoustID project (Audio fingerprinting)
+brew "chromaprint"
+# Modern, maintained replacement for ls
+brew "eza"
+# Like neofetch, but much faster because written mostly in C
+brew "fastfetch"
+# Command-line fuzzy finder written in Go
+brew "fzf"
+# Replace zsh completion selection menu with fzf
+brew "fzf-tab"
+# Python CLI app for downloading Apple Music songs, music videos and post videos
+brew "gamdl"
+# Improved top (interactive process viewer)
 brew "htop"
+# Lightweight and flexible command-line JSON processor
 brew "jq"
+# Handy way to save and run project-specific commands
 brew "just"
+# Simple terminal UI for git commands
 brew "lazygit"
+# Interactive GPU process monitor
 brew "nvtop"
+# AI coding agent, built for the terminal
 brew "opencode"
+# Execute binaries from Python packages in isolated environments
+brew "pipx"
+# Smart session manager for the terminal
 brew "sesh"
+# Cross-shell prompt for astronauts
 brew "starship"
+# Terminal multiplexer
 brew "tmux"
+# Shell extension to navigate your filesystem faster
 brew "zoxide"
+# Auto-close and delete matching delimiters in zsh
 brew "zsh-autopair"
+# Fish-like fast/unobtrusive autosuggestions for zsh
 brew "zsh-autosuggestions"
+# Additional completion definitions for zsh
 brew "zsh-completions"
+# Zsh port of Fish shell's history search
 brew "zsh-history-substring-search"
+# Fish shell like syntax highlighting for zsh
 brew "zsh-syntax-highlighting"
+# ZSH plugin that reminds you to use existing aliases for commands you just typed
 brew "zsh-you-should-use"
+# Terminal-based AI coding assistant
 cask "claude-code"
 cask "font-fira-code-nerd-font"
 cask "font-hack-nerd-font"

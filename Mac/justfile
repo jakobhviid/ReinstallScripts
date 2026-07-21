@@ -32,19 +32,8 @@ default:
 install machine="":
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        choices=( $(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//') )
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
-    if [[ ! -f "brewfiles/Brewfile.$machine" ]]; then
-        err "brewfiles/Brewfile.$machine not found"
-        exit 1
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
+    require_brewfile "$machine"
     trust_brew_taps "{{justfile_directory()}}/../shared/brew-trusted-taps"
     info "Installing from brewfiles/Brewfile.$machine..."
     brew bundle --file="brewfiles/Brewfile.$machine"
@@ -59,15 +48,7 @@ install machine="":
 backup machine="":
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        choices=( $(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//') )
-        machine=$(pick_machine "Pick a machine (number, name, or new name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number, name, or new name): " "{{machine}}" create) || { warn "No machine selected, exiting."; exit 0; }
     mkdir -p brewfiles
     if [[ -L "brewfiles/Brewfile.$machine" ]]; then
         target=$(readlink "brewfiles/Brewfile.$machine")
@@ -133,19 +114,8 @@ profile name="":
 drift machine="":
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        choices=( $(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//') )
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
-    if [[ ! -f "brewfiles/Brewfile.$machine" ]]; then
-        err "brewfiles/Brewfile.$machine not found"
-        exit 1
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
+    require_brewfile "$machine"
 
     typeset -a fixes
     brew_prefix="$(brew --prefix)"
@@ -389,15 +359,7 @@ drift machine="":
 reconcile machine="":
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        choices=( $(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//') )
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
     bf="brewfiles/Brewfile.$machine"
     if [[ ! -f "$bf" ]]; then
         err "$bf not found — run 'just backup $machine' first to create it."
@@ -520,20 +482,9 @@ reconcile machine="":
 prune machine="":
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        choices=( $(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//') )
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
     bf="brewfiles/Brewfile.$machine"
-    if [[ ! -f "$bf" ]]; then
-        err "$bf not found"
-        exit 1
-    fi
+    require_brewfile "$machine"
 
     cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
     if [[ -z "$cleanup_out" ]] || ! echo "$cleanup_out" | grep -qE '^Would uninstall|^[a-z]'; then
@@ -556,20 +507,10 @@ prune machine="":
 install-missing machine="":
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        choices=( $(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//') )
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
     bf="brewfiles/Brewfile.$machine"
-    if [[ ! -f "$bf" ]]; then
-        err "$bf not found"
-        exit 1
-    fi
+    require_brewfile "$machine"
+    trust_brew_taps "{{justfile_directory()}}/../shared/brew-trusted-taps"
     brew bundle install --file="$bf"
 
 # Set up Zsh with plugins, Starship prompt, and configuration
@@ -703,78 +644,25 @@ zsh:
 ghostty:
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
-    src="{{justfile_directory()}}/assets/ghostty.config"
-    dst="$HOME/.config/ghostty/config"
-    if [[ ! -f "$src" ]]; then
-        err "$src not found"
-        exit 1
-    fi
-    mkdir -p "$(dirname "$dst")"
-    if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
-        cp "$dst" "$dst.bak"
-        info "Backed up existing config to $dst.bak"
-    fi
-    cp "$src" "$dst"
-    ok "Deployed Ghostty config to $dst"
+    deploy_file "{{justfile_directory()}}/assets/ghostty.config" "$HOME/.config/ghostty/config"
 
 # Deploy opencode config from shared/ — main config, tui.json (selects the
 # hviid.cloud theme), and the hviid.cloud custom theme (transparent background).
+# tui.json holds the theme selection — in opencode.json it's a stripped legacy
+# key. The theme filename (minus .json) IS the theme name referenced by tui.json.
 opencode:
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
     shared="{{justfile_directory()}}/../shared"
-    deploy() {
-        local src="$1" dst="$2"
-        if [[ ! -f "$src" ]]; then
-            err "$src not found"
-            return 1
-        fi
-        mkdir -p "$(dirname "$dst")"
-        if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
-            cp "$dst" "$dst.bak"
-            info "Backed up existing $dst to $dst.bak"
-        fi
-        cp "$src" "$dst"
-        ok "Deployed $dst"
-    }
-    # tui.json holds the theme selection — in opencode.json it's a stripped legacy key.
-    # The theme filename (minus .json) IS the theme name referenced by tui.json.
-    deploy "$shared/opencode.jsonc"      "$HOME/.config/opencode/opencode.jsonc"
-    deploy "$shared/opencode-tui.json"   "$HOME/.config/opencode/tui.json"
-    deploy "$shared/opencode-theme.json" "$HOME/.config/opencode/themes/hviid.cloud.json"
+    deploy_file "$shared/opencode.jsonc"      "$HOME/.config/opencode/opencode.jsonc"
+    deploy_file "$shared/opencode-tui.json"   "$HOME/.config/opencode/tui.json"
+    deploy_file "$shared/opencode-theme.json" "$HOME/.config/opencode/themes/hviid.cloud.json"
 
 # Deploy the managed SSH host inventory (shared/ssh-shared.conf) to ~/.ssh/config.d/shared.conf and ensure ~/.ssh/config includes it (bootstrapped once; your Host */agent block is left untouched). On-LAN connects direct, off-LAN via the eternium jump. Shared with Linux — the LAN test uses ifconfig on macOS.
 ssh-config:
     #!/usr/bin/env zsh
     source "{{justfile_directory()}}/lib/common.sh"
-    src="{{justfile_directory()}}/../shared/ssh-shared.conf"
-    if [[ ! -f "$src" ]]; then
-        err "$src not found"
-        exit 1
-    fi
-    info "Deploying managed SSH config"
-    ssh_dir="$HOME/.ssh"
-    dropin_dir="$ssh_dir/config.d"
-    managed="$dropin_dir/shared.conf"
-    cfg="$ssh_dir/config"
-    mkdir -p "$dropin_dir"
-    chmod 700 "$ssh_dir" "$dropin_dir" 2>/dev/null || true
-    cp "$src" "$managed"
-    chmod 600 "$managed"
-    include_line="Include config.d/shared.conf"
-    if [[ ! -f "$cfg" ]]; then
-        printf '%s\n' "$include_line" > "$cfg"
-        chmod 600 "$cfg"
-        info "Created ~/.ssh/config with Include for the managed drop-in"
-    elif ! grep -qF 'config.d/shared.conf' "$cfg"; then
-        cp "$cfg" "$cfg.bak"
-        { printf '%s\n\n' "$include_line"; cat "$cfg"; } > "$cfg.tmp"
-        mv "$cfg.tmp" "$cfg"
-        chmod 600 "$cfg"
-        info "Prepended Include to ~/.ssh/config (backup at ~/.ssh/config.bak)"
-        warn "Any existing manual Host eternium/nous/pve blocks are now redundant (managed wins) — safe to delete."
-    fi
-    ok "Managed SSH config deployed to $managed"
+    deploy_ssh_config "{{justfile_directory()}}/../shared/ssh-shared.conf"
 
 # Update what's already installed — brew upgrade + Mac App Store apps (mas upgrade, if mas is present) — and re-apply the managed configs (zsh incl. re-templating ~/.zshrc.image, ghostty, opencode, SSH). Installs nothing new (use 'just install' / 'just install-missing'); doesn't touch macOS configuration profiles (use 'just brave' / 'just profile') or macOS system/OS updates.
 update:

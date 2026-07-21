@@ -123,7 +123,7 @@ WMClass). Three non-obvious traps:
 ### Linux fleet has two roles, auto-detected via gnome-shell
 Desktops (atlas, chronos-redux, kira) are Bazzite; **servers (eternium, nous)
 are stock Fedora CoreOS** — no gnome-shell/flatpak/brew/gext/just. Role =
-`is_desktop()` (`command -v gnome-shell`, `lib/install.sh`), **not** a per-
+`is_desktop()` (`command -v gnome-shell`, `lib/common.sh`), **not** a per-
 machine flag, and distro-agnostic (an Ubuntu/Debian server takes the same
 headless path — the userspace tier has no Fedora assumptions). Misdetection is
 safe by construction: a server can't look like a desktop, so it's never

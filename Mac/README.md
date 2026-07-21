@@ -83,7 +83,7 @@ Brewfiles intentionally diverge — Chronos is a personal laptop, Helios is a se
 `just brave` and `just profile brave-debloat` are equivalent — `just brave` is just a thin wrapper. Either way, two things happen:
 
 1. **Rebinds Brave's "Close Window" to ⌘⇧W** via `defaults write com.brave.Browser NSUserKeyEquivalents -dict-add "Close Window" '@$w'`. Workaround for an intermittent Chromium bug where Brave's File menu loses the "Close Tab" item and "Close Window" hijacks ⌘W. Runs *first* — `defaults` is non-interactive and System Settings is user-blocking. Restart Brave for the rebinding to take effect.
-2. **Opens `assets/brave-debloat.mobileconfig`** in System Settings → Profiles. This is the macOS counterpart of `Linux/assets/brave-policy.json` and `Windows/brave-policy.json` — keep all three in sync when changing Brave policies (same policy set, three formats).
+2. **Opens `assets/brave-debloat.mobileconfig`** in System Settings → Profiles. This is the macOS counterpart of `Linux/assets/brave-origin-policy.json` — keep both in sync when changing shared Brave policies (parallel files, two formats).
 
 The companion `defaults write` lives as a `case` branch in the `profile` recipe (keyed on the profile name), so any path that installs `brave-debloat` — interactive picker, direct invocation, or `just brave` — gets the keyboard fix.
 

@@ -125,3 +125,88 @@ pick_machine() {
     fi
     pick_choice "$prompt" "$default" "${choices[@]}"
 }
+
+# list_machines — machine names (brewfiles/Brewfile.* basenames minus the
+# prefix), one per line. Relative path: recipes run from the platform dir.
+list_machines() {
+    ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//'
+}
+
+# resolve_machine "<prompt>" "<supplied>" — the machine-selection preamble every
+# machine-scoped recipe used to inline. Echoes the resolved name to stdout;
+# returns non-zero if none was chosen. Callers MUST use command substitution +
+# `||` (a bare `exit` inside `$(…)` would only kill the subshell), e.g.:
+#     machine=$(resolve_machine "Pick a machine: " "{{machine}}") \
+#         || { warn "No machine selected, exiting."; exit 0; }
+# Body is portable bash+zsh (while-read into array, no mapfile) — kept identical
+# in Linux/lib/common.sh.
+resolve_machine() {
+    local prompt="$1" m="$2" mode="${3:-}"
+    if [[ -z "$m" ]]; then
+        local -a choices=()
+        local line
+        while IFS= read -r line; do [[ -n "$line" ]] && choices+=("$line"); done < <(list_machines)
+        if [[ "$mode" == create ]]; then
+            # New-file flows (backup): default to THIS machine's hostname even if
+            # it has no Brewfile yet, so a bare Enter creates the file for the
+            # current box instead of "no selection".
+            local host; host=$(current_machine_name)
+            [[ -n "$host" ]] && echo "This machine: $host" >&2
+            m=$(pick_choice "$prompt" "$host" "${choices[@]}")
+        else
+            m=$(pick_machine "$prompt" "${choices[@]}")
+        fi
+    fi
+    [[ -n "$m" ]] || return 1
+    printf '%s\n' "$m"
+}
+
+# require_brewfile "<machine>" — abort (exit 1) unless brewfiles/Brewfile.<m>
+# exists. Runs at recipe top level (not in a subshell), so the exit sticks.
+require_brewfile() {
+    [[ -f "brewfiles/Brewfile.$1" ]] || { err "brewfiles/Brewfile.$1 not found"; exit 1; }
+}
+
+# deploy_file <src> <dst> — copy src→dst, backing up any differing existing dst
+# to .bak first. Shared by the ghostty/opencode deploy recipes (mirrors the
+# copy-with-backup loop in Linux/lib/config.sh).
+deploy_file() {
+    local src="$1" dst="$2"
+    [[ -f "$src" ]] || { err "$src not found"; return 1; }
+    mkdir -p "$(dirname "$dst")"
+    if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+        cp "$dst" "$dst.bak"
+        info "Backed up existing $dst to $dst.bak"
+    fi
+    cp "$src" "$dst"
+    ok "Deployed $dst"
+}
+
+# deploy_ssh_config <src> — deploy the managed SSH host config (src =
+# shared/ssh-shared.conf) to ~/.ssh/config.d/shared.conf and bootstrap an
+# Include into ~/.ssh/config once (leaving the user's Host */agent block
+# alone). Mirrors run_config_ssh in Linux/lib/config.sh.
+deploy_ssh_config() {
+    local src="$1"
+    [[ -f "$src" ]] || { warn "ssh-shared.conf not found at $src — skipping SSH config"; return 0; }
+    info "Deploying managed SSH config"
+    local ssh_dir="$HOME/.ssh" dropin_dir="$HOME/.ssh/config.d"
+    local managed="$HOME/.ssh/config.d/shared.conf" cfg="$HOME/.ssh/config"
+    mkdir -p "$dropin_dir"
+    chmod 700 "$ssh_dir" "$dropin_dir" 2>/dev/null || true
+    cp "$src" "$managed"
+    chmod 600 "$managed"
+    if [[ ! -f "$cfg" ]]; then
+        printf '%s\n' "Include config.d/shared.conf" > "$cfg"
+        chmod 600 "$cfg"
+        info "Created ~/.ssh/config with Include for the managed drop-in"
+    elif ! grep -qF 'config.d/shared.conf' "$cfg"; then
+        cp "$cfg" "$cfg.bak"
+        { printf '%s\n\n' "Include config.d/shared.conf"; cat "$cfg"; } > "$cfg.tmp"
+        mv "$cfg.tmp" "$cfg"
+        chmod 600 "$cfg"
+        info "Prepended Include to ~/.ssh/config (backup at ~/.ssh/config.bak)"
+        warn "Any existing manual Host eternium/nous/pve blocks are now redundant (managed wins) — safe to delete."
+    fi
+    ok "Managed SSH config deployed to $managed"
+}

@@ -32,19 +32,8 @@ install machine="":
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
-    if [[ ! -f "brewfiles/Brewfile.$machine" ]]; then
-        err "brewfiles/Brewfile.$machine not found"
-        exit 1
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
+    require_brewfile "$machine"
     "{{justfile_directory()}}/install-bazzite.sh" "$machine"
 
 # Update everything already installed (brew, flatpak, GNOME extensions, zsh toolchain incl. re-templating ~/.zshrc.image) and re-apply every per-user fix (desktop icon/Exec overrides, 1Password, PWAs, autostart, ghostty, opencode, managed SSH config). Machine-agnostic — takes no argument, and server-safe: on a headless/CoreOS image (no gnome-shell) the flatpak, GNOME-extension and .desktop-override steps are skipped, so brew/zsh/opencode still update. Does NOT install new Brewfile entries (use 'just install' / 'just install-missing'), does NOT reload the GNOME/Ptyxis dconf snapshots (those would overwrite live tweaks — use 'just gnome-restore' / 'just ptyxis-restore'), and does NOT touch the OS image (use 'ujust update').
@@ -84,7 +73,7 @@ update:
     # Desktop vs headless: gate the GUI-only steps so this recipe runs cleanly
     # on both a graphical desktop and a headless/server image (CoreOS/bootc,
     # e.g. eternium) where flatpak, GNOME extensions and .desktop overrides make
-    # no sense. is_desktop keys off gnome-shell (see lib/install.sh).
+    # no sense. is_desktop keys off gnome-shell (see lib/common.sh).
     if is_desktop; then
         # ── Flatpak: update installed apps + runtimes (no new installs).
         if command -v flatpak &>/dev/null; then
@@ -146,15 +135,7 @@ backup machine="":
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_machine "Pick a machine (number, name, or new name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number, name, or new name): " "{{machine}}" create) || { warn "No machine selected, exiting."; exit 0; }
     mkdir -p brewfiles
     if [[ -L "brewfiles/Brewfile.$machine" ]]; then
         target=$(readlink "brewfiles/Brewfile.$machine")
@@ -181,19 +162,8 @@ drift machine="":
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
-    if [[ ! -f "brewfiles/Brewfile.$machine" ]]; then
-        err "brewfiles/Brewfile.$machine not found"
-        exit 1
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
+    require_brewfile "$machine"
 
     declare -a fixes=()
     brew_prefix="$(brew --prefix)"
@@ -205,7 +175,7 @@ drift machine="":
     # skipped to avoid a wall of false failures. Universal checks (zsh, shell,
     # git, brewfile, opencode) still run.
     desktop=1
-    command -v gnome-shell >/dev/null 2>&1 || desktop=0
+    is_desktop || desktop=0
 
     # ── image rebase ───────────────────────────────────────────────────
     # Confirm the machine is on a bazzite-custom variant. The rest of
@@ -266,14 +236,8 @@ drift machine="":
         "$here/../shared/tmux.conf:$HOME/.tmux.conf"
     do
         src="${pair%%:*}"; dst="${pair#*:}"; label="${dst/#$HOME/~}"
-        if [[ ! -f "$dst" ]]; then
-            fail_line "$label (missing)"; zd=1
-        elif diff -q "$src" "$dst" >/dev/null 2>&1; then
-            ok_line "$label"
-        else
-            n=$(diff "$src" "$dst" 2>/dev/null | grep -c '^[<>]' || true)
-            fail_line "$label ($n lines differ)"; zd=1
-        fi
+        d=$(file_drift "$src" "$dst")
+        if [[ -z "$d" ]]; then ok_line "$label"; else fail_line "$label ($d)"; zd=1; fi
     done
     rm -f "$rendered"
     # ~/.zshrc.local was the per-machine override under the old single-file
@@ -393,14 +357,14 @@ drift machine="":
     section "ghostty"
     gh_src="$here/assets/ghostty.config"
     gh_dst="$HOME/.config/ghostty/config"
-    if [[ ! -f "$gh_dst" ]]; then
+    d=$(file_drift "$gh_src" "$gh_dst")
+    if [[ -z "$d" ]]; then
+        ok_line "~/.config/ghostty/config"
+    elif [[ "$d" == missing ]]; then
         fail_line "~/.config/ghostty/config (missing)"
         fixes+=("deploy Ghostty config|just ghostty")
-    elif diff -q "$gh_src" "$gh_dst" >/dev/null 2>&1; then
-        ok_line "~/.config/ghostty/config"
     else
-        n=$(diff "$gh_src" "$gh_dst" 2>/dev/null | grep -c '^[<>]' || true)
-        fail_line "~/.config/ghostty/config ($n lines differ)"
+        fail_line "~/.config/ghostty/config ($d)"
         fixes+=("re-deploy Ghostty config|just ghostty")
     fi
     # Ctrl+Alt+T must be the GNOME custom keybinding (run_config_ghostty_keybinding),
@@ -441,14 +405,14 @@ drift machine="":
         oc_src="$here/../shared/${pair%%:*}"
         oc_dst="${pair#*:}"
         oc_label="~/${oc_dst#$HOME/}"
-        if [[ ! -f "$oc_dst" ]]; then
+        d=$(file_drift "$oc_src" "$oc_dst")
+        if [[ -z "$d" ]]; then
+            ok_line "$oc_label"
+        elif [[ "$d" == missing ]]; then
             fail_line "$oc_label (missing)"
             fixes+=("deploy opencode config|just opencode")
-        elif diff -q "$oc_src" "$oc_dst" >/dev/null 2>&1; then
-            ok_line "$oc_label"
         else
-            n=$(diff "$oc_src" "$oc_dst" 2>/dev/null | grep -c '^[<>]' || true)
-            fail_line "$oc_label ($n lines differ)"
+            fail_line "$oc_label ($d)"
             fixes+=("re-deploy opencode config|just opencode")
         fi
     done
@@ -476,48 +440,15 @@ drift machine="":
     bf="brewfiles/Brewfile.$machine"
     bfd=0
 
-    # Missing entries — direct brew/flatpak checks; brew bundle check is
-    # unreliable for auto-updating entries where the manifest drifts from disk.
+    # Installed lists for type-tagging the brew extras below.
     casks_installed=$(brew list --cask 2>/dev/null || true)
     formulae_installed=$(brew list --formula 2>/dev/null || true)
-    taps_installed=$(brew tap 2>/dev/null || true)
-    flatpaks_installed=""
-    command -v flatpak &>/dev/null && flatpaks_installed=$(flatpak list --app --columns=application 2>/dev/null || true)
-    vscode_installed=""
-    command -v code &>/dev/null && vscode_installed=$(code --list-extensions 2>/dev/null || true)
 
+    # Missing entries (brewfile_missing → TYPE<TAB>NAME<TAB>RAW; drift wants "TYPE NAME").
     declare -a missing_bf=()
-    while IFS= read -r line; do
-        case "$line" in
-            'brew '*)
-                name=$(echo "$line" | sed -E 's/^brew "([^"]+)".*/\1/')
-                # Strip tap prefix: "tap/repo/formula" → "formula" (brew list returns short names).
-                short="${name##*/}"
-                echo "$formulae_installed" | grep -qFx "$short" || missing_bf+=("brew $name")
-                ;;
-            'cask '*)
-                name=$(echo "$line" | sed -E 's/^cask "([^"]+)".*/\1/')
-                short="${name##*/}"
-                echo "$casks_installed" | grep -qFx "$short" || missing_bf+=("cask $name")
-                ;;
-            'tap '*)
-                name=$(echo "$line" | sed -E 's/^tap "([^"]+)".*/\1/')
-                echo "$taps_installed" | grep -qFx "$name" || missing_bf+=("tap $name")
-                ;;
-            'flatpak '*)
-                appid=$(echo "$line" | sed -E 's/^flatpak "([^"]+)".*/\1/')
-                if [[ -n "$flatpaks_installed" ]]; then
-                    echo "$flatpaks_installed" | grep -qFx "$appid" || missing_bf+=("flatpak $appid")
-                fi
-                ;;
-            'vscode '*)
-                ext=$(echo "$line" | sed -E 's/^vscode "([^"]+)".*/\1/')
-                if [[ -n "$vscode_installed" ]]; then
-                    echo "$vscode_installed" | grep -qFix "$ext" || missing_bf+=("vscode $ext")
-                fi
-                ;;
-        esac
-    done < <(grep -vE '^\s*#|^\s*$' "$bf")
+    while IFS=$'\t' read -r mtype mname _; do
+        missing_bf+=("$mtype $mname")
+    done < <(brewfile_missing "$bf")
 
     bf_missing=0 bf_extras=0
     if (( ${#missing_bf[@]} == 0 )); then
@@ -528,48 +459,22 @@ drift machine="":
         bf_missing=1
     fi
 
-    # Brew bundle cleanup surfaces formula/cask/tap extras (not flatpaks).
-    cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
-    brew_extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
-
-    # Type-tag brew extras (cask/brew/tap) and append flatpak extras (computed
-    # separately, with assets/bazzite-flatpak-ignore.txt subtracted to silence
-    # Bazzite baseline GNOME apps). All extras shown with "type name" prefix.
+    # Extras: brew (dependency-aware via brew_cleanup_extras, type-tagged here) +
+    # flatpak (installed − Brewfile − ignore-list). All shown with "type name".
     declare -a extras_display=()
-    if [[ -n "$brew_extras" ]]; then
-        while IFS= read -r pkg; do
-            [[ -z "$pkg" ]] && continue
-            if echo "$casks_installed" | grep -qFx "$pkg"; then
-                extras_display+=("cask $pkg")
-            elif echo "$formulae_installed" | grep -qFx "$pkg"; then
-                extras_display+=("brew $pkg")
-            else
-                extras_display+=("? $pkg")
-            fi
-        done <<< "$brew_extras"
-    fi
-
-    flatpak_ignore=""
-    [[ -f "$here/assets/bazzite-flatpak-ignore.txt" ]] && \
-        flatpak_ignore=$(grep -vE '^\s*#|^\s*$' "$here/assets/bazzite-flatpak-ignore.txt" 2>/dev/null || true)
-    if [[ -n "$flatpaks_installed" ]]; then
-        declare -a expected_flatpaks=()
-        while IFS= read -r line; do
-            [[ "$line" =~ ^flatpak\ \"([^\"]+)\" ]] && expected_flatpaks+=("${BASH_REMATCH[1]}")
-        done < <(grep -vE '^\s*#|^\s*$' "$bf")
-        while IFS= read -r appid; do
-            [[ -z "$appid" ]] && continue
-            in_brewfile=0
-            for ef in "${expected_flatpaks[@]}"; do
-                [[ "$ef" == "$appid" ]] && in_brewfile=1 && break
-            done
-            (( in_brewfile )) && continue
-            if [[ -n "$flatpak_ignore" ]] && echo "$flatpak_ignore" | grep -qFx "$appid"; then
-                continue
-            fi
-            extras_display+=("flatpak $appid")
-        done <<< "$flatpaks_installed"
-    fi
+    while IFS= read -r pkg; do
+        [[ -z "$pkg" ]] && continue
+        if echo "$casks_installed" | grep -qFx "$pkg"; then
+            extras_display+=("cask $pkg")
+        elif echo "$formulae_installed" | grep -qFx "$pkg"; then
+            extras_display+=("brew $pkg")
+        else
+            extras_display+=("? $pkg")
+        fi
+    done < <(brew_cleanup_extras "$bf")
+    while IFS= read -r appid; do
+        [[ -n "$appid" ]] && extras_display+=("flatpak $appid")
+    done < <(flatpak_extras "$bf" "$here/assets/bazzite-flatpak-ignore.txt")
 
     if (( ${#extras_display[@]} == 0 )); then
         ok_line "no extras (everything installed is in the Brewfile or in bazzite-flatpak-ignore.txt)"
@@ -764,93 +669,38 @@ reconcile machine="":
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
     bf="brewfiles/Brewfile.$machine"
     if [[ ! -f "$bf" ]]; then
         err "$bf not found — run 'just backup $machine' first to create it."
         exit 1
     fi
 
+    here="{{justfile_directory()}}"
     casks_installed=$(brew list --cask 2>/dev/null || true)
     formulae_installed=$(brew list --formula 2>/dev/null || true)
-    taps_installed=$(brew tap 2>/dev/null || true)
-    flatpaks_installed=""
-    command -v flatpak &>/dev/null && flatpaks_installed=$(flatpak list --app --columns=application 2>/dev/null || true)
 
+    # Missing entries (brewfile_missing → TYPE<TAB>NAME<TAB>RAW; reconcile keeps RAW).
     declare -a missing_lines=()
-    while IFS= read -r line; do
-        case "$line" in
-            'brew '*)
-                name=$(echo "$line" | sed -E 's/^brew "([^"]+)".*/\1/')
-                # Strip tap prefix: "tap/repo/formula" → "formula" (brew list returns short names).
-                short="${name##*/}"
-                echo "$formulae_installed" | grep -qFx "$short" || missing_lines+=("$line")
-                ;;
-            'cask '*)
-                name=$(echo "$line" | sed -E 's/^cask "([^"]+)".*/\1/')
-                short="${name##*/}"
-                echo "$casks_installed" | grep -qFx "$short" || missing_lines+=("$line")
-                ;;
-            'tap '*)
-                name=$(echo "$line" | sed -E 's/^tap "([^"]+)".*/\1/')
-                echo "$taps_installed" | grep -qFx "$name" || missing_lines+=("$line")
-                ;;
-            'flatpak '*)
-                appid=$(echo "$line" | sed -E 's/^flatpak "([^"]+)".*/\1/')
-                if [[ -n "$flatpaks_installed" ]]; then
-                    echo "$flatpaks_installed" | grep -qFx "$appid" || missing_lines+=("$line")
-                fi
-                ;;
-        esac
-    done < <(grep -vE '^\s*#|^\s*$' "$bf")
+    while IFS=$'\t' read -r _ _ raw; do
+        missing_lines+=("$raw")
+    done < <(brewfile_missing "$bf")
 
-    cleanup_out=$(brew bundle cleanup --file="$bf" --formula --cask --tap 2>&1 || true)
-    extras=$(echo "$cleanup_out" | sed -n '/^Would uninstall/,/^[A-Z]/p' | grep -E '^[a-z0-9][a-z0-9._/-]*$' || true)
+    # Extras: brew (dependency-aware, type-tagged "type|pkg") + flatpak ("flatpak|appid").
     declare -a extras_typed=()
-    if [[ -n "$extras" ]]; then
-        while IFS= read -r pkg; do
-            [[ -z "$pkg" ]] && continue
-            if echo "$casks_installed" | grep -qFx "$pkg"; then
-                extras_typed+=("cask|$pkg")
-            elif echo "$formulae_installed" | grep -qFx "$pkg"; then
-                extras_typed+=("brew|$pkg")
-            else
-                warn "skipping $pkg (can't determine type — not a cask or formula)"
-            fi
-        done <<< "$extras"
-    fi
-
-    # Flatpak extras: installed flatpaks not in Brewfile and not on the ignore list.
-    here="{{justfile_directory()}}"
-    flatpak_ignore=""
-    [[ -f "$here/assets/bazzite-flatpak-ignore.txt" ]] && \
-        flatpak_ignore=$(grep -vE '^\s*#|^\s*$' "$here/assets/bazzite-flatpak-ignore.txt" 2>/dev/null || true)
-    if [[ -n "$flatpaks_installed" ]]; then
-        declare -a expected_flatpaks=()
-        while IFS= read -r line; do
-            [[ "$line" =~ ^flatpak\ \"([^\"]+)\" ]] && expected_flatpaks+=("${BASH_REMATCH[1]}")
-        done < <(grep -vE '^\s*#|^\s*$' "$bf")
-        while IFS= read -r appid; do
-            [[ -z "$appid" ]] && continue
-            in_brewfile=0
-            for ef in "${expected_flatpaks[@]}"; do
-                [[ "$ef" == "$appid" ]] && in_brewfile=1 && break
-            done
-            (( in_brewfile )) && continue
-            if [[ -n "$flatpak_ignore" ]] && echo "$flatpak_ignore" | grep -qFx "$appid"; then
-                continue
-            fi
-            extras_typed+=("flatpak|$appid")
-        done <<< "$flatpaks_installed"
-    fi
+    while IFS= read -r pkg; do
+        [[ -z "$pkg" ]] && continue
+        if echo "$casks_installed" | grep -qFx "$pkg"; then
+            extras_typed+=("cask|$pkg")
+        elif echo "$formulae_installed" | grep -qFx "$pkg"; then
+            extras_typed+=("brew|$pkg")
+        else
+            warn "skipping $pkg (can't determine type — not a cask or formula)"
+        fi
+    done < <(brew_cleanup_extras "$bf")
+    while IFS= read -r appid; do
+        [[ -n "$appid" ]] && extras_typed+=("flatpak|$appid")
+    done < <(flatpak_extras "$bf" "$here/assets/bazzite-flatpak-ignore.txt")
 
     if (( ${#missing_lines[@]} == 0 && ${#extras_typed[@]} == 0 )); then
         ok "$bf is already in sync. Nothing to reconcile."
@@ -951,20 +801,9 @@ prune machine="":
     #!/usr/bin/env bash
     set -uo pipefail
     source "{{justfile_directory()}}/lib/common.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
     bf="brewfiles/Brewfile.$machine"
-    if [[ ! -f "$bf" ]]; then
-        err "$bf not found"
-        exit 1
-    fi
+    require_brewfile "$machine"
     here="{{justfile_directory()}}"
 
     # Brew side: cleanup dry-run for formula/cask/tap.
@@ -973,32 +812,12 @@ prune machine="":
     echo "$cleanup_out" | grep -qE '^Would uninstall|^[a-z]' && has_brew_extras=1
 
     # Flatpak side: installed minus Brewfile entries minus ignore list.
-    flatpaks_installed=""
-    command -v flatpak &>/dev/null && flatpaks_installed=$(flatpak list --app --columns=application 2>/dev/null || true)
-    flatpak_ignore=""
-    [[ -f "$here/assets/bazzite-flatpak-ignore.txt" ]] && \
-        flatpak_ignore=$(grep -vE '^\s*#|^\s*$' "$here/assets/bazzite-flatpak-ignore.txt" 2>/dev/null || true)
-    declare -a flatpak_extras=()
-    if [[ -n "$flatpaks_installed" ]]; then
-        declare -a expected_flatpaks=()
-        while IFS= read -r line; do
-            [[ "$line" =~ ^flatpak\ \"([^\"]+)\" ]] && expected_flatpaks+=("${BASH_REMATCH[1]}")
-        done < <(grep -vE '^\s*#|^\s*$' "$bf")
-        while IFS= read -r appid; do
-            [[ -z "$appid" ]] && continue
-            in_brewfile=0
-            for ef in "${expected_flatpaks[@]}"; do
-                [[ "$ef" == "$appid" ]] && in_brewfile=1 && break
-            done
-            (( in_brewfile )) && continue
-            if [[ -n "$flatpak_ignore" ]] && echo "$flatpak_ignore" | grep -qFx "$appid"; then
-                continue
-            fi
-            flatpak_extras+=("$appid")
-        done <<< "$flatpaks_installed"
-    fi
+    declare -a fp_extras=()
+    while IFS= read -r appid; do
+        [[ -n "$appid" ]] && fp_extras+=("$appid")
+    done < <(flatpak_extras "$bf" "$here/assets/bazzite-flatpak-ignore.txt")
 
-    if (( ! has_brew_extras && ${#flatpak_extras[@]} == 0 )); then
+    if (( ! has_brew_extras && ${#fp_extras[@]} == 0 )); then
         ok "Nothing to prune. $bf is in sync with the machine."
         exit 0
     fi
@@ -1007,10 +826,10 @@ prune machine="":
     if (( has_brew_extras )); then
         echo "$cleanup_out"
     fi
-    if (( ${#flatpak_extras[@]} > 0 )); then
+    if (( ${#fp_extras[@]} > 0 )); then
         (( has_brew_extras )) && echo
         echo "Flatpaks:"
-        printf '  %s\n' "${flatpak_extras[@]}"
+        printf '  %s\n' "${fp_extras[@]}"
     fi
     echo
     printf 'Uninstall these packages? [y/N] '
@@ -1019,8 +838,8 @@ prune machine="":
         if (( has_brew_extras )); then
             brew bundle cleanup --file="$bf" --formula --cask --tap --force
         fi
-        if (( ${#flatpak_extras[@]} > 0 )); then
-            flatpak uninstall -y "${flatpak_extras[@]}"
+        if (( ${#fp_extras[@]} > 0 )); then
+            flatpak uninstall -y "${fp_extras[@]}"
         fi
         ok "Pruned."
     else
@@ -1034,20 +853,9 @@ install-missing machine="":
     export SCRIPT_DIR="{{justfile_directory()}}"
     source "$SCRIPT_DIR/lib/common.sh"
     source "$SCRIPT_DIR/lib/install.sh"
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
     bf="brewfiles/Brewfile.$machine"
-    if [[ ! -f "$bf" ]]; then
-        err "$bf not found"
-        exit 1
-    fi
+    require_brewfile "$machine"
     # Trust third-party taps first so brew bundle can install casks/formulae
     # from ublue-os/tap etc. (Homebrew gates non-official taps behind trust).
     trust_brew_taps "$SCRIPT_DIR/../shared/brew-trusted-taps"
@@ -1242,15 +1050,7 @@ gnome-backup machine="":
         warn "gnome-backup is desktop-only (no gnome-shell on this host) — nothing to snapshot."
         exit 0
     fi
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_machine "Pick a machine (number, name, or new name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number, name, or new name): " "{{machine}}" create) || { warn "No machine selected, exiting."; exit 0; }
     out="{{justfile_directory()}}/assets/gnome/shell.${machine}.dconf"
     mkdir -p "$(dirname "$out")"
     # Full /org/gnome/shell/ dump — keep every section (including [/] so
@@ -1338,15 +1138,7 @@ gnome-restore machine="":
         warn "gnome-restore is desktop-only (no gnome-shell on this host) — skipping."
         exit 0
     fi
-    machine="{{machine}}"
-    if [[ -z "$machine" ]]; then
-        mapfile -t choices < <(ls brewfiles/Brewfile.* 2>/dev/null | xargs -n1 basename | sed 's/Brewfile\.//')
-        machine=$(pick_machine "Pick a machine (number or name): " "${choices[@]}")
-    fi
-    if [[ -z "$machine" ]]; then
-        warn "No machine selected, exiting."
-        exit 0
-    fi
+    machine=$(resolve_machine "Pick a machine (number or name): " "{{machine}}") || { warn "No machine selected, exiting."; exit 0; }
     shared="{{justfile_directory()}}/assets/gnome/shell.dconf"
     per_machine="{{justfile_directory()}}/assets/gnome/shell.${machine}.dconf"
     if [[ ! -f "$shared" && ! -f "$per_machine" ]]; then
@@ -1394,47 +1186,20 @@ ptyxis-restore:
 ghostty:
     #!/usr/bin/env bash
     set -uo pipefail
-    source "{{justfile_directory()}}/lib/common.sh"
-    src="{{justfile_directory()}}/assets/ghostty.config"
-    dst="$HOME/.config/ghostty/config"
-    if [[ ! -f "$src" ]]; then
-        err "$src not found"
-        exit 1
-    fi
-    mkdir -p "$(dirname "$dst")"
-    if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
-        cp "$dst" "$dst.bak"
-        info "Backed up existing config to $dst.bak"
-    fi
-    cp "$src" "$dst"
-    ok "Deployed Ghostty config to $dst"
+    export SCRIPT_DIR="{{justfile_directory()}}"
+    source "$SCRIPT_DIR/lib/common.sh"
+    source "$SCRIPT_DIR/lib/config.sh"
+    run_config_ghostty
 
 # Deploy opencode config from shared/ — main config, tui.json (selects the
 # hviid.cloud theme), and the hviid.cloud custom theme (transparent background).
 opencode:
     #!/usr/bin/env bash
     set -uo pipefail
-    source "{{justfile_directory()}}/lib/common.sh"
-    shared="{{justfile_directory()}}/../shared"
-    deploy() {
-        local src="$1" dst="$2"
-        if [[ ! -f "$src" ]]; then
-            err "$src not found"
-            return 1
-        fi
-        mkdir -p "$(dirname "$dst")"
-        if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
-            cp "$dst" "$dst.bak"
-            info "Backed up existing $dst to $dst.bak"
-        fi
-        cp "$src" "$dst"
-        ok "Deployed $dst"
-    }
-    # tui.json holds the theme selection — in opencode.json it's a stripped legacy key.
-    # The theme filename (minus .json) IS the theme name referenced by tui.json.
-    deploy "$shared/opencode.jsonc"      "$HOME/.config/opencode/opencode.jsonc"
-    deploy "$shared/opencode-tui.json"   "$HOME/.config/opencode/tui.json"
-    deploy "$shared/opencode-theme.json" "$HOME/.config/opencode/themes/hviid.cloud.json"
+    export SCRIPT_DIR="{{justfile_directory()}}"
+    source "$SCRIPT_DIR/lib/common.sh"
+    source "$SCRIPT_DIR/lib/config.sh"
+    run_config_opencode
 
 # Deploy the managed SSH host inventory (shared/ssh-shared.conf) to ~/.ssh/config.d/shared.conf and ensure ~/.ssh/config includes it (bootstrapped once; your Host */agent block is left untouched). On-LAN connects direct, off-LAN via the eternium jump.
 ssh-config:

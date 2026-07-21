@@ -37,15 +37,8 @@ Linux/
 ├── justfile                           ← install / update / backup / drift / zsh / speaker-eq / brave / ghostty / *-backup / *-restore
 └── README.md
 
-Windows/
-├── bootstrap.ps1                      ← one-time admin setup (Scoop, just, WSL, ssh-agent)
-├── justfile                           ← install / zsh / games
-├── profile.template.ps1               ← PowerShell profile template (BREW_PREFIX placeholder)
-├── brave-policy.json
-└── supportfiles/                      ← registry fixes, Windows Terminal settings
-
 shared/
-├── starship.toml                      ← Starship prompt config (all platforms)
+├── starship.toml                      ← Starship prompt config (Mac + Linux)
 ├── tmux.conf                          ← Tmux config (Mac + Linux)
 ├── ssh-shared.conf                     ← Managed SSH host inventory + home/away routing (Mac + Linux)
 ├── brew-trusted-taps                  ← Third-party Homebrew taps to `brew trust` (Mac + Linux)
@@ -112,42 +105,26 @@ Mac and Linux both use the same two-file split (Linux: introduced 2026-05; Mac: 
 
 `~/.zshrc.local` was the per-machine override file under the old single-file Mac model. Decommissioned 2026-05 — per-machine settings now go directly in `~/.zshrc`. Both `just zsh` recipes warn if the file still exists on a machine; `just drift` flags it.
 
-The templates use `BREW_PREFIX` as a placeholder, substituted at install time via `sed`. The `shared/starship.toml` config is shared across all platforms and deployed to `~/.config/starship.toml` by each platform's `just zsh` recipe.
-
-## Windows Workflow
-
-```powershell
-# First time only (as admin) — Scoop, just, WSL, ssh-agent
-.\bootstrap.ps1
-# Reboot here
-
-just install    # All apps (winget+scoop), CLI tools, fonts, Brave policy, registry fixes
-just zsh        # PowerShell profile, git config, Windows Terminal settings (re-runnable)
-just games      # Game launchers — Steam, Epic, etc. (optional)
-just            # list recipes
-```
+The templates use `BREW_PREFIX` as a placeholder, substituted at install time via `sed`. The `shared/starship.toml` config is shared across Mac + Linux and deployed to `~/.config/starship.toml` by each platform's `just zsh` recipe.
 
 ## Key Notes
 
 - **Never run justfile recipes, install scripts, or other destructive commands without explicit user consent.** These scripts install packages, modify system state, and open configuration profiles. When testing justfile changes, use `just --dry-run <recipe>` to inspect the generated script. Only run a recipe live if the user explicitly asks for it.
-- **Brave policy files — three independent files, one per platform's browser.** Linux runs Brave Origin (privacy-stripped variant); Mac and Windows run regular Brave. The files are no longer a shared set with mirroring rules — each platform owns what it deploys:
+- **Brave policy files — two independent files, one per platform's browser.** Linux runs Brave Origin (privacy-stripped variant); Mac runs regular Brave. The files are not a shared set with mirroring rules — each platform owns what it deploys:
   - **Mac (regular Brave):** `Mac/assets/brave-debloat.mobileconfig` (plist)
   - **Linux (Brave Origin):** `Linux/assets/brave-origin-policy.json` — the canonical source-of-truth for the Linux managed-policy content, and what `just drift` compares the deployed `/etc/brave/policies/managed/brave-policy.json` against. The image itself bakes its own byte-identical copy at `Stacks/services/bazzite-build/image/system_files/etc/brave/policies/managed/brave-policy.json` (inlined verbatim into the rootfs at image build — no external curl). To change the deployed policy: edit BOTH files (this repo for drift parity + future stock-Bazzite use; Stacks for what the daily image rebuild actually picks up), then on Eternium the 10:00 UTC `bazzite-build.timer` produces a fresh image and `ujust update` on each machine picks it up (that's what the "System Update" GUI entry at `/usr/share/applications/system-update.desktop` runs — wraps rpm-ostree upgrade + flatpak + brew + container updates). `just brave` was retired with the image rework — no in-place fix path from this repo.
-  - **Windows (regular Brave):** `Windows/brave-policy.json`
-  - The Brave Origin file deliberately omits a lot of policies that exist in the Mac/Windows files: (a) the ~14 toggles whose features are compiled out of the Origin binary (Wallet, Rewards, Leo, Tor, News, Talk, VPN, Playlist, Speedreader, Wayback Machine, P3A, Web Discovery, Stats Ping, IPFS) are dead bytes there, (b) PromotionalTabsEnabled stays ON so Brave's "what's new" tabs after updates are visible, (c) Privacy Sandbox is already off by default in Brave so the four explicit-disable keys are redundant. `just drift` on Linux flags any that show up at the deployed path as "extras" so old image versions get caught.
-  - Cross-platform settings still in all three files (DoH templates, Qwant default search, 1Password forcelist, autofill/payment toggles, AlternateErrorPagesEnabled, etc.) need updating in all three when changed. The relationship is parallel, not canonical-and-mirrors.
+  - The Brave Origin file deliberately omits a lot of policies that exist in the Mac file: (a) the ~14 toggles whose features are compiled out of the Origin binary (Wallet, Rewards, Leo, Tor, News, Talk, VPN, Playlist, Speedreader, Wayback Machine, P3A, Web Discovery, Stats Ping, IPFS) are dead bytes there, (b) PromotionalTabsEnabled stays ON so Brave's "what's new" tabs after updates are visible, (c) Privacy Sandbox is already off by default in Brave so the four explicit-disable keys are redundant. `just drift` on Linux flags any that show up at the deployed path as "extras" so old image versions get caught.
+  - Cross-platform settings in both files (DoH templates, Qwant default search, 1Password forcelist, autofill/payment toggles, AlternateErrorPagesEnabled, etc.) need updating in both when changed. The relationship is parallel, not canonical-and-mirrors.
 - **Git identity across all platforms is "Jakob Hviid, PhD" / jakob@hviid.phd** with `pull.rebase true`. Set by `just zsh` on Mac/Linux.
-- **Shell config changes must be applied to all locations.** Each platform has its own template:
+- **Shell config changes must be applied to both locations.** Each platform has its own template:
   - `Mac/assets/zshrc.template` + `Mac/justfile` zsh recipe
   - `Linux/assets/zshrc.template` + `Linux/justfile` zsh recipe (invoked by `install-bazzite.sh` via the `install_zsh_setup` helper)
-  - `Windows/profile.template.ps1` + `Windows/justfile` zsh recipe
 - **Ghostty config lives on both Mac and Linux** — `Mac/assets/ghostty.config` and `Linux/assets/ghostty.config`, each deployed verbatim to `~/.config/ghostty/config` by their respective `just ghostty` recipe (Linux also via `run_config_ghostty` in `lib/config.sh` during install-bazzite.sh Phase 2). No template substitution.
   - **Cross-platform settings — edit BOTH files in lockstep:** colors, palette, padding, cursor, background opacity/blur, font-feature, link, behavior toggles, initial window size (`window-width` / `window-height`), quick-terminal sizing/position/animation, shell-integration-features (SSH terminfo/env propagation), clipboard-read.
   - **Mac-only — edit Mac file only:** `macos-titlebar-style`, `macos-titlebar-proxy-icon`, `macos-option-as-alt`, `auto-update`, `cmd+*` keybinds (no `cmd` key on Linux).
   - **Linux-only — edit Linux file only:** `font-family = "FiraCode Nerd Font"` (Linux's Ghostty default is fontconfig's `monospace`, which has no ligatures; FiraCode is the strongest ligature font of the four Nerd Fonts installed by `just zsh` so we pin it explicitly), and the portal-related comments around `global:` keybinds. Mac's Ghostty bundles JetBrains Mono and doesn't need a `font-family` line.
   - **`background-blur-radius` on GNOME/Mutter is a silent no-op** (no compositor blur API). Kept in the file for forward-compat with KDE/Hyprland — don't remove it as "dead" code.
   - **Ghostty itself is installed by the bazzite-custom image on Linux** (not via Brewfile, not via this script). The repo only ships the config; the binary's lifecycle is image-side.
-  - **No Windows counterpart yet.** If Ghostty is added on Windows, treat it as a fourth file in the same sync set.
 - **Managed SSH config is shared** — `shared/ssh-shared.conf` (single source, like `starship.toml`) is the SSH **host inventory + home/away routing**, deployed to `~/.ssh/config.d/shared.conf` by `just ssh-config` on both platforms (Linux also via `run_config_ssh` in `lib/config.sh` during install-bazzite.sh Phase 2 — universal, runs on servers too). `~/.ssh/config` is bootstrapped once with `Include config.d/shared.conf` at the top, then left alone. **Agent config (1Password `IdentityAgent`, `ForwardAgent`) is deliberately NOT managed** — it stays in the user's own `Host *` block and differs per machine (desktops use the 1Password agent, servers a forwarded one); never put agent lines in `ssh-shared.conf`. Routing: on-LAN (machine holds a `192.168.1.x` addr) connect direct; off-LAN, internal hosts (`helios`/`nous`/`pve`) go through the `eternium` jump (`hviid.cloud`, key-only) — done with `Match … exec "<portable ip/ifconfig LAN test>"` blocks placed before the default `Host` blocks. `just update` (both platforms) re-deploys it. Verify routing with `ssh -G <host>`.
 - **opencode config is shared, not per-platform** — three files in `shared/` (single source of truth, like `starship.toml`/`tmux.conf`, since they're byte-identical cross-platform with no substitution) are deployed by `just opencode` on both Mac and Linux (Linux also via `run_config_opencode` in `lib/config.sh` during install-bazzite.sh Phase 2). The deploy is a small copy-with-backup loop; `just drift` byte-diffs all three on both platforms. **The three files and their targets:**
   - `shared/opencode.jsonc` → `~/.config/opencode/opencode.jsonc` — main config: internal `hviid.cloud` provider + model list + SearXNG MCP entry + `"share": "disabled"`. No secrets.
@@ -157,7 +134,7 @@ just            # list recipes
   - **opencode is installed via `brew "opencode"`** (homebrew/core, no tap) in all 6 Brewfiles — a deliberate exception to per-machine Brewfile divergence (the user wants it on every client), and it's not in the bazzite-custom image so brew is the right channel on Linux too.
 - **Per-machine Brewfile divergence is intentional.** Each machine serves a different purpose. Don't flag cross-machine package inconsistencies as issues.
 - **`install-bazzite.sh` is add-only and idempotent.** It detects what's already installed, prints a Plan, asks `Proceed? [y/N]`, then installs only what's missing. It never uninstalls — to drop an app, edit the relevant array (or `brewfiles/Brewfile.<machine>`) and uninstall the app manually.
-- **`install-bazzite.sh` is role-aware** (added 2026-07): the Linux fleet is not all desktops. **eternium and nous are headless servers** (Fedora CoreOS today — no gnome-shell/flatpak/brew/gext/just; they run `quay.io/fedora/fedora-coreos:stable`, not a jakobhviid image). Role is auto-detected via `is_desktop()` (`lib/install.sh`, = `command -v gnome-shell`), not a per-machine flag, and it doesn't care about the distro — an **Ubuntu/Debian server** takes the same headless path since the userspace tier (brew + zsh + opencode via the distro-agnostic `bootstrap.sh`) has no Fedora/rpm-ostree assumptions. On a **server** the script skips Phase 1 and all GUI config and runs userspace only (brew + zsh + Brewfile + opencode) — the server self-manages its OS, so we never rebase/cosign-trust it (the misdetection failure mode is safe: a server can't look like a desktop). `just update` / `just drift` skip flatpak/gext/desktop checks on servers, and `speaker-eq` / `gnome-*` / `ptyxis-*` / `extensions-sync` early-exit as desktop-only. Each server needs its own `brewfiles/Brewfile.<machine>` (eternium + nous exist). See MEMORY.md "two roles".
+- **`install-bazzite.sh` is role-aware** (added 2026-07): the Linux fleet is not all desktops. **eternium and nous are headless servers** (Fedora CoreOS today — no gnome-shell/flatpak/brew/gext/just; they run `quay.io/fedora/fedora-coreos:stable`, not a jakobhviid image). Role is auto-detected via `is_desktop()` (`lib/common.sh`, = `command -v gnome-shell`), not a per-machine flag, and it doesn't care about the distro — an **Ubuntu/Debian server** takes the same headless path since the userspace tier (brew + zsh + opencode via the distro-agnostic `bootstrap.sh`) has no Fedora/rpm-ostree assumptions. On a **server** the script skips Phase 1 and all GUI config and runs userspace only (brew + zsh + Brewfile + opencode) — the server self-manages its OS, so we never rebase/cosign-trust it (the misdetection failure mode is safe: a server can't look like a desktop). `just update` / `just drift` skip flatpak/gext/desktop checks on servers, and `speaker-eq` / `gnome-*` / `ptyxis-*` / `extensions-sync` early-exit as desktop-only. Each server needs its own `brewfiles/Brewfile.<machine>` (eternium + nous exist). See MEMORY.md "two roles".
 - **`install-bazzite.sh` is phase-aware** (desktops only), auto-detected via `rpm-ostree status`:
   - **Phase 1** (NOT yet on the bazzite-custom image): installs the vendored cosign pub key from `Linux/assets/bazzite-custom.pub`, drops a `/etc/containers/registries.d/` entry, JSON-merges a sigstoreSigned trust rule into `/etc/containers/policy.json`, then `rpm-ostree rebase` to the user's chosen image variant followed by `rpm-ostree install --idempotent proton-vpn-gnome-desktop`, then reboot prompt. Image variant is selected via `pick_image_variant`: detects NVIDIA hardware via `lspci`, preselects `bazzite-nvidia-custom` (NVIDIA) or `bazzite-custom` (no NVIDIA), and lets the user confirm/override via `pick_choice`.
   - **Phase 2** (already on the image): brew bootstrap → brew bundle → `gext` → `just zsh` → per-user `run_config_*`.
@@ -177,4 +154,3 @@ just            # list recipes
   - `config.sh` — per-user `run_config_*` (1password GNOME keybinding + dark titlebar, desktop overrides, PWAs, autostart with background-launch flags, localsend dark titlebar, GNOME shell, Ptyxis). Functions deleted in the image rework: `run_config_brave_policy`, `run_config_audio`, `run_config_unlock_services` — image bakes those.
 - **Linux `.desktop` icon/Exec overrides and autostart are configured once in `Linux/lib/config.sh`.** To add a new icon override: drop the file in `shared/app-icons/`, then add a `name|source|icon` row to the `overrides` array in `run_config_desktop_overrides`. To add an autostart app: add a `name|fallback-source` row to the `entries` array in `run_config_autostart`, plus a `case` branch if the autostart copy needs a background-launch flag injected (`--silent`, `--start-minimized`, `--background`, `--hidden`).
 - **Mac `lib/common.sh`** holds the same logger functions and `pick_choice` helper used by `Linux/lib/common.sh` — keep the two in sync if you change the picker contract.
-- `Windows/supportfiles/` contains registry fixes (network drive warning) and Windows Terminal settings.

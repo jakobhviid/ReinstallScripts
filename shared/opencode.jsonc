@@ -8,7 +8,11 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "nous",
       "options": {
-        "baseURL": "https://openai.hviid.cloud/v1"
+        "baseURL": "https://openai.hviid.cloud/v1",
+        // Personal bearer token, injected from the environment (never committed).
+        // Set NOUS_API_KEY per device — see the 1Password "opencode env" item.
+        // On the LAN it's unused (Caddy passes LAN through); off-LAN it's required.
+        "apiKey": "{env:NOUS_API_KEY}"
       },
       "models": {
         "cydonia-24b-v4.3-q4": { "name": "Cydonia 24B v4.3 Q4" },
@@ -80,7 +84,13 @@
       "command": ["npx", "-y", "mcp-searxng"],
       "enabled": true,
       "environment": {
-        "SEARXNG_URL": "https://websearch.hviid.cloud"
+        "SEARXNG_URL": "https://websearch.hviid.cloud",
+        // HTTP Basic Auth to the gated SearXNG endpoint. Username is fixed;
+        // password injected from the environment (never committed). Set
+        // SEARXNG_PASSWORD per device — same 1Password "opencode env" item.
+        // On the LAN it's unused (Caddy passes LAN through); off-LAN required.
+        "AUTH_USERNAME": "opencode",
+        "AUTH_PASSWORD": "{env:SEARXNG_PASSWORD}"
       }
     }
   },

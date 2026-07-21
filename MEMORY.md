@@ -277,6 +277,25 @@ rebase onto servers. Entry point on a fresh server is `./install-bazzite.sh
 distro-agnostic bootstrap.sh), then `just update` works like on desktops. Each
 server needs its own `brewfiles/Brewfile.<machine>` (eternium + nous exist).
 
+### Cider needs `StartupWMClass=cider` in its .desktop (image drops it)
+
+Cider (v2 "Genten", image-baked at `/usr/lib/Cider/Cider`, symlinked
+`/usr/bin/Cider`) is a **Wayland** Electron app whose window `app_id` is
+**`cider`** (lowercase). Its own reference launcher
+`/usr/lib/Cider/resources/Cider.desktop` declares `StartupWMClass=cider`, but
+the image-deployed `/usr/share/applications/Cider.desktop` **drops that line**.
+Without it GNOME can't bind the running Wayland window to the launcher → the app
+opens as a separate, generic-icon taskbar entry (our custom icon doesn't stick).
+
+**Fix:** `run_config_desktop_overrides` now supports an optional 4th field on an
+override row (`name|src|icon|StartupWMClass`); Cider's row sets `cider`, so the
+deployed override always carries `StartupWMClass=cider`. `xprop` can't see this
+(Wayland-native window, not XWayland) and GNOME Shell `Eval` is blocked
+(unsafe-mode off) — the authoritative WM_CLASS comes from Cider's bundled
+`resources/Cider.desktop`. After the fix, **quit and relaunch Cider** for GNOME
+to re-associate the window. If another app shows the same "separate window, no
+icon" symptom, it's the same cause — add its `app_id` as the 4th field.
+
 ### `fzf --zsh` stderr suppression in both zshrc templates
 
 Line in both `Mac/assets/zshrc.template` and `Linux/assets/zshrc.template`:

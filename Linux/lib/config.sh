@@ -200,7 +200,14 @@ run_config_desktop_overrides() {
 
     cp -u "$SCRIPT_DIR/../shared/app-icons/"* "$icon_dir/"
 
-    # name | source .desktop | icon filename (under shared/app-icons)
+    # name | source .desktop | icon filename (under shared/app-icons) | [StartupWMClass]
+    # The 4th field is optional — set it only for apps whose runtime window
+    # app_id / WM_CLASS differs from the .desktop id, so GNOME can bind the
+    # running window to this launcher (single dock entry + our icon). Cider is
+    # the case: it's a Wayland Electron app whose app_id is "cider", but the
+    # image-deployed /usr/share/applications/Cider.desktop drops the
+    # StartupWMClass that Cider's own resources/Cider.desktop ships — so the
+    # window floats free with a generic icon until we re-add it.
     local overrides=(
         "code.desktop|$HOME/.local/share/applications/code.desktop|code.png"
         "1password.desktop|/usr/share/applications/1password.desktop|1password.png"
@@ -213,12 +220,12 @@ run_config_desktop_overrides() {
         "vivaldi-stable.desktop|/usr/share/applications/vivaldi-stable.desktop|vivaldi-stable.png"
         "org.mozilla.firefox.desktop|/usr/share/applications/org.mozilla.firefox.desktop|org.mozilla.firefox.png"
         "claude-desktop-unofficial.desktop|/usr/share/applications/claude-desktop-unofficial.desktop|claude-desktop.png"
-        "Cider.desktop|/usr/share/applications/Cider.desktop|Cider.png"
+        "Cider.desktop|/usr/share/applications/Cider.desktop|Cider.png|cider"
         "dev.zed.Zed.desktop|/var/lib/flatpak/exports/share/applications/dev.zed.Zed.desktop|dev.zed.Zed.png"
     )
 
     for row in "${overrides[@]}"; do
-        IFS='|' read -r name src icon <<<"$row"
+        IFS='|' read -r name src icon wmclass <<<"$row"
         # If the user-level file is already there (brew casks deposit some
         # straight into ~/.local/share/applications), skip the copy step.
         if [[ ! -f "$app_dir/$name" ]]; then
@@ -229,6 +236,16 @@ run_config_desktop_overrides() {
             cp "$src" "$app_dir/$name"
         fi
         sed -i "s|^Icon=.*|Icon=$icon_dir/$icon|" "$app_dir/$name"
+        # Optional StartupWMClass fix (4th field) — replace if present, else
+        # append inside the [Desktop Entry] group (our sources have no trailing
+        # groups before it, so an append lands in the right group).
+        if [[ -n "$wmclass" ]]; then
+            if grep -q '^StartupWMClass=' "$app_dir/$name"; then
+                sed -i "s|^StartupWMClass=.*|StartupWMClass=$wmclass|" "$app_dir/$name"
+            else
+                printf 'StartupWMClass=%s\n' "$wmclass" >> "$app_dir/$name"
+            fi
+        fi
     done
 
     # One-time migration cleanup: older images shipped Claude Desktop as

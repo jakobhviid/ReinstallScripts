@@ -1,0 +1,54 @@
+# Clone of cat(1) with syntax highlighting and Git integration
+brew "bat"
+# Modern, maintained replacement for ls
+brew "eza"
+# Command-line fuzzy finder written in Go
+brew "fzf"
+# Replace zsh completion selection menu with fzf
+brew "fzf-tab"
+# GNU compiler collection
+brew "gcc"
+# Client library for huggingface.co hub
+brew "hf"
+# Lightweight and flexible command-line JSON processor
+brew "jq"
+# Handy way to save and run project-specific commands
+brew "just"
+# Simple terminal UI for git commands
+brew "lazygit"
+# Tools for monitoring the temperatures, voltages, and fans
+brew "lm-sensors"
+# Utility for testing the memory subsystem
+brew "memtester"
+# Smart session manager for the terminal
+brew "sesh"
+# SMART hard drive monitoring
+brew "smartmontools"
+# Cross-shell prompt for astronauts
+brew "starship"
+# Stress test a computer system in various selectable ways
+brew "stress-ng"
+# Terminal multiplexer
+brew "tmux"
+# Extraction utility for .zip compressed archives
+brew "unzip"
+# Shell extension to navigate your filesystem faster
+brew "zoxide"
+# Auto-close and delete matching delimiters in zsh
+brew "zsh-autopair"
+# Fish-like fast/unobtrusive autosuggestions for zsh
+brew "zsh-autosuggestions"
+# Additional completion definitions for zsh
+brew "zsh-completions"
+# Zsh port of Fish shell's history search
+brew "zsh-history-substring-search"
+# Fish shell like syntax highlighting for zsh
+brew "zsh-syntax-highlighting"
+# ZSH plugin that reminds you to use existing aliases for commands you just typed
+brew "zsh-you-should-use"
+# Terminal-based AI coding assistant
+cask "claude-code"
+cask "font-fira-code-nerd-font"
+cask "font-hack-nerd-font"
+cask "font-meslo-lg-nerd-font"
+cask "font-symbols-only-nerd-font"

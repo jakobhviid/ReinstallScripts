@@ -181,6 +181,36 @@ because his commit cadence is his own choice.
 
 ## Project
 
+### ublue desktop-customized casks are force-reinstalled before `brew bundle`
+
+`run_config_desktop_overrides` (in `Linux/lib/config.sh`) rewrites the `.desktop`
+launchers deposited into `~/.local/share/applications/` by two ublue casks —
+`ublue-os/tap/visual-studio-code-linux` (`code.desktop`) and
+`ublue-os/tap/1password-gui-linux` (`1password.desktop`) — changing `Icon=`
+(and `Exec=` for 1Password). These aren't cosmetic-only edits; they're
+deliberate.
+
+**Why the force step exists:** brew tracks that launcher as a cask artifact.
+Once we've modified it, a later `brew bundle` upgrade/reinstall of the cask
+aborts with a "modified artifact — use `--force`" error. Fixed by
+`reset_desktop_customized_casks` in `Linux/lib/install.sh`, called in
+`phase2_userspace` *before* `brew bundle`: it `brew reinstall --cask --force`s
+each already-installed cask in `DESKTOP_CUSTOMIZED_CASKS`, resetting the
+launcher to pristine so bundle upgrades cleanly. `run_config_desktop_overrides`
+re-applies the edits afterward.
+
+**How to apply:**
+- Reset runs *before* bundle (not after) so bundle never sees a modified
+  artifact — keep that ordering.
+- Only casks already installed are reset; on a fresh machine they don't exist
+  yet and bundle installs them clean, so the guard `brew list --cask <leaf>`
+  skips them.
+- If a new override in `run_config_desktop_overrides` targets a launcher that a
+  brew cask (not the image / not a flatpak) deposits, add that cask's
+  tap-qualified token to `DESKTOP_CUSTOMIZED_CASKS`. Image-baked
+  (`/usr/share/applications/…`) and flatpak (`/var/lib/flatpak/…`) sources
+  don't need it — brew doesn't manage those.
+
 ### `fzf --zsh` stderr suppression in both zshrc templates
 
 Line in both `Mac/assets/zshrc.template` and `Linux/assets/zshrc.template`:

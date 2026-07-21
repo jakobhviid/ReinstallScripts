@@ -46,6 +46,39 @@ ensure_gext() {
     fi
 }
 
+# ─── Casks whose .desktop launcher we customize ───────────────────────────────
+#
+# run_config_desktop_overrides (lib/config.sh) rewrites the launcher these
+# ublue casks deposit into ~/.local/share/applications/ — Icon= for both, plus
+# Exec= for 1Password. brew records that launcher as a cask artifact, so once
+# we've edited it a later `brew bundle` upgrade/reinstall of the cask aborts
+# ("…has been modified; use --force"). We pre-empt that by resetting each
+# affected cask to a pristine state *before* brew bundle runs, so bundle sees
+# clean artifacts and installs/upgrades normally; run_config_desktop_overrides
+# then re-applies our edits afterwards.
+#
+# Only casks already installed are reset — on a fresh machine they don't exist
+# yet, brew bundle installs them clean (nothing has modified the launcher yet),
+# and there's nothing to force. Full tap-qualified tokens; the leaf name is
+# what `brew list --cask` expects.
+DESKTOP_CUSTOMIZED_CASKS=(
+    "ublue-os/tap/visual-studio-code-linux"
+    "ublue-os/tap/1password-gui-linux"
+)
+
+reset_desktop_customized_casks() {
+    command -v brew &>/dev/null || return 0
+    local cask leaf
+    for cask in "${DESKTOP_CUSTOMIZED_CASKS[@]}"; do
+        leaf="${cask##*/}"
+        if brew list --cask "$leaf" &>/dev/null; then
+            info "Force-reinstalling $leaf (resets customized .desktop so brew bundle won't choke)"
+            brew reinstall --cask --force "$cask" \
+                || warn "brew reinstall of $cask failed — brew bundle may need --force"
+        fi
+    done
+}
+
 # ─── CLI tool install/uninstall ───────────────────────────────────────────────
 
 install_zsh_setup() {

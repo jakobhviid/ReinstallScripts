@@ -263,6 +263,10 @@ phase2_userspace() {
     # silently skip them. Per-user state in ~/.homebrew/trust.json — has to
     # run on every machine, can't be declared in the Brewfile itself.
     brew trust --tap ublue-os/tap colindean/fonts-nonfree 2>/dev/null || true
+    # Reset casks whose .desktop launcher run_config_desktop_overrides rewrites
+    # (VS Code, 1Password) to pristine BEFORE bundle, so brew's modified-artifact
+    # guard doesn't abort their upgrade. Overrides re-apply the edits later.
+    reset_desktop_customized_casks
     info "Applying Brewfile ($MACHINE)"
     brew bundle --file="$BREWFILE"
     ok "Brewfile applied"

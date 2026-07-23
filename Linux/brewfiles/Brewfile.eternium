@@ -1,4 +1,9 @@
 tap "joshmedeski/sesh"
+tap "jakobhviid/tap"
+# Speaker EQ calibration tool
+brew "jakobhviid/tap/pwtune"
+# Apple Music library manager (wraps gamdl)
+brew "jakobhviid/tap/amdl"
 # Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
 # Resource monitor. C++ version and continuation of bashtop and bpytop

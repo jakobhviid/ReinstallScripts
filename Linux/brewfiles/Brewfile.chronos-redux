@@ -27,6 +27,8 @@ tap "jakobhviid/tap"
 
 # Speaker EQ calibration tool
 brew "jakobhviid/tap/pwtune"
+# Apple Music library manager (wraps gamdl)
+brew "jakobhviid/tap/amdl"
 
 # Shell + CLI
 brew "bat"

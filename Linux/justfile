@@ -16,6 +16,7 @@ default:
     @echo "  just prune [machine]     Uninstall packages not in a machine's Brewfile (asks first)"
     @echo "  just install-missing [machine]   Install Brewfile entries that are missing on this machine"
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
+    @echo "  just eq-import           Import EQ profiles from the public pipewire-speaker-profiles repo into assets/speaker-eq/"
     @echo "  just speaker-eq [profile]  Install a PipeWire speaker EQ (auto-detects the connected speaker; 'all' installs every profile)"
     @echo "  just ghostty             Deploy assets/ghostty.config to ~/.config/ghostty/config"
     @echo "  just opencode            Deploy shared/opencode.jsonc to ~/.config/opencode/opencode.jsonc"
@@ -1019,6 +1020,32 @@ zsh:
 
     echo "✓ Zsh setup complete"
     echo "  Run 'exec zsh' to load changes"
+
+# Import speaker-EQ profiles from the public pipewire-speaker-profiles repo into
+# assets/speaker-eq/. Clones/updates it beside this repo (public — no auth), then
+# copies every *.calibrated.conf in, stripping the marker to a plain <name>.conf.
+# Profiles are authored with the `pwtune` CLI and published there. Review + commit
+# the result, then `just speaker-eq` installs. Override source with SPEAKER_PROFILES=/path.
+eq-import:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    src="${SPEAKER_PROFILES:-$(cd "{{justfile_directory()}}/../.." && pwd)/pipewire-speaker-profiles}"
+    url="https://github.com/jakobhviid/pipewire-speaker-profiles.git"
+    if [[ ! -d "$src/.git" ]]; then
+        info "Cloning pipewire-speaker-profiles…"
+        git clone "$url" "$src" || { err "Clone failed."; exit 1; }
+    else
+        info "Updating pipewire-speaker-profiles…"
+        git -C "$src" pull --ff-only 2>/dev/null || warn "Couldn't fast-forward; using the current checkout."
+    fi
+    dst="{{justfile_directory()}}/assets/speaker-eq"; mkdir -p "$dst"; n=0
+    while IFS= read -r f; do
+        base=$(basename "$f" .calibrated.conf)
+        cp "$f" "$dst/$base.conf"; ok "imported $base"; n=$((n+1))
+    done < <(find "$src" -name '*.calibrated.conf' | sort)
+    [[ $n -gt 0 ]] || { warn "No profiles found in $src."; exit 0; }
+    info "Imported $n profile(s). Review + commit assets/speaker-eq/, then: just speaker-eq"
 
 # Install a PipeWire filter-chain speaker EQ. Profiles live in assets/speaker-eq/
 # — one .conf per physical speaker, each with its own node name so more than one

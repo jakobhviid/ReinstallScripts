@@ -87,7 +87,8 @@ just update                          # upgrade brew/flatpak/zsh + re-apply machi
 just backup chronos-redux            # dump live brew + flatpak state to brewfiles/Brewfile.chronos-redux
 just drift chronos-redux             # show what's out of sync with the repo (read-only)
 just zsh                             # re-template ~/.zshrc.image (managed) + bootstrap ~/.zshrc (once) + tmux/tpm + git identity
-just speaker-eq [profile]            # PipeWire filter-chain EQ; picks a profile from assets/speaker-eq/*.conf (auto-detects the connected speaker; 'all' = every profile). Resolves each profile's node.target from its '# target-match:' monitor/speaker name, so the DELL profile is portable across the desktop's HDMI and the laptop's Thunderbolt DP.
+just eq-import                       # pull finalized profiles from the pipewire-speaker-calibration repo (the calibration "lab") into assets/speaker-eq/. Clones the lab via SSH beside this repo if absent, else ff-pulls, then copies calibrated/*.conf. Dependency lives here (consumer); the lab knows nothing about us. Review+commit, then just speaker-eq.
+just speaker-eq [profile]            # PipeWire filter-chain EQ; picks a profile from assets/speaker-eq/*.conf (auto-detects the connected speaker; 'all' = every profile). Resolves each profile's node.target from its '# target-match:' monitor/speaker name, so the DELL profile is portable across the desktop's HDMI and the laptop's Thunderbolt DP. Profiles here are vendored from the lab via eq-import.
 just ghostty                         # deploy assets/ghostty.config to ~/.config/ghostty/config
 just ssh-config                      # deploy shared/ssh-shared.conf to ~/.ssh/config.d/shared.conf (on-LAN direct, off-LAN via jump)
 just gnome-backup / just ptyxis-backup     # snapshot live dconf state to assets/

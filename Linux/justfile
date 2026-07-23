@@ -16,7 +16,6 @@ default:
     @echo "  just prune [machine]     Uninstall packages not in a machine's Brewfile (asks first)"
     @echo "  just install-missing [machine]   Install Brewfile entries that are missing on this machine"
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
-    @echo "  just eq-import           Pull finalized EQ profiles from the pipewire-speaker-calibration repo into assets/speaker-eq/"
     @echo "  just speaker-eq [profile]  Install a PipeWire speaker EQ (auto-detects the connected speaker; 'all' installs every profile)"
     @echo "  just ghostty             Deploy assets/ghostty.config to ~/.config/ghostty/config"
     @echo "  just opencode            Deploy shared/opencode.jsonc to ~/.config/opencode/opencode.jsonc"
@@ -1020,33 +1019,6 @@ zsh:
 
     echo "✓ Zsh setup complete"
     echo "  Run 'exec zsh' to load changes"
-
-# Import finalized speaker-EQ profiles from the pipewire-speaker-calibration repo
-# (the calibration "lab") into assets/speaker-eq/. Clones the lab via SSH beside
-# this repo if it isn't checked out, else fast-forwards it, then copies every
-# calibrated/*.conf in. The dependency lives HERE (the consumer) — the lab knows
-# nothing about us. Review + commit the result, then `just speaker-eq` installs.
-# Override the lab location with SPEAKER_EQ_LAB=/path.
-eq-import:
-    #!/usr/bin/env bash
-    set -uo pipefail
-    source "{{justfile_directory()}}/lib/common.sh"
-    lab="${SPEAKER_EQ_LAB:-$(cd "{{justfile_directory()}}/../.." && pwd)/pipewire-speaker-calibration}"
-    ssh_url="git@github.com:jakobhviid/pipewire-speaker-calibration.git"
-    if [[ ! -d "$lab/.git" ]]; then
-        warn "pipewire-speaker-calibration not checked out at $lab"
-        info "Cloning it via SSH…"
-        git clone "$ssh_url" "$lab" || { err "Clone failed (SSH key / access?)."; exit 1; }
-    else
-        info "Updating $(basename "$lab")…"
-        git -C "$lab" pull --ff-only 2>/dev/null || warn "Couldn't fast-forward; using the current checkout."
-    fi
-    src="$lab/calibrated"; dst="{{justfile_directory()}}/assets/speaker-eq"
-    [[ -d "$src" ]] || { err "No calibrated/ folder in the lab checkout."; exit 1; }
-    mkdir -p "$dst"; n=0; shopt -s nullglob
-    for f in "$src"/*.conf; do cp "$f" "$dst/"; ok "imported $(basename "$f" .conf)"; n=$((n+1)); done
-    [[ $n -gt 0 ]] || { warn "No calibrated profiles to import yet."; exit 0; }
-    info "Imported $n profile(s). Review + commit assets/speaker-eq/, then: just speaker-eq"
 
 # Install a PipeWire filter-chain speaker EQ. Profiles live in assets/speaker-eq/
 # — one .conf per physical speaker, each with its own node name so more than one

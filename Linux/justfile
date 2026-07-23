@@ -397,6 +397,26 @@ drift machine="":
 
     fi  # end desktop-only (brave + ghostty)
 
+    # ── speaker EQ profiles ────────────────────────────────────────────
+    # Vendored copies (assets/speaker-eq/<name>.conf) vs the canonical
+    # pipewire-speaker-profiles repo (<name>.calibrated.conf). Read-only; flags
+    # drift so you know when to re-run `just eq-import`. Skips if the profiles
+    # repo isn't checked out beside this one.
+    section "speaker EQ profiles"
+    profiles_src="${SPEAKER_PROFILES:-$(cd "$here/../.." && pwd)/pipewire-speaker-profiles}"
+    if [[ ! -d "$profiles_src/.git" ]]; then
+        ok_line "pipewire-speaker-profiles not checked out — skipping (run 'just eq-import' to fetch)"
+    else
+        eqd=0
+        while IFS= read -r f; do
+            base=$(basename "$f" .calibrated.conf)
+            d=$(file_drift "$f" "$here/assets/speaker-eq/$base.conf")
+            if [[ -z "$d" ]]; then ok_line "$base"; else fail_line "$base ($d)"; eqd=1; fi
+        done < <(find "$profiles_src" -name '*.calibrated.conf' | sort)
+        [[ $eqd -eq 0 ]] && ok_line "in sync with pipewire-speaker-profiles" \
+            || fixes+=("refresh vendored EQ profiles from the upstream repo|just eq-import")
+    fi
+
     # ── opencode ───────────────────────────────────────────────────────
     # Flat-file deploy of three shared files: main config, tui.json (theme
     # selection), and the hviid.cloud custom theme. Byte-for-byte diff each.

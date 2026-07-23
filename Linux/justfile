@@ -16,7 +16,7 @@ default:
     @echo "  just prune [machine]     Uninstall packages not in a machine's Brewfile (asks first)"
     @echo "  just install-missing [machine]   Install Brewfile entries that are missing on this machine"
     @echo "  just zsh                 Install/update Zsh plugins, config, and prompt theme"
-    @echo "  just speaker-eq          Install speaker EQ for thin laptop speakers"
+    @echo "  just speaker-eq [profile]  Install a PipeWire speaker EQ (auto-detects the connected speaker; 'all' installs every profile)"
     @echo "  just ghostty             Deploy assets/ghostty.config to ~/.config/ghostty/config"
     @echo "  just opencode            Deploy shared/opencode.jsonc to ~/.config/opencode/opencode.jsonc"
     @echo "  just ssh-config          Deploy managed SSH hosts to ~/.ssh/config.d/shared.conf (on-LAN direct, off-LAN via jump)"
@@ -1020,25 +1020,104 @@ zsh:
     echo "✓ Zsh setup complete"
     echo "  Run 'exec zsh' to load changes"
 
-# Install speaker EQ for thin laptop speakers (PipeWire filter-chain)
-speaker-eq:
+# Install a PipeWire filter-chain speaker EQ. Profiles live in assets/speaker-eq/
+# — one .conf per physical speaker, each with its own node name so more than one
+# can be active at once (e.g. a docked laptop using both its internal speakers
+# AND the monitor's). Each profile carries a "# target-match:" pattern instead of
+# a hardcoded sink: the recipe finds the matching sink NOW (by monitor EDID name,
+# node.name, etc.) and bakes its real node.name into node.target — so the DELL
+# profile works whether the monitor is on the desktop's HDMI or the laptop's
+# Thunderbolt/DisplayPort, which have different sink names. With no argument it
+# lists profiles and defaults to whichever one's target is connected; pass a name
+# to install one, or 'all'. Re-runnable: each profile deploys to its own
+# speaker-eq-<profile>.conf, so installing one never removes another.
+speaker-eq profile="":
     #!/usr/bin/env bash
-    if ! command -v gnome-shell >/dev/null 2>&1; then
-        echo "speaker-eq is desktop-only (needs PipeWire + a graphical session) — skipping on this headless host."
-        exit 0
+    set -uo pipefail
+    source "{{justfile_directory()}}/lib/common.sh"
+    is_desktop || { warn "speaker-eq is desktop-only (needs PipeWire + a graphical session) — skipping on this headless host."; exit 0; }
+
+    src="{{justfile_directory()}}/assets/speaker-eq"
+    dst="$HOME/.config/pipewire/pipewire.conf.d"
+    [[ -d "$src" ]] || { err "No speaker-eq profiles directory at $src"; exit 1; }
+
+    # Available profiles = basenames of assets/speaker-eq/*.conf
+    profiles=()
+    for f in "$src"/*.conf; do [[ -e "$f" ]] && profiles+=("$(basename "$f" .conf)"); done
+    [[ ${#profiles[@]} -gt 0 ]] || { err "No .conf profiles found in $src"; exit 1; }
+
+    # A profile's "# target-match:" pattern (what sink it should route to).
+    match_of() { sed -nE 's/^#[[:space:]]*target-match:[[:space:]]*(.+[^[:space:]])[[:space:]]*$/\1/p' "$src/$1.conf" | head -1; }
+    # Sink node.name(s) whose full pactl block matches a case-insensitive pattern.
+    # Matching on the whole block picks up node.nick / alsa.name (monitor EDID name)
+    # as well as node.name, so it's portable across GPUs/buses. Our own effect_*
+    # virtual sinks are excluded — their description carries the monitor name too,
+    # which would otherwise let a profile match (and target) itself.
+    resolve_sink() { pactl list sinks 2>/dev/null | awk -v pat="$1" 'BEGIN{RS=""} tolower($0) ~ tolower(pat) { if (match($0,/Name: [^\n]+/)) { n=substr($0,RSTART+6,RLENGTH-6); if (n !~ /^effect_(input|output)\./) print n } }'; }
+
+    # Default to the first profile whose target sink is connected right now.
+    default=""
+    for p in "${profiles[@]}"; do
+        m=$(match_of "$p"); [[ -n "$m" ]] || continue
+        if [[ -n "$(resolve_sink "$m")" ]]; then info "Connected speaker detected → profile '$p'"; default="$p"; break; fi
+    done
+
+    # Resolve selection: recipe argument, else interactive picker (with an 'all' option).
+    sel="{{profile}}"
+    [[ -z "$sel" ]] && sel=$(pick_choice "Pick a speaker profile (or 'all'): " "$default" "${profiles[@]}" "all")
+    [[ -n "$sel" ]] || { warn "Nothing selected, exiting."; exit 0; }
+
+    to_install=()
+    if [[ "$sel" == "all" ]]; then
+        to_install=("${profiles[@]}")
+    else
+        [[ -f "$src/$sel.conf" ]] || { err "Unknown profile '$sel'. Available: ${profiles[*]} (or 'all')"; exit 1; }
+        to_install=("$sel")
     fi
-    echo "Installing speaker EQ..."
-    mkdir -p ~/.config/pipewire/pipewire.conf.d
-    cp "{{justfile_directory()}}/assets/speaker-eq.conf" ~/.config/pipewire/pipewire.conf.d/speaker-eq.conf
+
+    mkdir -p "$dst"
+    # Migrate off the old single-file layout — its node name collides with the
+    # thinkpad-x1carbon profile's, so leaving it would load the filter twice.
+    if [[ -f "$dst/speaker-eq.conf" ]]; then warn "Removing legacy $dst/speaker-eq.conf (superseded by per-profile files)"; rm -f "$dst/speaker-eq.conf"; fi
+
+    # Deploy each selected profile, resolving its target sink and baking it in.
+    installed=()
+    for p in "${to_install[@]}"; do
+        m=$(match_of "$p")
+        if [[ -z "$m" ]]; then err "Profile '$p' has no '# target-match:' line — skipping."; continue; fi
+        mapfile -t hits < <(resolve_sink "$m")
+        if [[ ${#hits[@]} -eq 0 ]]; then
+            err "No sink matches '$m' for profile '$p' — is that speaker/monitor connected? Skipping."
+            echo "     Connected sinks:"; pactl list short sinks | awk '{print "       " $2}'
+            continue
+        elif [[ ${#hits[@]} -eq 1 ]]; then
+            target="${hits[0]}"
+        else
+            info "Profile '$p' matches several sinks — pick the target:"
+            target=$(pick_choice "Target sink for '$p': " "${hits[0]}" "${hits[@]}")
+        fi
+        [[ -n "$target" ]] || { warn "No target chosen for '$p' — skipping."; continue; }
+        sed -e "s|__TARGET_SINK__|$target|" "$src/$p.conf" > "$dst/speaker-eq-$p.conf"
+        ok "Installed '$p' → $target"
+        installed+=("$p")
+    done
+    [[ ${#installed[@]} -gt 0 ]] || { err "Nothing installed."; exit 1; }
+
+    info "Restarting PipeWire..."
     systemctl --user restart pipewire pipewire-pulse
     sleep 1
-    # Set the EQ sink as default output
-    node_id=$(wpctl status 2>/dev/null | grep 'effect_input.speaker_eq' | head -1 | grep -o '[0-9]\+' | head -1)
-    if [[ -n "$node_id" ]]; then
-        wpctl set-default "$node_id"
-        echo "✓ Speaker EQ active (node $node_id)"
-    else
-        echo "⚠ Filter loaded but could not find node ID — select 'Internal Speakers' in sound settings"
+
+    # Make the last-installed profile the default output.
+    last_node=""
+    for p in "${installed[@]}"; do
+        desc=$(grep -oE 'node\.description[[:space:]]*=[[:space:]]*"[^"]+"' "$src/$p.conf" | sed -E 's/.*"([^"]+)".*/\1/')
+        printf '  • %-20s → "%s"\n' "$p" "$desc"
+        last_node=$(grep -oE 'effect_input\.[A-Za-z0-9_]+' "$src/$p.conf" | head -1)
+    done
+    if [[ -n "$last_node" ]]; then
+        node_id=$(wpctl status 2>/dev/null | grep "$last_node" | head -1 | grep -o '[0-9]\+' | head -1)
+        if [[ -n "$node_id" ]]; then wpctl set-default "$node_id"; ok "Default output set to node $node_id ($last_node)"
+        else warn "Filter loaded but couldn't find its node ID — pick the EQ output in sound settings"; fi
     fi
 
 # Snapshot GNOME shell settings to assets/gnome/shell.<machine>.dconf — full /org/gnome/shell/ state minus transient bookkeeping and per-monitor panel keys.

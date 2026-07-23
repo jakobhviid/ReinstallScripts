@@ -71,7 +71,7 @@ Linux/
 │   ├── ptyxis.dconf                      ← per-user Ptyxis (terminal) dconf snapshot
 │   ├── pwa/                              ← Brave PWA .desktop files + icons
 │   ├── rename-devices.conf               ← canonical wireplumber renames (also in image; lives here as editable source)
-│   ├── speaker-eq.conf                   ← X1 Carbon-only PipeWire EQ
+│   ├── speaker-eq/                       ← PipeWire EQ profiles, one .conf per speaker (thinkpad-x1carbon, dell-u4025qw); installed by `just speaker-eq`
 │   └── zshrc.template                    ← shared zsh template (sources image-installed plugins from /usr/share/, brew-only ones from BREW_PREFIX)
 ├── lib/                                  ← shared bash helpers, sourced by install-bazzite.sh
 │   ├── common.sh                         ← loggers, confirm prompt, interactive picker
@@ -98,7 +98,7 @@ Run from the `Linux/` directory.
 | `just prune <machine>`           | Uninstall packages and flatpaks installed on this machine but not listed in the machine's Brewfile. Lists what would be uninstalled, asks first, then runs `brew bundle cleanup --force` and `flatpak uninstall -y`. Flatpak extras filtered through `assets/bazzite-flatpak-ignore.txt`. |
 | `just install-missing <machine>`         | Install Brewfile entries that are missing on this machine (formulas/casks/taps and flatpaks). Thin wrapper over `brew bundle install`. Additive only. |
 | `just zsh`                       | Re-template `~/.zshrc.image` (managed), bootstrap `~/.zshrc` once if missing, configure git/tmux/starship, install brew-only zsh plugins (image has the rest), set zsh as default |
-| `just speaker-eq`                | Install the PipeWire filter-chain EQ for thin laptop speakers (X1 Carbon Gen 13 only)        |
+| `just speaker-eq [profile]`      | Install a PipeWire filter-chain speaker EQ from `assets/speaker-eq/*.conf`. No arg → picks a profile, defaulting to the connected speaker (`all` installs every profile). Each profile resolves its target sink from a `# target-match:` monitor/speaker name, so the `dell-u4025qw` profile follows the monitor across the desktop's HDMI and the laptop's Thunderbolt DisplayPort. Profiles coexist (distinct virtual sinks), so a docked laptop can EQ both its internal speakers and the monitor. |
 | `just ghostty`                   | Deploy `assets/ghostty.config` to `~/.config/ghostty/config` (backs up any pre-existing differing config to `.bak`). Also runs as `run_config_ghostty` during install-bazzite.sh Phase 2. |
 | `just ssh-config`                | Deploy `shared/ssh-shared.conf` (host inventory + home/away routing) to `~/.ssh/config.d/shared.conf`; bootstrap an `Include` into `~/.ssh/config` once (your `Host *`/agent block is left untouched). On-LAN direct, off-LAN via the `eternium` jump. Also runs as `run_config_ssh` during install-bazzite.sh Phase 2 (universal — servers too). |
 | `just gnome-backup`              | Snapshot `/org/gnome/shell/` settings into `assets/gnome/shell.dconf`                        |

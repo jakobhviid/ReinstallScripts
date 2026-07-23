@@ -23,6 +23,10 @@
 
 tap "ublue-os/tap"
 tap "colindean/fonts-nonfree"
+tap "jakobhviid/tap"
+
+# Speaker EQ calibration tool
+brew "jakobhviid/tap/pwtune"
 
 # Shell + CLI
 brew "bat"

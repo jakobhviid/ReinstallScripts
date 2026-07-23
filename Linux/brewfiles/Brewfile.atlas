@@ -1,5 +1,7 @@
 tap "ublue-os/tap"
 tap "colindean/fonts-nonfree"
+tap "jakobhviid/tap"
+brew "jakobhviid/tap/pwtune"
 brew "bat"
 brew "dotnet"
 brew "eza"

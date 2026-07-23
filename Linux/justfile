@@ -38,7 +38,7 @@ install machine="":
     require_brewfile "$machine"
     "{{justfile_directory()}}/install-bazzite.sh" "$machine"
 
-# Update everything already installed (brew, flatpak, GNOME extensions, zsh toolchain incl. re-templating ~/.zshrc.image) and re-apply every per-user fix (desktop icon/Exec overrides, 1Password, PWAs, autostart, ghostty, opencode, managed SSH config). Machine-agnostic — takes no argument, and server-safe: on a headless/CoreOS image (no gnome-shell) the flatpak, GNOME-extension and .desktop-override steps are skipped, so brew/zsh/opencode still update. Does NOT install new Brewfile entries (use 'just install' / 'just install-missing'), does NOT reload the GNOME/Ptyxis dconf snapshots (those would overwrite live tweaks — use 'just gnome-restore' / 'just ptyxis-restore'), and does NOT touch the OS image (use 'ujust update').
+# Update everything already installed (brew, flatpak, GNOME extensions, zsh toolchain incl. re-templating ~/.zshrc.image) and re-apply every per-user fix (desktop icon/Exec overrides, 1Password, PWAs, autostart, ghostty, opencode, managed SSH config). Machine-agnostic — takes no argument, and server-safe: on a headless/CoreOS image (no gnome-shell) the flatpak, GNOME-extension and .desktop-override steps are skipped, so brew/zsh/opencode still update. Backfills the jakobhviid/tap tools (pwtune, amdl) if missing so they land on every machine via update, but otherwise does NOT install new Brewfile entries (use 'just install' / 'just install-missing' for the rest), does NOT reload the GNOME/Ptyxis dconf snapshots (those would overwrite live tweaks — use 'just gnome-restore' / 'just ptyxis-restore'), and does NOT touch the OS image (use 'ujust update').
 update:
     #!/usr/bin/env bash
     set -uo pipefail
@@ -71,6 +71,16 @@ update:
     info "Upgrading installed Homebrew packages"
     brew upgrade
     brew cleanup
+
+    # Backfill the jakobhviid/tap tools if missing — a targeted install-if-missing,
+    # NOT a full `brew bundle`, so update stays otherwise upgrade-only. The tap is
+    # trusted above; `brew install <tap>/<f>` auto-taps. This makes a newly-added
+    # tool like amdl land on `just update`, not only on `just install`.
+    for f in pwtune amdl; do
+        if brew list --formula "$f" &>/dev/null; then continue; fi
+        info "Installing jakobhviid/tap/$f (missing)"
+        brew install "jakobhviid/tap/$f" || warn "could not install jakobhviid/tap/$f"
+    done
 
     # Desktop vs headless: gate the GUI-only steps so this recipe runs cleanly
     # on both a graphical desktop and a headless/server image (CoreOS/bootc,

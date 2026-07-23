@@ -325,6 +325,7 @@ phase2_userspace() {
         run_config_ptyxis
         run_config_ghostty
         run_config_ghostty_keybinding
+        run_config_rustdesk
     fi
     # opencode + SSH config are wanted everywhere (eternium/nous run opencode
     # too, and the SSH host inventory is useful on servers).

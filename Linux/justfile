@@ -19,6 +19,7 @@ default:
     @echo "  just eq-import           Import EQ profiles from the public pipewire-speaker-profiles repo into assets/speaker-eq/"
     @echo "  just speaker-eq [profile]  Install a PipeWire speaker EQ (auto-detects the connected speaker; 'all' installs every profile)"
     @echo "  just ghostty             Deploy assets/ghostty.config to ~/.config/ghostty/config"
+    @echo "  just rustdesk            Deploy shared/rustdesk2.toml to native + Flatpak RustDesk2.toml (self-hosted server)"
     @echo "  just opencode            Deploy shared/opencode.jsonc to ~/.config/opencode/opencode.jsonc"
     @echo "  just ssh-config          Deploy managed SSH hosts to ~/.ssh/config.d/shared.conf (on-LAN direct, off-LAN via jump)"
     @echo "  just gnome-backup        Snapshot current GNOME shell settings"
@@ -124,6 +125,7 @@ update:
         run_config_ghostty_keybinding
     fi
     run_config_ghostty
+    run_config_rustdesk
     run_config_opencode
     run_config_ssh
 
@@ -415,6 +417,27 @@ drift machine="":
         else
             fail_line "$oc_label ($d)"
             fixes+=("re-deploy opencode config|just opencode")
+        fi
+    done
+
+    # ── rustdesk ───────────────────────────────────────────────────────
+    # Static client config from shared/rustdesk2.toml, deployed to both the
+    # native and Flatpak paths. Diff each independently.
+    section "rustdesk"
+    rd_src="$here/../shared/rustdesk2.toml"
+    for rd_dst in \
+        "$HOME/.config/rustdesk/RustDesk2.toml" \
+        "$HOME/.var/app/com.rustdesk.RustDesk/config/rustdesk/RustDesk2.toml"; do
+        rd_label="~/${rd_dst#$HOME/}"
+        d=$(file_drift "$rd_src" "$rd_dst")
+        if [[ -z "$d" ]]; then
+            ok_line "$rd_label"
+        elif [[ "$d" == missing ]]; then
+            fail_line "$rd_label (missing)"
+            fixes+=("deploy RustDesk config|just rustdesk")
+        else
+            fail_line "$rd_label ($d)"
+            fixes+=("re-deploy RustDesk config|just rustdesk")
         fi
     done
 
@@ -1296,6 +1319,15 @@ ghostty:
     source "$SCRIPT_DIR/lib/common.sh"
     source "$SCRIPT_DIR/lib/config.sh"
     run_config_ghostty
+
+# Deploy the RustDesk client config (shared/rustdesk2.toml) to both the native (~/.config/rustdesk/) and Flatpak (~/.var/app/com.rustdesk.RustDesk/config/rustdesk/) paths. Points the client at the self-hosted server (hviid.cloud) — no rustdesk.com account needed. Quit RustDesk first so it can't overwrite the file.
+rustdesk:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    export SCRIPT_DIR="{{justfile_directory()}}"
+    source "$SCRIPT_DIR/lib/common.sh"
+    source "$SCRIPT_DIR/lib/config.sh"
+    run_config_rustdesk
 
 # Deploy opencode config from shared/ — main config, tui.json (selects the
 # hviid.cloud theme), and the hviid.cloud custom theme (transparent background).

@@ -22,6 +22,7 @@ default:
     @echo "  just profile [name]       Install a macOS configuration profile (.mobileconfig)"
     @echo "  just zsh                  Set up Zsh with plugins, Starship prompt, and config"
     @echo "  just ghostty              Deploy Ghostty config to ~/.config/ghostty/config"
+    @echo "  just rustdesk             Deploy shared/rustdesk2.toml to RustDesk2.toml (self-hosted server)"
     @echo "  just opencode             Deploy opencode config to ~/.config/opencode/opencode.jsonc"
     @echo "  just ssh-config           Deploy managed SSH hosts to ~/.ssh/config.d/shared.conf (on-LAN direct, off-LAN via jump)"
     @echo ""
@@ -41,6 +42,7 @@ install machine="":
     just zsh
     just brave
     just ghostty
+    just rustdesk
     just opencode
     just ssh-config
 
@@ -263,6 +265,24 @@ drift machine="":
             fixes+=("re-deploy opencode config|just opencode")
         fi
     done
+
+    # ── rustdesk ───────────────────────────────────────────────────────
+    # Static client config from shared/rustdesk2.toml (self-hosted server).
+    # macOS has just the one native path (Flatpak is Linux-only).
+    section "rustdesk"
+    rd_src="$here/../shared/rustdesk2.toml"
+    rd_dst="$HOME/Library/Preferences/com.carriez.RustDesk/RustDesk2.toml"
+    rd_label="~/${rd_dst#$HOME/}"
+    d=$(file_drift "$rd_src" "$rd_dst")
+    if [[ -z "$d" ]]; then
+        ok_line "$rd_label"
+    elif [[ "$d" == missing ]]; then
+        fail_line "$rd_label (missing)"
+        fixes+=("deploy RustDesk config|just rustdesk")
+    else
+        fail_line "$rd_label ($d)"
+        fixes+=("re-deploy RustDesk config|just rustdesk")
+    fi
 
     # ── brewfile ───────────────────────────────────────────────────────
     section "brewfile (Brewfile.$machine)"
@@ -581,6 +601,15 @@ ghostty:
     source "{{justfile_directory()}}/lib/common.sh"
     deploy_file "{{justfile_directory()}}/assets/ghostty.config" "$HOME/.config/ghostty/config"
 
+# Deploy the RustDesk client config (shared/rustdesk2.toml) to the macOS config
+# path. Points the client at the self-hosted server (hviid.cloud) — no
+# rustdesk.com account needed. (Flatpak is Linux-only, so macOS has just this
+# one native file.) Quit RustDesk first so it can't overwrite the file.
+rustdesk:
+    #!/usr/bin/env zsh
+    source "{{justfile_directory()}}/lib/common.sh"
+    deploy_file "{{justfile_directory()}}/../shared/rustdesk2.toml" "$HOME/Library/Preferences/com.carriez.RustDesk/RustDesk2.toml"
+
 # Deploy opencode config from shared/ — main config, tui.json (selects the
 # hviid.cloud theme), and the hviid.cloud custom theme (transparent background).
 # tui.json holds the theme selection — in opencode.json it's a stripped legacy
@@ -621,6 +650,7 @@ update:
     info "Re-applying managed configs"
     just zsh
     just ghostty
+    just rustdesk
     just opencode
     just ssh-config
     echo

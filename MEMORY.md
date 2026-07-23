@@ -151,6 +151,26 @@ both platforms; Linux `run_config_ssh` in install too). `~/.ssh/config` gets an
 - Hosts + IPs are committed to a **public** repo deliberately: no secrets,
   private IPs non-routable, exposed host is key-only.
 
+### Self-hosted RustDesk — why, and the non-obvious server side
+`shared/rustdesk2.toml` points clients at our own RustDesk server instead of
+rustdesk.com. **Why:** the public rustdesk.com servers now require the
+*controller* to log in (Google/GitHub/etc.) before they'll relay — added to
+fight botnet/scam abuse. Self-hosting sidesteps the login wall entirely and is
+private. Client-config wiring is in CLAUDE.md; the parts not derivable from this
+repo:
+- **The server lives in the Stacks repo on Eternium**, not here — Podman Quadlet
+  units `rustdesk-hbbs` + `rustdesk-hbbr` (`docker.io/rustdesk/rustdesk-server`,
+  `Network=host`, `-k _` auto-key), state at `stacks/state/rustdesk/`. This repo
+  ships only the *client* config.
+- **RustDesk is NOT an HTTP service — it never touches Caddy.** It needs raw
+  ports **forwarded on the router to 192.168.1.4**: TCP 21115–21117 (+21118/9
+  for the web client) and **UDP 21116** (the one people forget). Caddy/443 being
+  reachable tells you nothing about whether RustDesk is exposed; test the raw
+  ports from outside (e.g. check-host.net). Host firewall was already open; the
+  gap was purely router port-forwarding.
+- **Quit RustDesk before `just rustdesk`** — a running client rewrites its own
+  toml on exit and can clobber a fresh deploy.
+
 ### Third-party brew taps must be trusted before every brew install/upgrade
 Homebrew 5.2+ gates non-official taps behind `brew trust`
 (`~/.homebrew/trust.json`); untrusted → install/upgrade/reinstall fails or is

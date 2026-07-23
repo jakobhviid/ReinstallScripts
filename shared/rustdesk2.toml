@@ -1,0 +1,18 @@
+# RustDesk client config — points every machine at the self-hosted RustDesk
+# server on Eternium (hbbs + hbbr, reached at hviid.cloud). Single source of
+# truth; deployed verbatim by `just rustdesk` (Mac + Linux) and by
+# install-bazzite.sh Phase 2. On Linux it lands at BOTH the native
+# (~/.config/rustdesk/RustDesk2.toml) and Flatpak
+# (~/.var/app/com.rustdesk.RustDesk/config/rustdesk/RustDesk2.toml) paths so it
+# works however RustDesk was installed; on macOS at
+# ~/Library/Preferences/com.carriez.RustDesk/RustDesk2.toml.
+#
+# These three keys under [options] are exactly what the client's
+# "Import Server Config" writes. `key` is the server's public key
+# (stacks/state/rustdesk/id_ed25519.pub on Eternium). RustDesk rewrites this
+# file with its own runtime keys on first run — that's expected; these settings
+# survive. No account / no rustdesk.com public server needed once this is set.
+[options]
+custom-rendezvous-server = 'hviid.cloud'
+relay-server = 'hviid.cloud'
+key = 'n8objyE3KGFbwbqF36ud7VvOSAomaPUWbbAcfS9aP24='

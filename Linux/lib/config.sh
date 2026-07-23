@@ -497,6 +497,31 @@ run_config_ghostty() {
     ok "Ghostty config deployed to $dst"
 }
 
+# Deploy the RustDesk client config (shared/rustdesk2.toml) to BOTH the native
+# and Flatpak config paths, so it takes effect however RustDesk was installed.
+# Static config — points the client at the self-hosted server (hviid.cloud).
+# Deployed verbatim, backup-on-change, like run_config_ghostty.
+run_config_rustdesk() {
+    local src="$SCRIPT_DIR/../shared/rustdesk2.toml"
+    if [[ ! -f "$src" ]]; then
+        warn "rustdesk2.toml not found at $src — skipping"
+        return
+    fi
+    info "Deploying RustDesk client config"
+    local dst
+    for dst in \
+        "$HOME/.config/rustdesk/RustDesk2.toml" \
+        "$HOME/.var/app/com.rustdesk.RustDesk/config/rustdesk/RustDesk2.toml"; do
+        mkdir -p "$(dirname "$dst")"
+        if [[ -f "$dst" ]] && ! diff -q "$src" "$dst" >/dev/null 2>&1; then
+            cp "$dst" "$dst.bak"
+            info "Backed up existing config to $dst.bak"
+        fi
+        cp "$src" "$dst"
+        ok "RustDesk config deployed to $dst"
+    done
+}
+
 # Deploy opencode config from shared/. Three flat-file copies (no template
 # substitution): the main config, tui.json (which selects the hviid.cloud
 # theme — theme is a stripped legacy key in opencode.json, so it must live in
